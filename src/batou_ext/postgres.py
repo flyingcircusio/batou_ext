@@ -13,20 +13,7 @@ class PostgresServer(batou.component.Component):
         self.provide('postgres', self)
 
 
-class PostgresData(batou.component.Component):
-
-    command_prefix = 'sudo -u postgres'
-
-    def configure(self):
-        self.require('postgres')
-        for component in self.require(
-                PostgresDataComponent.key, strict=False, reverse=True):
-            self += component
-
-
-class PostgresDataComponent(batou.component.HookComponent):
-
-    key = 'postgres:config'
+class PostgresDataComponent(batou.component.Component):
 
     def pgcmd(self, cmd, *args, **kw):
         return self.cmd('{} {}'.format(
