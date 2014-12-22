@@ -39,16 +39,16 @@ class DB(PostgresDataComponent):
 
 class User(PostgresDataComponent):
 
-    namevar = 'user'
+    namevar = 'name'
 
     def configure(self):
-        assert self.password is not None, "Password for %s is None" % self.user
+        assert self.password is not None, "Password for %s is None" % self.name
 
     def verify(self):
         os.environ['PGPASSWORD'] = self.password
         try:
             self.cmd(self.expand(
-                'psql -d postgres -c "SELECT true;" -U {{component.user}} '
+                'psql -d postgres -c "SELECT true;" -U {{component.name}} '
                 '-w -h localhost postgres'),
                 silent=True)
         except Exception:
@@ -56,7 +56,7 @@ class User(PostgresDataComponent):
 
     def update(self):
         command = self.expand(
-            'sh -c "echo \\\"CREATE USER {{component.user}} '
+            'sh -c "echo \\\"CREATE USER {{component.name}} '
             'PASSWORD \'{{component.password}}\' NOCREATEDB '
             'NOCREATEROLE NOSUPERUSER\\\" | psql -d postgres"'
         )
