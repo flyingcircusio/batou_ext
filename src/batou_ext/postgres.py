@@ -23,6 +23,7 @@ class PostgresDataComponent(batou.component.Component):
 class DB(PostgresDataComponent):
 
     namevar = 'db'
+    locale = 'en_US.UTF-8'
 
     def verify(self):
         try:
@@ -34,7 +35,8 @@ class DB(PostgresDataComponent):
 
     def update(self):
         self.pgcmd(self.expand(
-            'createdb -E UTF8 -O {{component.owner}} {{component.db}}'))
+            'createdb -l {{component.locale}} -O {{component.owner}} '
+            '{{component.db}}'))
 
 
 class User(PostgresDataComponent):
