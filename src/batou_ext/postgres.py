@@ -42,6 +42,7 @@ class User(PostgresDataComponent):
     namevar = 'name'
 
     def configure(self):
+        super(User, self).configure()
         assert self.password is not None, "Password for %s is None" % self.name
 
     def verify(self):
