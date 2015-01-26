@@ -55,6 +55,8 @@ class User(PostgresDataComponent):
                 '-w -h localhost'))
         except RuntimeError:
             raise batou.UpdateNeeded()
+        finally:
+            del os.environ['PGPASSWORD']
 
     def update(self):
         command = self.expand(
