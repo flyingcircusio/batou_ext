@@ -30,7 +30,7 @@ class DB(PostgresDataComponent):
             self.pgcmd(
                 self.expand('psql -c "SELECT true;" -d {{component.db}}'),
                 silent=True)
-        except Exception:
+        except RuntimeError:
             raise batou.UpdateNeeded()
 
     def update(self):
@@ -52,8 +52,8 @@ class User(PostgresDataComponent):
         try:
             self.cmd(self.expand(
                 'psql -d postgres -c "SELECT true;" -U {{component.name}} '
-        except Exception:
                 '-w -h localhost'))
+        except RuntimeError:
             raise batou.UpdateNeeded()
 
     def update(self):
