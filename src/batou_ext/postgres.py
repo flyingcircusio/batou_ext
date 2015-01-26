@@ -52,9 +52,8 @@ class User(PostgresDataComponent):
         try:
             self.cmd(self.expand(
                 'psql -d postgres -c "SELECT true;" -U {{component.name}} '
-                '-w -h localhost postgres'),
-                silent=True)
         except Exception:
+                '-w -h localhost'))
             raise batou.UpdateNeeded()
 
     def update(self):
