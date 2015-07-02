@@ -30,7 +30,7 @@ class DB(PostgresDataComponent):
             self.pgcmd(
                 self.expand('psql -c "SELECT true;" -d {{component.db}}'),
                 silent=True)
-        except RuntimeError:
+        except batou.utils.CmdExecutionError:
             raise batou.UpdateNeeded()
 
     def update(self):
@@ -53,7 +53,7 @@ class User(PostgresDataComponent):
             self.cmd(self.expand(
                 'psql -d postgres -c "SELECT true;" -U {{component.name}} '
                 '-w -h localhost'))
-        except RuntimeError:
+        except batou.utils.CmdExecutionError:
             raise batou.UpdateNeeded()
         finally:
             del os.environ['PGPASSWORD']
