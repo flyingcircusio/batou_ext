@@ -1,0 +1,10 @@
+# This file is managed by batou. DO NOT EDIT
+#
+# If changes are needed, send an email to support@gocept.com,
+# so we can update the deployment.
+
+hosts = {{component.db.address.connect.host}}
+user = {{component.db.username}}
+password = {{component.db.password}}
+dbname = {{component.db.database}}
+query = SELECT goto FROM alias WHERE address='%s' AND active = 1
