@@ -1,0 +1,14 @@
+# This file is managed by batou. DO NOT EDIT
+#
+# If changes are needed, send an email to support@gocept.com,
+# so we can update the deployment.
+
+smtp_bind_address = {{component.address.listen.host}}
+smtp_bind_address6 = {{component.address.listen.host_v6}}
+
+virtual_alias_maps = {{component.db.dbms}}:{{component.workdir}}/postfixadmin_virtual_alias
+virtual_mailbox_maps = {{component.db.dbms}}:{{component.workdir}}/postfixadmin_virtual_mailboxes
+virtual_mailbox_domains = {{component.db.dbms}}:{{component.workdir}}/postfixadmin_virtual_domains
+
+smtpd_tls_cert_file = {{component.keypair.crt_file.path}}
+smtpd_tls_key_file = {{component.keypair.key_file.path}}
