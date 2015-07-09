@@ -16,7 +16,6 @@ class FPM(Component):
         os.path.dirname(__file__), 'resources', 'php-fpm.conf')
 
     def configure(self):
-
         fpm_config = File('php-fpm.conf', source=self.php_fpm_conf)
         self += fpm_config
 

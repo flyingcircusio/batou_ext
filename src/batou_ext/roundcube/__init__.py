@@ -34,7 +34,7 @@ class Roundcube(Component):
         self.smtp_port = postfix.connect.port
 
         self.basedir = self.map('roundcube')
-#        self.provide('roundcube', self)
+        self.provide('roundcube', self)
 
         self += Directory('download')
         download = Download(
@@ -51,7 +51,8 @@ class Roundcube(Component):
             source=self.map(
                 'roundcube.orig/roundcubemail-{}'.format(self.release)))
 
-        self.db_dsnw = 'mysql://{}:{}@{}/{}'.format(
+        self.db_dsnw = '{}://{}:{}@{}/{}'.format(
+            self.db.dbms,
             self.db.username,
             self.db.password,
             self.db.address.connect.host,
@@ -61,4 +62,5 @@ class Roundcube(Component):
             self.basedir + '/config/config.inc.php',
             source=self.config)
 
-        self += FPM('roundcube', address=self.address)
+        self.fpm = FPM('roundcube', address=self.address)
+        self += self.fpm

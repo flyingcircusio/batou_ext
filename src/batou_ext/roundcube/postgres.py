@@ -1,5 +1,4 @@
-from batou.component import Component, Attribute
-from batou.utils import Address
+from batou.component import Component
 from batou_ext.postgres import DB, User
 
 

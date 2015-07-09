@@ -26,7 +26,7 @@ class PFA(Component):
     def configure(self):
         self.db = self.require_one('pfa::database')
         self.postfix = self.require_one('postfix')
-#        self.provide('pfa', self)
+        self.provide('pfa', self)
 
         self.basedir = self.map('postfixadmin')
 
@@ -46,7 +46,8 @@ class PFA(Component):
 
         self += File(self.basedir + '/config.local.php', source=self.config)
 
-        self += FPM('postfixadmin', adress=self.address)
+        self.fpm = FPM('postfixadmin', adress=self.address)
+        self += self.fpm
 
     @property
     def admin_password_encrypted(self):
