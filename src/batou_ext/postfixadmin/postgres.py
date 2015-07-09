@@ -1,5 +1,4 @@
-from batou.component import Component, Attribute
-from batou.utils import Address
+from batou.component import Component
 from batou_ext.postgres import DB, User
 
 
@@ -12,7 +11,7 @@ class PFADatabase(Component):
     dbms = 'pgsql'
 
     command_prefix = ''
-    locale = 'en_US.UTF-8'
+    locale = 'en_US.utf8'
 
     def configure(self):
         dbserver = self.require_one('postgres')

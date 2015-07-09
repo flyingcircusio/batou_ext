@@ -11,7 +11,7 @@ class RoundcubeDatabase(Component):
     dbms = 'pgsql'
 
     command_prefix = ''
-    locale = 'en_US.UTF-8'
+    locale = 'en_US.utf8'
 
     def configure(self):
         dbserver = self.require_one('postgres')
