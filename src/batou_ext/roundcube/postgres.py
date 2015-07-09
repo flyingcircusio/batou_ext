@@ -10,7 +10,7 @@ class RoundcubeDatabase(Component):
 
     dbms = 'pgsql'
 
-    command_prefix = 'sudo -u postgres'
+    command_prefix = ''
     locale = 'en_US.UTF-8'
 
     def configure(self):
