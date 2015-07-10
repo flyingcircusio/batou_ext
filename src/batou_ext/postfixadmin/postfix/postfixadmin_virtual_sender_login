@@ -7,4 +7,4 @@ hosts = {{component.db.address.connect.host}}
 user = {{component.db.username}}
 password = {{component.db.password}}
 dbname = {{component.db.database}}
-query = SELECT username AS allowedUser FROM mailbox WHERE username='%s' AND active = 1 UNION SELECT goto FROM alias WHERE address='%s' AND active = 1
+query = SELECT username AS allowedUser FROM mailbox WHERE username='%s' AND active = True UNION SELECT goto FROM alias WHERE address='%s' AND active = True

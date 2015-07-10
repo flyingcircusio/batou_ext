@@ -7,4 +7,4 @@ hosts = {{component.db.address.connect.host}}
 user = {{component.db.username}}
 password = {{component.db.password}}
 dbname = {{component.db.database}}
-query = SELECT domain FROM domain WHERE domain='%s' AND active = 1
+query = SELECT domain FROM domain WHERE domain='%s' AND active = True

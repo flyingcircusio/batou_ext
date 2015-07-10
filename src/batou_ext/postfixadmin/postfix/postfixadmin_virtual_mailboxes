@@ -7,5 +7,5 @@ hosts = {{component.db.address.connect.host}}
 user = {{component.db.username}}
 password = {{component.db.password}}
 dbname = {{component.db.database}}
-query = SELECT username FROM mailbox WHERE username='%s' AND active = 1
+query = SELECT username FROM mailbox WHERE username='%s' AND active = True
 
