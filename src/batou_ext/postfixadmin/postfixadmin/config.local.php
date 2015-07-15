@@ -7,11 +7,7 @@
 $CONF['configured'] = true;
 $CONF['setup_password'] = '{{component.admin_password_encrypted}}';
 
-{% if component.db.dbms == 'pgsql' -%}
-$CONF['database_type'] = 'postgresql';
-{% else %}
 $CONF['database_type'] = '{{component.db.dbms}}';
-{% endif -%}
 $CONF['database_host'] = '{{component.db.address.connect.host}}';
 $CONF['database_user'] = '{{component.db.username}}';
 $CONF['database_password'] = '{{component.db.password}}';
