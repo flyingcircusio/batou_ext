@@ -85,16 +85,18 @@ class RoundcubeInit(Component):
                     self.roundcube.db.database,
                     self.roundcube.db.username,
                     self.roundcube.basedir))
-            if not 'roundcube' in result[0]:
+            if not 'contact' in result[0]:
                 raise UpdateNeeded()
         finally:
             del os.environ['PGPASSWORD']
 
     def update(self):
+        os.environ['PGPASSWORD'] = self.roundcube.db.password
         self.cmd(
             'psql -h {} -d {} -U {} -f {}/SQL/postgres.initial.sql'.format(
                 self.roundcube.db.address.connect.host,
                 self.roundcube.db.database,
                 self.roundcube.db.username,
                 self.roundcube.basedir))
+        del os.environ['PGPASSWORD']
 
