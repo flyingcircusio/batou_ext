@@ -19,3 +19,4 @@ class RoundcubeDatabase(Component):
         self.provide('roundcube::database', self)
         self += User(self.username, password=self.password)
         self += DB(self.database, owner=self.username, locale=self.locale)
+

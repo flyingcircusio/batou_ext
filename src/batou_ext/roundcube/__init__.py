@@ -1,3 +1,4 @@
+from batou import UpdateNeeded
 from batou.component import Component, Attribute
 from batou.lib.archive import Extract
 from batou.lib.download import Download
@@ -64,3 +65,36 @@ class Roundcube(Component):
 
         self.fpm = FPM('roundcube', address=self.address)
         self += self.fpm
+
+        self += RoundcubeInit(self)
+
+
+class RoundcubeInit(Component):
+
+    namevar = 'roundcube'
+
+    def verify(self):
+        os.environ['PGPASSWORD'] = self.roundcube.db.password
+        try:
+            result = self.cmd(
+                'psql -h {} -U {} -d {} -c '
+                '"SELECT * FROM information_schema.tables '
+                'WHERE table_schema=\'public\' '
+                'AND table_catalog=\'roundcube\';"'.format(
+                    self.roundcube.db.address.connect.host,
+                    self.roundcube.db.database,
+                    self.roundcube.db.username,
+                    self.roundcube.basedir))
+            if not 'roundcube' in result[0]:
+                raise UpdateNeeded()
+        finally:
+            del os.environ['PGPASSWORD']
+
+    def update(self):
+        self.cmd(
+            'psql -h {} -d {} -U {} -f {}/SQL/postgres.initial.sql'.format(
+                self.roundcube.db.address.connect.host,
+                self.roundcube.db.database,
+                self.roundcube.db.username,
+                self.roundcube.basedir))
+
