@@ -20,4 +20,4 @@ class PFAPostfixFC(Component):
         self.parent.assert_no_changes()
 
     def update(self):
-        self.cmd('sudo -n /etc/init.d/postfix reload')
+        self.cmd('sudo -n /etc/init.d/postfix restart')
