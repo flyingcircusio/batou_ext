@@ -20,8 +20,8 @@ setup(
         'test': [
         ],
     },
-    author='Christian Theune <ct@gocept.com>',
-    author_email='ct@gocept.com',
+    author='Christian Theune <ct@flyingcircus.io>',
+    author_email='ct@flyingcircus.io',
     license='BSD (2-clause)',
     url='https://plan.flyingcircus.io/projects/batou/',
     keywords='deployment',

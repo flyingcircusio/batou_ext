@@ -1,6 +1,6 @@
 # This file is managed by batou. DO NOT EDIT
 #
-# If changes are needed, send an email to support@gocept.com,
+# If changes are needed, send an email to support@flyingcircus.io,
 # so we can update the deployment.
 
 smtp_bind_address = {{component.address.listen.host}}
