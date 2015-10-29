@@ -9,6 +9,8 @@ class KeyPair(Component):
     crt = None
     key = None
 
+    provide_itself = Attribute(bool, True)
+
     def configure(self):
         self.crt_file = File('{}.crt'.format(self.name), content=self.crt)
         self += self.crt_file
@@ -17,4 +19,6 @@ class KeyPair(Component):
                              mode=0o600)
         self += self.key_file
 
-        self.provide('keypair::{}'.format(self.name), self)
+        if self.provide_itself == True:
+            self.provide('keypair::{}'.format(self.name), self)
+
