@@ -20,6 +20,8 @@ class Roundcube(Component):
     checksum = 'sha1:a53a2d17bce9c382bc7b62bb76d2dce94d55b1f8'
 
     address = Attribute(Address, '127.0.0.1:9000')
+    skin = 'larry'
+    support_url = 'http://localhost'
 
     smtp_user = '%u'
     smtp_pass = '%p'
