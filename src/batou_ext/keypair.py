@@ -1,4 +1,4 @@
-from batou.component import Component
+from batou.component import Component, Attribute
 from batou.lib.file import File
 
 
