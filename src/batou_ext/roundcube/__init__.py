@@ -16,8 +16,8 @@ class Roundcube(Component):
     configuration.
     """
 
-    release = '1.1.1'
-    checksum = 'sha1:a53a2d17bce9c382bc7b62bb76d2dce94d55b1f8'
+    release = '1.1.4'
+    checksum = 'sha256:9bfe88255d4ffc288f5776de1cead78352469b1766d5ebaebe6e28043affe181'
 
     address = Attribute(Address, '127.0.0.1:9000')
     skin = 'larry'
