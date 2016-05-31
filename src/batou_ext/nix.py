@@ -1,7 +1,7 @@
 import batou
 import batou.component
 import batou.lib.service
-import os.environ
+import os
 import pkg_resources
 
 
