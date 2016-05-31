@@ -1,0 +1,13 @@
+[Unit]
+Description={{component.name}}
+
+[Service]
+Environment="LOCALE_ARCHIVE={{component.env['LOCALE_ARCHIVE']}}"
+Environment="PATH={{component.env['PATH']}}"
+Environment="TZDIR={{component.env['TZDIR']}}"
+Type=forking
+
+User={{component.environment.service_user}}
+Group=service
+
+ExecStart={{component.root.workdir}}/{{component.executable}}
