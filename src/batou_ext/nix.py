@@ -67,6 +67,6 @@ class UserInit(batou.component.Component):
         self.name = os.path.basename(self.executable)
         self += batou.lib.file.File(
             '/etc/local/systemd/supervisor.service',
-            content=pkg_resources.resource_stream(
+            content=pkg_resources.resource_string(
                 'batou_ext', 'resources/supervisor.service'))
         self += Rebuild()
