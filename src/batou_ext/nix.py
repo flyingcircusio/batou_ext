@@ -1,5 +1,6 @@
 import batou
 import batou.component
+import batou.lib.cron
 import batou.lib.service
 import os
 import pkg_resources
@@ -70,3 +71,8 @@ class UserInit(batou.component.Component):
             content=pkg_resources.resource_string(
                 'batou_ext', 'resources/supervisor.service'))
         self += Rebuild()
+
+
+@batou.component.platform('nixos', batou.lib.cron.CronTab)
+class InstallCrontab(batou.lib.cron.InstallCrontab):
+    """Install crontab with crontab command."""
