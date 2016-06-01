@@ -76,3 +76,6 @@ class UserInit(batou.component.Component):
 @batou.component.platform('nixos', batou.lib.cron.CronTab)
 class InstallCrontab(batou.lib.cron.InstallCrontab):
     """Install crontab with crontab command."""
+
+    def update(self):
+        self.cmd(self.expand('cat {{component.crontab.path}} | crontab -'))
