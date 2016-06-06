@@ -14,6 +14,7 @@ class FPM(Component):
     php_fpm = '/usr/bin/php-fpm'
     php_fpm_conf = os.path.join(
         os.path.dirname(__file__), 'resources', 'php-fpm.conf')
+    service_check = True
 
     def configure(self):
         fpm_config = File('php-fpm.conf', source=self.php_fpm_conf)
@@ -23,12 +24,13 @@ class FPM(Component):
             self.proc,
             command='{} -y {}'.format(self.php_fpm, fpm_config.path))
 
-        self += ServiceCheck(
-            '{} FCGI port'.format(self.proc),
-            nrpe=True,
-            name='{}_FCGI_port'.format(self.proc),
-            command=self.expand(
-                '/usr/lib/nagios/plugins/check_tcp '
-                '-p {{component.address.connect.port}} '
-                '-H {{component.address.connect.host}} '
-                '-w 3 -c 10 -t 60'))
+        if self.service_check:
+            self += ServiceCheck(
+                '{} FCGI port'.format(self.proc),
+                nrpe=True,
+                name='{}_FCGI_port'.format(self.proc),
+                command=self.expand(
+                    '/usr/lib/nagios/plugins/check_tcp '
+                    '-p {{component.address.connect.port}} '
+                    '-H {{component.address.connect.host}} '
+                    '-w 3 -c 10 -t 60'))
