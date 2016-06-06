@@ -19,6 +19,5 @@ class KeyPair(Component):
                              mode=0o600)
         self += self.key_file
 
-        if self.provide_itself == True:
+        if self.provide_itself:
             self.provide('keypair::{}'.format(self.name), self)
-
