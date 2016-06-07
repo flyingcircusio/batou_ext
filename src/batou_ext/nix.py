@@ -16,6 +16,7 @@ class Package(batou.component.Component):
     """
 
     namevar = 'package'
+    attribute = None
 
     def verify(self):
         stdout, stderr = self.cmd('nix-env --query')
@@ -23,7 +24,10 @@ class Package(batou.component.Component):
             raise batou.UpdateNeeded()
 
     def update(self):
-        self.cmd('nix-env -i {}'.format(self.package))
+        if self.attribute:
+            self.cmd('nix-env -iA {}'.format(self.attribute))
+        else:
+            self.cmd('nix-env -i {}'.format(self.package))
 
 
 class Rebuild(batou.component.Component):
