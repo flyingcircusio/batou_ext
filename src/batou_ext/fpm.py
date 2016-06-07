@@ -15,6 +15,7 @@ class FPM(Component):
     php_fpm_conf = os.path.join(
         os.path.dirname(__file__), 'resources', 'php-fpm.conf')
     service_check = True
+    dependencies = ()
 
     def configure(self):
         fpm_config = File('php-fpm.conf', source=self.php_fpm_conf)
@@ -22,7 +23,8 @@ class FPM(Component):
 
         self += Program(
             self.proc,
-            command='{} -y {}'.format(self.php_fpm, fpm_config.path))
+            command='{} -y {}'.format(self.php_fpm, fpm_config.path),
+            dependencies=(self,) + tuple(self.dependencies))
 
         if self.service_check:
             self += ServiceCheck(
