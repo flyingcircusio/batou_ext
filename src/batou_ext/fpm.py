@@ -14,6 +14,8 @@ class FPM(Component):
     php_fpm = '/usr/bin/php-fpm'
     php_fpm_conf = os.path.join(
         os.path.dirname(__file__), 'resources', 'php-fpm.conf')
+    # Path for a custom php.ini
+    php_ini = ''
     service_check = True
     dependencies = ()
 
@@ -21,9 +23,13 @@ class FPM(Component):
         fpm_config = File('php-fpm.conf', source=self.php_fpm_conf)
         self += fpm_config
 
+        commandstr = '{} -y {}'.format(self.php_fpm, fpm_config.path)
+        if self.php_ini:
+            commandstr += ' -c {}'.format(self.php_ini)
+
         self += Program(
             self.proc,
-            command='{} -y {}'.format(self.php_fpm, fpm_config.path),
+            command=commandstr,
             dependencies=(self,) + tuple(self.dependencies))
 
         if self.service_check:
