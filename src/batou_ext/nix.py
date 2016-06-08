@@ -3,6 +3,7 @@ import batou.component
 import batou.lib.cron
 import batou.lib.service
 import os
+import os.path
 import pkg_resources
 
 
@@ -17,6 +18,12 @@ class Package(batou.component.Component):
 
     namevar = 'package'
     attribute = None
+    file = None
+
+    def configure(self):
+        if self.file:
+            if not os.path.isabs(self.file):
+                self.file = os.path.join(self.defdir, self.file)
 
     def verify(self):
         stdout, stderr = self.cmd('nix-env --query')
@@ -26,8 +33,11 @@ class Package(batou.component.Component):
     def update(self):
         if self.attribute:
             self.cmd('nix-env -iA {}'.format(self.attribute))
+        elif self.file:
+            self.cmd('nix-env -if {}'.format(self.file))
         else:
             self.cmd('nix-env -i {}'.format(self.package))
+
 
 
 class Rebuild(batou.component.Component):
