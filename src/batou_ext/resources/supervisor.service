@@ -8,6 +8,7 @@ Environment="TZDIR={{component.env['TZDIR']}}"
 Type=forking
 
 LimitNOFILE=64000
+LimitNPROC=64173
 
 User={{component.environment.service_user}}
 Group=service
