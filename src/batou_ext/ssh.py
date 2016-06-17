@@ -22,7 +22,7 @@ class SSHKeyPair(Component):
         if self.provide_itself:
             self.provide('sshkeypair', self)
 
-        self += Directory('~/.ssh', mode=0o711)
+        self += Directory('~/.ssh', mode=0o700)
 
         if self.id_rsa:
             self += File('~/.ssh/id_rsa',
