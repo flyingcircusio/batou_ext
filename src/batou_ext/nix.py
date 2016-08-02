@@ -1,7 +1,10 @@
 import batou
 import batou.component
 import batou.lib.cron
+import batou.lib.file
+import batou.lib.nagios
 import batou.lib.service
+import json
 import os
 import os.path
 import pkg_resources
@@ -37,7 +40,6 @@ class Package(batou.component.Component):
             self.cmd('nix-env -if {}'.format(self.file))
         else:
             self.cmd('nix-env -i {}'.format(self.package))
-
 
 
 class Rebuild(batou.component.Component):
@@ -93,3 +95,25 @@ class InstallCrontab(batou.lib.cron.InstallCrontab):
 
     def update(self):
         self.cmd(self.expand('cat {{component.crontab.path}} | crontab -'))
+
+
+class SensuChecks(batou.component.Component):
+
+    default_interval = 60
+
+    def configure(self):
+        self.services = self.require(batou.lib.nagios.Service.key,
+                                     host=self.host)
+        checks = {}
+        for service in self.services:
+            assert getattr(service, 'name', None)
+            checks[service.name] = dict(
+                interval=getattr(service, 'interval', self.default_interval),
+                standalone=True,
+                command=service.expand(
+                    '{{component.command}} {{component.args}}'))
+
+        sensu = dict(checks=checks)
+        self += batou.lib.file.File(
+            '/etc/local/sensu-client/batou.json',
+            content=json.dumps(sensu, sort_keys=True, indent=4))
