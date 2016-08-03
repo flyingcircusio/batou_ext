@@ -19,5 +19,5 @@ class ACL(batou.component.Component):
             'getfacl -cpE {}'.format(self.path),
             communicate=False)
         outs, errs = proc.communicate()
-        if outs.strip() != '\n'.join(self.ruleset):
+        if sorted(outs.strip().split('\n')) != sorted(self.ruleset):
             raise batou.UpdateNeeded
