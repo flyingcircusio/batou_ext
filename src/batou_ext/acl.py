@@ -11,7 +11,7 @@ class ACL(batou.component.Component):
 
     def update(self):
         proc = self.cmd('setfacl --set-file=- "{}"'.format(self.path),
-                communicate=False)
+                        communicate=False)
         outs, errs = proc.communicate(input='\n'.join(self.ruleset))
 
     def verify(self):
