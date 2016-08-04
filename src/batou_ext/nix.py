@@ -2,6 +2,7 @@ import batou
 import batou.component
 import batou.lib.cron
 import batou.lib.file
+import batou.lib.logrotate
 import batou.lib.nagios
 import batou.lib.service
 import json
@@ -117,3 +118,16 @@ class SensuChecks(batou.component.Component):
         self += batou.lib.file.File(
             '/etc/local/sensu-client/batou.json',
             content=json.dumps(sensu, sort_keys=True, indent=4))
+
+
+@batou.component.platform('nixos', batou.lib.logrotate.Logrotate)
+class LogrotateIntegration(batou.component.Component):
+
+    def configure(self):
+        user = self.environment.service_user
+        user_logrotate_conf = os.path.join(
+            '/etc/local/logrotate', user, 'batou.conf')
+        self += batou.lib.file.File(
+            user_logrotate_conf,
+            ensure='symlink',
+            link_to=self.parent.logrotate_conf.path)
