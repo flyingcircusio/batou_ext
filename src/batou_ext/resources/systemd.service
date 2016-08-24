@@ -4,8 +4,8 @@ Description={{component.name}}
 # {{component.checksum}}
 
 [Service]
-Environment="PATH={{component.env['PATH']}"
-Environment="TZDIR={{component.env['TZDIR']}"
+Environment="PATH={{component.env['PATH']}}"
+Environment="TZDIR={{component.env['TZDIR']}}"
 
 {% for key, value in component.service %}
 {{key}={{value}}
