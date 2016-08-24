@@ -8,5 +8,5 @@ Environment="PATH={{component.env['PATH']}}"
 Environment="TZDIR={{component.env['TZDIR']}}"
 
 {% for key, value in component.service %}
-{{key}={{value}}
+{{key}}={{value}}
 {% endfor %}
