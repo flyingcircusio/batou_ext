@@ -1,0 +1,12 @@
+# Managed by Batou.
+[Unit]
+Description={{component.name}}
+# {{component.checksum}}
+
+[Service]
+Environment="PATH={{component.env['PATH']}}"
+Environment="TZDIR={{component.env['TZDIR']}}"
+
+{% for key, value in component.service %}
+{{key}={{value}}
+{%endfor %}

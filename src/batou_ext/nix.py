@@ -83,10 +83,22 @@ class UserInit(batou.component.Component):
         self.env = os.environ
         self.executable = self.parent.executable
         self.name = os.path.basename(self.executable)
+
+        self.service = dict(
+            Type='forking',
+            LimitNOFILE='64000',
+            LimitNPROC='64173',
+            LimitSIGPENDING='64173',
+            User=self.environment.service_user,
+            Group='service',
+            ExecStart=os.path.join(self.root.workdir, self.executable))
+
+        self.service.update(getattr(self.parent, 'systemd', {}))
+        self.checksum = getattr(self.parent, 'checksum', '')
         self += batou.lib.file.File(
-            '/etc/local/systemd/supervisor.service',
+            '/etc/local/systemd/{}.service'.format(self.name),
             content=pkg_resources.resource_string(
-                'batou_ext', 'resources/supervisor.service'))
+                'batou_ext', 'resources/systemd.service'))
         self += Rebuild()
 
 
