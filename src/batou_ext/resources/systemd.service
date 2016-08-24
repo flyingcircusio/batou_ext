@@ -7,6 +7,6 @@ Description={{component.name}}
 Environment="PATH={{component.env['PATH']}}"
 Environment="TZDIR={{component.env['TZDIR']}}"
 
-{% for key, value in component.service %}
+{% for key, value in component.service.items() %}
 {{key}}={{value}}
 {% endfor %}
