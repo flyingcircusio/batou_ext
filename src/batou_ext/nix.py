@@ -105,6 +105,7 @@ class UserInit(batou.component.Component):
     def env(self):
         env = collections.defaultdict(dict)
         env.update(os.environ)
+        return env
 
 
 @batou.component.platform('nixos', batou.lib.cron.CronTab)
