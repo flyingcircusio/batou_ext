@@ -4,6 +4,7 @@ Description={{component.name}}
 # {{component.checksum}}
 
 [Service]
+Environment="LOCALE_ARCHIVE={{component.env['LOCALE_ARCHIVE']}}"
 Environment="PATH={{component.env['PATH']}}"
 Environment="TZDIR={{component.env['TZDIR']}}"
 

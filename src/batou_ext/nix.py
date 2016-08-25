@@ -5,6 +5,7 @@ import batou.lib.file
 import batou.lib.logrotate
 import batou.lib.nagios
 import batou.lib.service
+import collections
 import json
 import os
 import os.path
@@ -80,7 +81,6 @@ class UserInit(batou.component.Component):
     """
 
     def configure(self):
-        self.env = os.environ
         self.executable = self.parent.executable
         self.name = os.path.basename(self.executable)
 
@@ -100,6 +100,11 @@ class UserInit(batou.component.Component):
             content=pkg_resources.resource_string(
                 'batou_ext', 'resources/systemd.service'))
         self += Rebuild()
+
+    @property
+    def env(self):
+        env = collections.defaultdict(dict)
+        env.update(os.environ)
 
 
 @batou.component.platform('nixos', batou.lib.cron.CronTab)
