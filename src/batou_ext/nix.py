@@ -67,7 +67,7 @@ class Rebuild(batou.component.Component):
             self.parent.assert_no_subcomponent_changes()
 
     def update(self):
-        self.cmd('sudo systemctl start fc-manage')
+        self.cmd('sudo fc-manage --build')
 
 
 @batou.component.platform('nixos', batou.lib.service.Service)
