@@ -70,6 +70,23 @@ class Rebuild(batou.component.Component):
         self.cmd('sudo fc-manage --build')
 
 
+def rebuild(cls):
+    """Class decctorator easily allow rebuild in multi platform environments.
+
+    This is possible and useful because restarting or reconfiguring services
+    on NixOS always is *just* a rebuild.
+
+    Usage::
+
+        @batou_ext.nix.rebuild
+        class Foo(batou.component.Component):
+            ...
+
+    """
+    cls._add_platform('nixos', Rebuild)
+    return cls
+
+
 @batou.component.platform('nixos', batou.lib.service.Service)
 class UserInit(batou.component.Component):
     """Start services on fc platform.
