@@ -4,7 +4,6 @@ with pkgs.python34Packages;
 buildPythonPackage {
   name = "impurePythonEnv";
   buildInputs = [
-    {{component.python}}
     {% for pkg in component.nix_packages %}
     {pkg}
     {% endfor %}
