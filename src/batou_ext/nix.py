@@ -194,7 +194,7 @@ class PythonWithNixPackages(batou.component.Component):
             'setupEnv-{}'.format(self.python), mode=0o755,
             content=pkg_resources.resource_string(
                 'batou_ext', 'resources/setupEnv.sh'))
-        self.provide(self.python, os.path.join(self.workdir, self.pthon))
+        self.provide(self.python, os.path.join(self.workdir, self.python))
 
     def verify(self):
         self.assert_no_subcomponent_changes()
