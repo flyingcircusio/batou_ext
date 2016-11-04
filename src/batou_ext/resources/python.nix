@@ -5,8 +5,7 @@ buildPythonPackage {
   name = "impurePythonEnv";
   buildInputs = [
     {% for pkg in component.nix_packages %}
-    {pkg}
-    {% endfor %}
+    {{pkg}}{% endfor %}
     stdenv ];
   src = null;
   # When used as `nix-shell --pure`
