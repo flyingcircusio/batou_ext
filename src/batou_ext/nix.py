@@ -166,3 +166,41 @@ class LogrotateIntegration(batou.component.Component):
             user_logrotate_conf,
             ensure='symlink',
             link_to=self.parent.logrotate_conf.path)
+
+
+class PythonWithNixPackages(batou.component.Component):
+    """Provide a python interpreter which contains packages from nix.
+
+    Usage:
+
+
+    Provides "python3.5" pointing to the path of the executable.
+
+    """
+
+    python = None  # expython interpreter, "python3.5"
+    nix_packages = ()  # sequence of nix package attributes
+
+    def configure(self):
+        self += batou.lib.file.File(
+            '{}.nix'.format(self.python),
+            content=pkg_resources.resource_string(
+                'batou_ext', 'resources/python.nix'))
+        self += batou.lib.file.File(
+            '{}}.c'.format(self.python),
+            content=pkg_resources.resource_string(
+                'batou_ext', 'resources/loader.c'))
+        self += batou.lib.file.File(
+            'setupEnv-{}'.format(self.python), mode=0o755,
+            content=pkg_resources.resource_string(
+                'batou_ext', 'resources/setupEnv.sh'))
+        self.provide(self.python, os.path.join(self.workdir, self.pthon))
+
+    def verify(self):
+        self.assert_no_subcomponent_changes()
+
+    def update(self):
+        self.cmd('gcc {}.c -o {}'.format(self.python, self.python))
+        # Start up once to load all dependencies here and not upon the first
+        # use:
+        self.cmd('./{} -c True'.format(self.python))
