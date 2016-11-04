@@ -187,7 +187,7 @@ class PythonWithNixPackages(batou.component.Component):
             content=pkg_resources.resource_string(
                 'batou_ext', 'resources/python.nix'))
         self += batou.lib.file.File(
-            '{}}.c'.format(self.python),
+            '{}.c'.format(self.python),
             content=pkg_resources.resource_string(
                 'batou_ext', 'resources/loader.c'))
         self += batou.lib.file.File(
