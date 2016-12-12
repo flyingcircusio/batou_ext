@@ -1,8 +1,7 @@
 import batou
 import batou.component
 import batou.lib.file
-import passlib
-
+import passlib.hash.sha512_crypt
 
 class HTPasswd(batou.component.Component):
 
