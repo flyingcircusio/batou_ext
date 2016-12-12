@@ -124,6 +124,9 @@ class UserInit(batou.component.Component):
         env.update(os.environ)
         return env
 
+    def start(self):
+        self.cmd('sudo systemctl start {}'.format(self.name))
+
 
 @batou.component.platform('nixos', batou.lib.cron.CronTab)
 class InstallCrontab(batou.lib.cron.InstallCrontab):
