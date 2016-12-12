@@ -4,12 +4,15 @@ import batou.lib.cron
 import batou.lib.file
 import batou.lib.logrotate
 import batou.lib.nagios
+import batou.utils
 import batou.lib.service
+import batou.lib.supervisor
 import collections
 import json
 import os
 import os.path
 import pkg_resources
+import time
 
 
 class Package(batou.component.Component):
@@ -126,6 +129,39 @@ class UserInit(batou.component.Component):
 
     def start(self):
         self.cmd('sudo systemctl start {}'.format(self.name))
+
+
+@batou.component.platform('nixos', batou.lib.supervisor.RunningSupervisor)
+class FixSupervisorStartedBySystemd(batou.component.Component):
+    """For some, yet unknown reason, supervisor is not started with systemd.
+
+    To fix it, we need to restart supervisor.
+
+    """
+
+    def verify(self):
+        if not self.parent.is_running():
+            # Well, if it's not running, somethign is really hosed.
+            return
+        try:
+            self.cmd('sudo systemctl status supervisord')
+        except batou.utils.CmdExecutionError:
+            # Aha. IT's running, but not by systemd!
+            raise batou.UpdateNeeded
+
+    def update(self):
+        self.cmd('bin/supervisorctl shutdown')
+        wait = 60
+        while wait:
+            out, err = '', ''
+            out, err = self.cmd('bin/supervisorctl pid',
+                                ignore_returncode=True)
+            if 'no such file' in out:
+                break
+            time.sleep(1)
+            wait -= 1
+
+        self.cmd('sudo systemctl start supervisord')
 
 
 @batou.component.platform('nixos', batou.lib.cron.CronTab)
