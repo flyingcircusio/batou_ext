@@ -2,7 +2,7 @@ import batou.component
 import batou.lib.cron
 import batou.lib.download
 import batou.lib.file
-
+import pkg_resources
 
 class Certificate(batou.component.Component):
 
@@ -39,7 +39,8 @@ class Certificate(batou.component.Component):
 
         self += batou.lib.file.File(
             'cert-{}.sh'.format(self.domain),
-            source='cert.sh',
+            content=pkg_resources.resource_string(
+                'batou_ext', 'resources/cert.sh'),
             mode=0o700)
         self.cert_sh = self._
 
