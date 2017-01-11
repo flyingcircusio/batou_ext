@@ -7,9 +7,9 @@ import pkg_resources
 class Certificate(batou.component.Component):
 
     dehydrated_url = (
-        "https://github.com/lukas2511/dehydrated/raw/"
-        "3c1d2673d1f0f8da717bcbc516fdd2b29fb1cf0a")
-    dehydrated_checksum = 'md5:a8e5a427532e613a316f81c2f01bfc60'
+        "https://github.com/lukas2511/dehydrated/blob/"
+        "b36d638a910ce7c6be0bb8330d1d945a653f70af/dehydrated")
+    dehydrated_checksum = 'md5:3765a83ad4ecb222dfe447ff1fdc2c60'
 
     domain = None
 
