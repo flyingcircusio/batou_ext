@@ -9,7 +9,7 @@ class Certificate(batou.component.Component):
     dehydrated_url = (
         "https://github.com/lukas2511/dehydrated/blob/"
         "b36d638a910ce7c6be0bb8330d1d945a653f70af/dehydrated")
-    dehydrated_checksum = 'md5:3765a83ad4ecb222dfe447ff1fdc2c60'
+    dehydrated_checksum = 'md5:a1717e1952ef19ad6153dc8f536597fc'
 
     domain = None
 
