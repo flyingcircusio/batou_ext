@@ -43,13 +43,13 @@ class DNSAliases(batou.component.Component):
 
     """
 
-    postfix = None
+    postfix = ''
     project = None
     api_key = None
 
     def configure(self):
+        assert self.project
         self.calls = []
-        assert self.postfix
         for host in self.environment.hosts.values():
             self._add_calls(
                 host.name, 'srv', host.data.get('alias-srv'))
@@ -76,5 +76,5 @@ class DNSAliases(batou.component.Component):
         aliases.sort()
         self.calls.append(dict(
             __type__='virtualmachine',
-            name=hostname,
+            name=hostname + self.postfix,
             aliases=aliases))
