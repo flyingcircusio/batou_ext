@@ -74,7 +74,7 @@ class DNSAliases(batou.component.Component):
         if aliases_str:
             aliases.extend(aliases_str.split())
         aliases.sort()
-        self.calls.append(dict(
-            __type__='virtualmachine',
-            name=hostname + self.postfix,
-            aliases=aliases))
+        self.calls.append({
+            '__type__': 'virtualmachine',
+            'name': hostname + self.postfix,
+            'aliases_' + interface: aliases})
