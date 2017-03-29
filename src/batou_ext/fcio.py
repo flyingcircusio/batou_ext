@@ -107,6 +107,7 @@ class DNSAliases(batou.component.Component):
 
     def _check_aliases(self):
         error = False
+        results = []
         for alias in self.aliases:
             fqdn = '{}.{}.{}.fcio.net'.format(
                 alias, self.postfix, self.project)
