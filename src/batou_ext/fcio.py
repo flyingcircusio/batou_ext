@@ -123,7 +123,7 @@ class DNSAliases(batou.component.Component):
                 error = True
             else:
                 result = ', '.join(
-                    canonname
+                    sockaddr[0]
                     for (family, type, proto, canonname, sockaddr) in addrs)
             results.append('{}: {}'.format(fqdn, result))
         return error, results
