@@ -98,12 +98,16 @@ class DNSAliases(batou.component.Component):
         batou.output.line('Waiting up to %s seconds for aliases.'
                           % self.wait_for_aliases)
         started = time.time()
+        error = True
         while started + self.wait_for_aliases > time.time():
             error, results = self._check_aliases()
             for result in results:
                 batou.output.line(result)
-            if error:
-                time.sleep(10)
+            if not error:
+                break
+            time.sleep(10)
+        if error:
+            raise RuntimeError('Aliases did not resolve in time.')
 
     def _check_aliases(self):
         error = False
