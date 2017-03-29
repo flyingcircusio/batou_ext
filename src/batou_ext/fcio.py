@@ -109,7 +109,7 @@ class DNSAliases(batou.component.Component):
         error = False
         results = []
         for alias in self.aliases:
-            fqdn = '{}.{}.{}.fcio.net'.format(
+            fqdn = '{}{}.{}.fcio.net'.format(
                 alias, self.postfix, self.project)
             try:
                 addrs = socket.getaddrinfo(
