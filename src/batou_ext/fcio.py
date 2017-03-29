@@ -99,7 +99,7 @@ class DNSAliases(batou.component.Component):
                           % self.wait_for_aliases)
         started = time.time()
         while started + self.wait_for_aliases > time.time():
-            error, results = self._check_aliases
+            error, results = self._check_aliases()
             for result in results:
                 output.line(result)
             if error:
