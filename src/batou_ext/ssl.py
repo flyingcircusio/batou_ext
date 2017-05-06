@@ -11,6 +11,7 @@ class Certificate(batou.component.Component):
         "b36d638a910ce7c6be0bb8330d1d945a653f70af/dehydrated")
     dehydrated_checksum = 'md5:5670eedfda142835130a2220641bb582'
 
+    namevar = 'domain'
     domain = None
 
     wellknown = None
