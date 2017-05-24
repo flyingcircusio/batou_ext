@@ -55,6 +55,7 @@ class DNSAliases(batou.component.Component):
 
     def configure(self):
         assert self.project
+        self.provide('dnsaliases', self)
         self.calls = []
         self.aliases = []
         for host in self.environment.hosts.values():
