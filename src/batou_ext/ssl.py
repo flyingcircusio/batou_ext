@@ -1,12 +1,43 @@
+
 import batou.component
 import batou.lib.cron
 import batou.lib.download
 import batou.lib.file
 import pkg_resources
+import os
 import os.path
+import tempfile
 
 
 class Certificate(batou.component.Component):
+    """SSL certificate management using let's encrypt -- or not
+
+    Usage:
+
+        # Add certificate component. After this step, a key and certificate
+        # is available. In case of Let's Encrypt it's a self-signed one.
+        self.cert = Certificate(
+            self.public_name,
+            docroot=self.docroot,
+            key_content=self.key_content,
+            crt_content=self.crt_content,
+            use_letsencrypt=self.letsencrypt
+        )
+        self += self.cert
+
+        # Configure web server. Use `key` and `fullchain` attributes to get
+        # the paths to the key and the certificate:
+        self += batou.lib.file.File(
+            '/etc/local/nginx/myconfig.conf')
+
+        # Activate the configuration.
+        self += batou_ext.nix.Rebuild()
+
+        # Actually get a proper Let's Encrypt certificate. This step does
+        # nothing, if you don't use LE.
+        self += self.cert.activate_letsencrypt()
+
+    """
 
     # Let's Encrypt
     dehydrated_url = (
@@ -45,6 +76,11 @@ class Certificate(batou.component.Component):
             self.fullchain = self.crt_file.path
 
         else:
+            # Okay, let's encrypt it is. There are two situations:
+            # 1. bootstrap -- there is nothing.
+            # 2. there already is a cert, either replace it with
+            #    LE or refresh existing LE.
+
             self += batou.lib.download.Download(
                 self.dehydrated_url,
                 checksum=self.dehydrated_checksum,
@@ -74,13 +110,50 @@ class Certificate(batou.component.Component):
                 timing=self.refresh_timing,
                 logger='cert-update')
 
-            self.key = "{}/{}/privkey.pem".format(self.workdir, self.domain)
-            self.fullchain = "{}/{}/fullchain.pem".format(self.workdir,
-                                                          self.domain)
+            self.key_dir = os.path.join(self.workdir, self.domain)
+            self.key = os.path.join(self.key_dir, 'privkey.pem')
+            self.fullchain = os.path.join(self.key_dir, 'fullchain.pem')
+
+    def activate_letsencrypt(self):
+        """Return a component which really activates LE"""
+        return ActivateLetsEncrypt(cert=self)
 
     def verify(self):
-        self.assert_no_subcomponent_changes()
+        if not self.use_letsencrypt:
+            return
+        if os.path.exists(self.key) and os.path.exists(self.fullchain):
+            # So there are certificates. All done.
+            return
+        raise batou.UpdateNeeded()
 
     def update(self):
-        if self.use_letsencrypt:
-            self.cmd(self.cert_sh.path)
+        # Create a temporary, self-signed certificate, to let the web server
+        # start up, so let's encrypt can do what it needs.
+        os.makedirs(self.key_dir)
+        self.csr_file = tempfile.NamedTemporaryFile()
+        self.cmd('openssl genrsa -out {{component.key}} 2048')
+        self.cmd("""\
+openssl req -new \
+    -key {{component.key}} \
+    -out {{component.csr_file.name}} \
+    -batch \
+    -subj "/CN={{component.domain}}/emailAddress=admin@{{component.domain}}/C=DE"
+""")  # noqa
+        self.cmd("""
+openssl x509 -req -days 3650 \
+    -in {{component.csr_file.name}} \
+    -signkey {{component.key}} \
+    -out {{component.fullchain}}
+""")
+        self.csr_file.close()
+        del self.csr_file
+
+
+class ActivateLetsEncrypt(batou.component.Component):
+
+    def verify(self):
+        self.cert.assert_no_subcomponent_changes()
+
+    def update(self):
+        if self.cert.use_letsencrypt:
+            self.cmd(self.cert.cert_sh.path)
