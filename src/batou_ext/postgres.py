@@ -63,6 +63,6 @@ class User(PostgresDataComponent):
         command = self.expand(
             'sh -c "echo \\\"CREATE USER {{component.name}} '
             'PASSWORD \'{{component.password}}\' '
-            '{{component.flags}] \\\" | psql -d postgres"'
+            '{{component.flags}} \\\" | psql -d postgres"'
         )
         self.pgcmd(command)
