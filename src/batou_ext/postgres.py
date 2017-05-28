@@ -42,6 +42,7 @@ class DB(PostgresDataComponent):
 class User(PostgresDataComponent):
 
     namevar = 'name'
+    flags = 'NOCREATEDB NOCREATEROLE NOSUPERUSER'
 
     def configure(self):
         super(User, self).configure()
@@ -61,7 +62,7 @@ class User(PostgresDataComponent):
     def update(self):
         command = self.expand(
             'sh -c "echo \\\"CREATE USER {{component.name}} '
-            'PASSWORD \'{{component.password}}\' NOCREATEDB '
-            'NOCREATEROLE NOSUPERUSER\\\" | psql -d postgres"'
+            'PASSWORD \'{{component.password}}\' '
+            '{{component.flags}] \\\" | psql -d postgres"'
         )
         self.pgcmd(command)
