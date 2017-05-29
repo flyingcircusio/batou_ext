@@ -132,7 +132,8 @@ class Certificate(batou.component.Component):
     def update(self):
         # Create a temporary, self-signed certificate, to let the web server
         # start up, so let's encrypt can do what it needs.
-        os.makedirs(self.key_dir)
+        if not os.path.isdir(self.key_dir):
+            os.makedirs(self.key_dir)
         self.csr_file = tempfile.NamedTemporaryFile()
         self.cmd('openssl genrsa -out {{component.key}} 2048')
         self.cmd("""\
