@@ -1,11 +1,11 @@
-
 import batou.component
 import batou.lib.cron
 import batou.lib.download
 import batou.lib.file
-import pkg_resources
+import hashlib
 import os
 import os.path
+import pkg_resources
 import tempfile
 
 
@@ -51,8 +51,7 @@ class Certificate(batou.component.Component):
     wellknown = None
     docroot = None
 
-    # TODO: make depend on domainname
-    refresh_timing = '24 9 * * *'
+    refresh_timing = None
 
     # Optinal if you are having a valid certificate and don't want to
     # make usage of letsencrypt
@@ -61,6 +60,10 @@ class Certificate(batou.component.Component):
     use_letsencrypt = batou.component.Attribute('literal', True)
 
     def configure(self):
+        if not self.refresh_timing:
+            h = int(hashlib.md5(self.domain).hexdigest(), 16)
+            self.refresh_timing = '{} {} * * *'.format(
+                h % 60, h % 24)
         if self.key_content and not self.use_letsencrypt:
             self.crt_file = batou.lib.file.File(
                 os.path.join('{}/{}.crt'.format(self.workdir, self.domain)),
