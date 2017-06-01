@@ -59,6 +59,10 @@ class Certificate(batou.component.Component):
     crt_content = None
     use_letsencrypt = batou.component.Attribute('literal', True)
 
+    letsencrypt_ca = "https://acme-v01.api.letsencrypt.org/directory"
+    letsencrypt_challange = "http-01"
+    letsencrypt_hook = ""
+
     def configure(self):
         if not self.refresh_timing:
             h = int(hashlib.md5(self.domain).hexdigest(), 16)
@@ -98,7 +102,12 @@ class Certificate(batou.component.Component):
 
             self += batou.lib.file.File(
                 'cert-{}.conf'.format(self.domain),
-                content='WELLKNOWN={}'.format(self.wellknown))
+                content=self.expand("""
+WELLKNOWN={{component.wellknown}}
+CA={{component.letsencrypt_ca}}
+CHALLENGETYPE={{component.letsencrypt_challange}}
+HOOK={{component.letsencrypt_hook}}
+"""))
             self.config = self._
 
             self += batou.lib.file.File(
