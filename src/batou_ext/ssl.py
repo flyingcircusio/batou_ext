@@ -170,3 +170,7 @@ class ActivateLetsEncrypt(batou.component.Component):
 
     def update(self):
         self.cmd(self.cert.cert_sh.path)
+
+    @property
+    def namevar_for_breadcrumb(self):
+        return self.cert.namevar_for_breadcrumb
