@@ -111,7 +111,7 @@ HOOK={{component.letsencrypt_hook}}
             self.config = self._
 
             self += batou.lib.file.File(
-                'cert-{}.sh'.format(self.domain),
+                self.expand('cert-{{component.domain}}.sh'),
                 content=pkg_resources.resource_string(
                     'batou_ext', 'resources/cert.sh'),
                 mode=0o700)
