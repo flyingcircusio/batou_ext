@@ -1,1 +1,2 @@
 recursive-include src/batou_ext/resources *
+recursive-include src/batou_ext/postfixadmin/* *
