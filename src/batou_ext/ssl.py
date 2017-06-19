@@ -47,6 +47,7 @@ class Certificate(batou.component.Component):
 
     namevar = 'domain'
     domain = None
+    alternative_names = ()
 
     wellknown = None
     docroot = None
@@ -101,12 +102,20 @@ class Certificate(batou.component.Component):
                 self.wellknown, ensure='directory', leading=True)
 
             self += batou.lib.file.File(
+                self.expand('domains-{{component.domain}}.txt'),
+                content=self.expand(
+                    '{{component.domain}} {{alternative}}',
+                    alternative=' '.join(self.alternative_names)))
+            self.domains_txt = self._
+
+            self += batou.lib.file.File(
                 'cert-{}.conf'.format(self.domain),
                 content=self.expand("""
 WELLKNOWN={{component.wellknown}}
 CA={{component.letsencrypt_ca}}
 CHALLENGETYPE={{component.letsencrypt_challange}}
 HOOK={{component.letsencrypt_hook}}
+DOMAINS_TXT={{component.domains_txt.path}}
 """))
             self.config = self._
 
