@@ -68,6 +68,7 @@ class ScanHost(Component):
 
     namevar = 'hostname'
     known_hosts = '~/.ssh/known_hosts'
+    port = Attribute(int, 22)
 
     def configure(self):
         self.known_hosts = self.map(self.known_hosts)
@@ -85,5 +86,5 @@ class ScanHost(Component):
             del os.environ['SSH_AUTH_SOCK']
         except KeyError:
             pass
-        self.cmd('ssh-keyscan "{}" >> "{}"'.format(
-                 self.hostname, self.known_hosts))
+        self.cmd('ssh-keyscan -p {} "{}" >> "{}"'.format(
+                 self.port, self.hostname, self.known_hosts))
