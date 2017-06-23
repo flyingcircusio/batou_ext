@@ -1,7 +1,6 @@
 from batou import UpdateNeeded
 from batou.component import Component, Attribute
 from batou.lib.file import Directory, File, Purge
-import batou.c
 import os
 import os.path
 
