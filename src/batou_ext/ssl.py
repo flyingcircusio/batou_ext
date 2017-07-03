@@ -37,6 +37,9 @@ class Certificate(batou.component.Component):
         # nothing, if you don't use LE.
         self += self.cert.activate_letsencrypt()
 
+        # If you need to run some command after executing dehydrated, e.g.
+        # restarting a service, you can use the extracommand argument
+        # to configure it. It will be called everytime the script is invoked.
     """
 
     # Let's Encrypt
@@ -44,6 +47,8 @@ class Certificate(batou.component.Component):
         "https://raw.githubusercontent.com/lukas2511/dehydrated/"
         "b36d638a910ce7c6be0bb8330d1d945a653f70af/dehydrated")
     dehydrated_checksum = 'md5:5670eedfda142835130a2220641bb582'
+
+    extracommand = None
 
     namevar = 'domain'
     domain = None

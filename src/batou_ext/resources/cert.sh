@@ -4,4 +4,6 @@
     --config {{component.config.path}} \
     --out {{component.workdir}} \
     -c
-
+{% if component.extracommand %}
+{{component.extracommand}}
+{% endif %}
