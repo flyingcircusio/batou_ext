@@ -71,6 +71,10 @@ class ScanHost(Component):
 
     def configure(self):
         self.known_hosts = self.map(self.known_hosts)
+        self += File(
+            os.path.dirname(self.known_hosts),
+            ensure='directory',
+            leading=True)
 
     def verify(self):
         if not os.path.exists(self.known_hosts):
