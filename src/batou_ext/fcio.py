@@ -56,8 +56,6 @@ class DNSAliases(batou.component.Component):
     calls = []
 
     def configure(self):
-        # This is a bit pointless now...
-        self.provide('dnsaliases', self)
         if self.calls:
             return
         self._compute_calls()
