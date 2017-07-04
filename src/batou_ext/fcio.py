@@ -1,7 +1,6 @@
 import batou
 import batou.component
 import batou.lib.file
-import json
 import socket
 import time
 import xmlrpclib
@@ -53,10 +52,20 @@ class DNSAliases(batou.component.Component):
     # How long to wait for aliases (seconds). 0: do not wait
     wait_for_aliases = batou.component.Attribute(int, 0)
 
+    # class variable:
+    calls = []
+
     def configure(self):
-        assert self.project
+        # This is a bit pointless now...
         self.provide('dnsaliases', self)
-        self.calls = []
+        if self.calls:
+            return
+        self._compute_calls()
+        self._call()
+        self._wait_for_aliases()
+
+    def _compute_calls(self):
+        assert self.project
         self.aliases = []
         for host in self.environment.hosts.values():
             self._add_calls(
@@ -64,23 +73,12 @@ class DNSAliases(batou.component.Component):
             self._add_calls(
                 host.name, 'fe', host.data.get('alias-fe'))
         self.calls.sort(key=lambda c: c['name'])
-        self += batou.lib.file.File(
-            'state.json', content=json.dumps(self.calls))
 
-    def verify(self):
-        if self.api_key:
-            self.assert_no_changes()
-            if self.wait_for_aliases:
-                error, results = self._check_aliases()
-                if error:
-                    raise batou.UpdateNeeded()
-
-    def update(self):
+    def _call(self):
         api = xmlrpclib.ServerProxy(
             'https://{s.project}:{s.api_key}@api.flyingcircus.io/v1'.format(
                 s=self))
         api.apply(self.calls)
-        self._wait_for_aliases()
 
     def _add_calls(self, hostname, interface, aliases_str):
         if not aliases_str:
@@ -119,7 +117,7 @@ class DNSAliases(batou.component.Component):
             try:
                 addrs = socket.getaddrinfo(
                     fqdn, None, 0, 0, socket.IPPROTO_TCP)
-            except socket.gaierror, e:
+            except socket.gaierror as e:
                 result = str(e)
                 error = True
             else:
