@@ -60,7 +60,7 @@ class CustomizeJson(batou.component.Component):
                 current_data = json.load(f)
         except (IOError, ValueError):
             raise batou.UpdateNeeded
-        if current_data != self.config:
+        if current_data != self._config:
             raise batou.UpdateNeeded
 
     def update(self):
