@@ -67,7 +67,7 @@ class GitCheckout(batou.component.Component):
         )
 
     def symlink_and_cleanup(self):
-        return SymlinkAndCleanup(self.prepared_name)
+        return SymlinkAndCleanup(self.prepared_path)
 
 
 class SymlinkAndCleanup(batou.component.Component):
