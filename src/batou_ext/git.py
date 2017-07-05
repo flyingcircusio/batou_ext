@@ -75,6 +75,10 @@ class SymlinkAndCleanup(batou.component.Component):
     namevar = 'current'
     pattern = 'prepared-*'
 
+    def configure(self):
+        self.dir = os.path.dirname(self.current)
+        self.current = os.path.basename(self.current)
+
     @staticmethod
     def _link(path):
         try:
@@ -106,30 +110,32 @@ class SymlinkAndCleanup(batou.component.Component):
         return candidates
 
     def verify(self):
-        if self._link('current') != self.current:
-            raise batou.UpdateNeeded()
-        if self._list_removals():
-            raise batou.UpdateNeeded()
+        with self.chdir(self.dir):
+            if self._link('current') != self.current:
+                raise batou.UpdateNeeded()
+            if self._list_removals():
+                raise batou.UpdateNeeded()
 
     def update(self):
-        current = self._link('current')
-        if current != self.current:
-            try:
-                os.remove('current')
-            except OSError:
-                pass
-            try:
-                os.remove('last')
-            except OSError:
-                pass
-            batou.output.annotate('current -> {}'.format(self.current))
-            os.symlink(self.current, 'current')
-            if current:
-                batou.output.annotate('last -> {}'.format(current))
-                os.symlink(current, 'last')
-        for el in self._list_removals():
-            batou.output.annotate('Removing: {}'.format(el))
-            try:
-                shutil.rmtree(el)
-            except OSError:
-                pass
+        with self.chdir(self.dir):
+            current = self._link('current')
+            if current != self.current:
+                try:
+                    os.remove('current')
+                except OSError:
+                    pass
+                try:
+                    os.remove('last')
+                except OSError:
+                    pass
+                batou.output.annotate('current -> {}'.format(self.current))
+                os.symlink(self.current, 'current')
+                if current:
+                    batou.output.annotate('last -> {}'.format(current))
+                    os.symlink(current, 'last')
+            for el in self._list_removals():
+                batou.output.annotate('Removing: {}'.format(el))
+                try:
+                    shutil.rmtree(el)
+                except OSError:
+                    pass
