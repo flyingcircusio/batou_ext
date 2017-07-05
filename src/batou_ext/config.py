@@ -25,7 +25,7 @@ def dict_merge(a, b):
     return result
 
 
-class CustomizeJsonConfig(batou.component.Component):
+class CustomizeJson(batou.component.Component):
     """Customize an existing JSON configuration.
 
     The given configuration will be merged with the source configuration.
