@@ -74,6 +74,7 @@ class ScanHost(Component):
         self += File(
             os.path.dirname(self.known_hosts),
             ensure='directory',
+            mode=0o700,
             leading=True)
 
     def verify(self):
