@@ -1,6 +1,7 @@
 import batou.component
 import copy
 import json
+import yaml
 
 
 def dict_merge(a, b):
@@ -66,3 +67,45 @@ class CustomizeJson(batou.component.Component):
     def update(self):
         with open(self.target, 'wb') as f:
             json.dump(self._config, f)
+
+
+class CustomizeYaml(batou.component.Component):
+    """Customize an existing YAML configuration.
+
+    The given configuration will be merged with the source configuration.
+
+    Usage::
+
+        self += batou_ext.config.CustomizeYaml(
+            'target/config.yml',
+            source='source/config.yml',
+            config=dict(
+                a=37,
+                b=dict(c='foo')))
+
+    """
+    namevar = 'target'
+    source = None
+    config = None
+
+    def configure(self):
+        pass
+
+    def _generate(self):
+        with open(self.source) as f:
+            data = yaml.load(f)
+        return dict_merge(data, self.config)
+
+    def verify(self):
+        self._config = self._generate()
+        try:
+            with open(self.target) as f:
+                current_data = yaml.load(f)
+        except (IOError, ValueError):
+            raise batou.UpdateNeeded
+        if current_data != self._config:
+            raise batou.UpdateNeeded
+
+    def update(self):
+        with open(self.target, 'wb') as f:
+            yaml.dump(self._config, f)
