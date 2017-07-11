@@ -67,7 +67,7 @@ class GitCheckout(batou.component.Component):
                 self.sync_parent_folder,
                 self.git_revision))
         else:
-            self.prepared_path = self.map('/prepared-{}'.format(
+            self.prepared_path = self.map('prepared-{}'.format(
                 self.git_revision))
         self += batou.lib.file.Directory(self.prepared_path)
         self += batou.lib.file.Directory(
