@@ -64,7 +64,7 @@ class GitCheckout(batou.component.Component):
         # add custom files
         if self.sync_parent_folder:
             self.prepared_path = self.map('{}/prepared-{}'.format(
-                self.sync_parent_folder
+                self.sync_parent_folder,
                 self.git_revision))
         else:
             self.prepared_path = self.map('/prepared-{}'.format(
