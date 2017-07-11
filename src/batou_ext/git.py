@@ -35,6 +35,9 @@ class GitCheckout(batou.component.Component):
     self += batou.lib.file.File(
         '{}/src/my.conf'.format(self.checkout.prepared_path),
         content='nice=true')
+
+    The option sync_parent_folder is allowing you to sync into a different
+    folder than the current one.
     """
     git_host = None
     git_clone_url = None
@@ -42,6 +45,7 @@ class GitCheckout(batou.component.Component):
     git_target = None
     git_port = None
     exclude = ()
+    sync_parent_folder = None
 
     def configure(self):
         # We need a SSH key
@@ -58,7 +62,13 @@ class GitCheckout(batou.component.Component):
 
         # Actually sync into a working copy where parent-component can
         # add custom files
-        self.prepared_path = self.map('prepared-{}'.format(self.git_revision))
+        if self.sync_parent_folder:
+            self.prepared_path = self.map('{}/prepared-{}'.format(
+                self.sync_parent_folder
+                self.git_revision))
+        else:
+            self.prepared_path = self.map('/prepared-{}'.format(
+                self.git_revision))
         self += batou.lib.file.Directory(self.prepared_path)
         self += batou.lib.file.Directory(
             self.prepared_path,
