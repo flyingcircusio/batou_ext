@@ -69,7 +69,9 @@ class GitCheckout(batou.component.Component):
         else:
             self.prepared_path = self.map('prepared-{}'.format(
                 self.git_revision))
-        self += batou.lib.file.Directory(self.prepared_path)
+        self += batou.lib.file.Directory(
+            self.prepared_path,
+            leading=True)
         self += batou.lib.file.Directory(
             self.prepared_path,
             source=self.git_target,
