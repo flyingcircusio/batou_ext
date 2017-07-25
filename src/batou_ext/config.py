@@ -108,4 +108,4 @@ class CustomizeYaml(batou.component.Component):
 
     def update(self):
         with open(self.target, 'wb') as f:
-            yaml.dump(self._config, f)
+            yaml.dump(self._config, f, canonical=True)
