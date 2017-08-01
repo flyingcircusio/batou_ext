@@ -6,7 +6,7 @@ import yaml
 
 def dict_merge(a, b):
     """recursively merges dict's. not just simple a['key'] = b['key'], if
-    both a and bhave a key who's value is a dict then dict_merge is called
+    both a and b have a key who's value is a dict then dict_merge is called
     on both values and the result stored in the returned dictionary.
 
     https://www.xormedia.com/recursively-merge-dictionaries-in-python/
