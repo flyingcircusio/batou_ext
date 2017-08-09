@@ -69,6 +69,8 @@ class Certificate(batou.component.Component):
     letsencrypt_challange = "http-01"
     letsencrypt_hook = ""
 
+    _may_need_to_generate_certificates = False
+
     def configure(self):
         if not self.refresh_timing:
             h = int(hashlib.md5(self.domain).hexdigest(), 16)
@@ -87,8 +89,13 @@ class Certificate(batou.component.Component):
 
             self.key = self.key_file.path
             self.fullchain = self.crt_file.path
-
         else:
+            self._may_need_to_generate_certificates = True
+            self.key_dir = os.path.join(self.workdir, self.domain)
+            self.key = os.path.join(self.key_dir, 'privkey.pem')
+            self.fullchain = os.path.join(self.key_dir, 'fullchain.pem')
+
+        if self.use_letsencrypt:
             # Okay, let's encrypt it is. There are two situations:
             # 1. bootstrap -- there is nothing.
             # 2. there already is a cert, either replace it with
@@ -136,21 +143,17 @@ DOMAINS_TXT={{component.domains_txt.path}}
                 timing=self.refresh_timing,
                 logger='cert-update')
 
-            self.key_dir = os.path.join(self.workdir, self.domain)
-            self.key = os.path.join(self.key_dir, 'privkey.pem')
-            self.fullchain = os.path.join(self.key_dir, 'fullchain.pem')
-
     def activate_letsencrypt(self):
         """Return a component which really activates LE"""
         return ActivateLetsEncrypt(cert=self)
 
     def verify(self):
-        if not self.use_letsencrypt:
+        if not self._may_need_to_generate_certificates:
             return
         if os.path.exists(self.key) and os.path.exists(self.fullchain):
             # So there are certificates. All done.
             return
-        raise batou.UpdateNeeded()
+            raise batou.UpdateNeeded()
 
     def update(self):
         # Create a temporary, self-signed certificate, to let the web server
