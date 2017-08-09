@@ -141,7 +141,7 @@ class FixSupervisorStartedBySystemd(batou.component.Component):
 
     def verify(self):
         if not self.parent.is_running():
-            # Well, if it's not running, somethign is really hosed.
+            # Well, if it's not running, something is really hosed.
             return
         try:
             self.cmd('sudo systemctl status supervisord')
