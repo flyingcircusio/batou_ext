@@ -153,7 +153,7 @@ DOMAINS_TXT={{component.domains_txt.path}}
         if os.path.exists(self.key) and os.path.exists(self.fullchain):
             # So there are certificates. All done.
             return
-            raise batou.UpdateNeeded()
+        raise batou.UpdateNeeded()
 
     def update(self):
         # Create a temporary, self-signed certificate, to let the web server
