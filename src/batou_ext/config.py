@@ -1,7 +1,6 @@
 import batou.component
 import copy
 import json
-import re
 import yaml
 
 
@@ -110,66 +109,3 @@ class CustomizeYaml(batou.component.Component):
     def update(self):
         with open(self.target, 'wb') as f:
             yaml.dump(self._config, f)
-
-
-class RegexPatch(batou.component.Component):
-    """Patch existing file with a regexp.
-
-    Usage::
-
-        self += batou_ext_config.RegexPatch(
-            '/path/to/file',
-            pattern=r'^foo=\d+(\w+)',
-            replacement=r'foo=27\1')
-
-    """
-
-    path = None
-    namevar = 'path'
-    pattern = None
-    replacement = None
-
-    def configure(self):
-        self.pattern = re.compile(self.pattern, re.MULTILINE)
-
-    def _patch(self):
-        return self.pattern.sub(self.replacement, self.source)
-
-    def verify(self):
-        with open(self.path, 'r') as f:
-            self.source = f.read()
-        m = self.pattern.search(self.source)
-        assert m, "Could not configure, no match for pattern: {}".format(
-            self.pattern.pattern)
-        if self.source != self._patch():
-            raise batou.UpdateNeeded()
-
-    def update(self):
-        with open(self.path, 'w') as f:
-            f.write(self._patch())
-
-
-class MultiRegexPatch(batou.component.Component):
-    """Patch existing file with multiple regexpt.
-
-    Usage::
-
-        self += batou_ext_config.MultiRegexPatch(
-            '/path/to/file', patterns=[
-            (r'pattern-to-match',
-             r'value-to-replace-with'),
-
-            (r'another-pattern',
-             r'another-replacement'),
-        ])
-
-    """
-
-    namevar = 'path'
-
-    def configure(self):
-        for pattern, replacement in self.patterns:
-            self += batou.c.apo100.RegexPatch(
-                self.path,
-                pattern=pattern,
-                replacement=self.parent.expand(replacement))

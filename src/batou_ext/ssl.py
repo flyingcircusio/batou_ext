@@ -70,7 +70,6 @@ class Certificate(batou.component.Component):
     letsencrypt_hook = ""
 
     _may_need_to_generate_certificates = False
-    _days_valid = 3650
 
     def configure(self):
         if not self.refresh_timing:
@@ -171,7 +170,7 @@ openssl req -new \
     -subj "/CN={{component.domain}}/emailAddress=admin@{{component.domain}}/C=DE"
 """)  # noqa
         self.cmd("""
-openssl x509 -req -days {{component._days_valid}} \
+openssl x509 -req -days 3650 \
     -in {{component.csr_file.name}} \
     -signkey {{component.key}} \
     -out {{component.fullchain}}
