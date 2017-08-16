@@ -9,11 +9,13 @@ import os.path
 def project_path(*names):
     return os.path.join(*names)
 
+
 setup(
     name='batou_ext',
     version='0.1dev0',
     install_requires=[
         'batou>=1.0b20',
+        'pyaml',
         'setuptools',
     ],
     extras_require={
