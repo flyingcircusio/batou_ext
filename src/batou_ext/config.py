@@ -169,7 +169,7 @@ class MultiRegexPatch(batou.component.Component):
 
     def configure(self):
         for pattern, replacement in self.patterns:
-            self += batou.c.apo100.RegexPatch(
+            self += RegexPatch(
                 self.path,
                 pattern=pattern,
                 replacement=self.parent.expand(replacement))
