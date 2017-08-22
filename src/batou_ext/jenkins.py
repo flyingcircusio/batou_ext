@@ -29,6 +29,13 @@ def git_resolve(url, version):
     return stdout.split('\t', 1)[0]
 
 
+def list_components(versions_file):
+    config = ConfigParser.SafeConfigParser()
+    config.read(versions_file)
+    versions = sorted(config.sections())
+    print(json.dumps(versions))
+
+
 def set_versions(versions_file, version_mapping_json):
     version_mapping = json.loads(version_mapping_json)
 
@@ -51,6 +58,15 @@ def set_versions(versions_file, version_mapping_json):
 def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
+
+    p = subparsers.add_parser(
+        'list-components',
+        help='List available components where versions can be set')
+    p.add_argument(
+       'versions_file',
+       help='Name of "versions.ini"')
+    p.set_defaults(func=list_components)
+
 
     p = subparsers.add_parser(
         'set-versions',
