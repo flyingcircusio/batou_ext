@@ -9,11 +9,13 @@ import os.path
 def project_path(*names):
     return os.path.join(*names)
 
+
 setup(
     name='batou_ext',
     version='0.1dev0',
     install_requires=[
         'batou>=1.0b20',
+        'pyaml',
         'setuptools',
     ],
     extras_require={
@@ -42,5 +44,8 @@ Programming Language :: Python :: 2 :: Only
     package_dir={'': 'src'},
     include_package_data=True,
     data_files=[('', glob.glob(project_path('*.txt')))],
+    entry_points=dict(console_scripts=[
+        'jenkins = batou_ext.jenkins:main',
+    ]),
     zip_safe=False,
 )

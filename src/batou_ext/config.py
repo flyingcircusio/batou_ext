@@ -1,12 +1,13 @@
 import batou.component
 import copy
 import json
+import re
 import yaml
 
 
 def dict_merge(a, b):
     """recursively merges dict's. not just simple a['key'] = b['key'], if
-    both a and bhave a key who's value is a dict then dict_merge is called
+    both a and b have a key who's value is a dict then dict_merge is called
     on both values and the result stored in the returned dictionary.
 
     https://www.xormedia.com/recursively-merge-dictionaries-in-python/
@@ -109,3 +110,66 @@ class CustomizeYaml(batou.component.Component):
     def update(self):
         with open(self.target, 'wb') as f:
             yaml.safe_dump(self._config, f, default_flow_style=False)
+
+
+class RegexPatch(batou.component.Component):
+    """Patch existing file with a regexp.
+
+    Usage::
+
+        self += batou_ext_config.RegexPatch(
+            '/path/to/file',
+            pattern=r'^foo=\d+(\w+)',
+            replacement=r'foo=27\1')
+
+    """
+
+    path = None
+    namevar = 'path'
+    pattern = None
+    replacement = None
+
+    def configure(self):
+        self.pattern = re.compile(self.pattern, re.MULTILINE)
+
+    def _patch(self):
+        return self.pattern.sub(self.replacement, self.source)
+
+    def verify(self):
+        with open(self.path, 'r') as f:
+            self.source = f.read()
+        m = self.pattern.search(self.source)
+        assert m, "Could not configure, no match for pattern: {}".format(
+            self.pattern.pattern)
+        if self.source != self._patch():
+            raise batou.UpdateNeeded()
+
+    def update(self):
+        with open(self.path, 'w') as f:
+            f.write(self._patch())
+
+
+class MultiRegexPatch(batou.component.Component):
+    """Patch existing file with multiple regexpt.
+
+    Usage::
+
+        self += batou_ext_config.MultiRegexPatch(
+            '/path/to/file', patterns=[
+            (r'pattern-to-match',
+             r'value-to-replace-with'),
+
+            (r'another-pattern',
+             r'another-replacement'),
+        ])
+
+    """
+
+    namevar = 'path'
+
+    def configure(self):
+        for pattern, replacement in self.patterns:
+            self += RegexPatch(
+                self.path,
+                pattern=pattern,
+                replacement=self.parent.expand(replacement))
