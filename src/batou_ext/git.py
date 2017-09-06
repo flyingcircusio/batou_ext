@@ -52,7 +52,7 @@ class GitCheckout(batou.component.Component):
         self.require('sshkeypair')
 
         # Add remote host to known hosts
-        self += batou_ext.ssh.ScanHost(self.git_host)
+        self += batou_ext.ssh.ScanHost(self.git_host, port=self.git_port)
 
         # Get a recent checkout
         self += batou.lib.git.Clone(
