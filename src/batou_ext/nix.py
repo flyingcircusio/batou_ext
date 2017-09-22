@@ -20,22 +20,34 @@ class Package(batou.component.Component):
 
     Usage:
 
+        self += batou_ext.nix.Package(attribute='nixos.yarn')
         self += batou_ext.nix.Package('pbzip2-1.1.12')
 
     """
 
-    namevar = 'package'
+    package = None
     attribute = None
     file = None
 
+    def __init__(self, namevar=None, **kw):
+        # Make 'namevar' optional
+        kw['package'] = namevar
+        super(Package, self).__init__(**kw)
+
     def configure(self):
         if self.file:
+            assert self.package
             if not os.path.isabs(self.file):
                 self.file = os.path.join(self.defdir, self.file)
 
     def verify(self):
+        if self.attribute:
+            stdout, stderr = self.cmd('nix-env -qaA {{component.attribute}}')
+            would_install = stdout.strip()
+        else:
+            would_install = self.package
         stdout, stderr = self.cmd('nix-env --query')
-        if self.package not in stdout.splitlines():
+        if would_install not in stdout.splitlines():
             raise batou.UpdateNeeded()
 
     def update(self):
@@ -45,6 +57,10 @@ class Package(batou.component.Component):
             self.cmd('nix-env -if {}'.format(self.file))
         else:
             self.cmd('nix-env -i {}'.format(self.package))
+
+    @property
+    def namevar_for_breadcrumb(self):
+        return self.attribute if self.attribute else self.package
 
 
 class Rebuild(batou.component.Component):
