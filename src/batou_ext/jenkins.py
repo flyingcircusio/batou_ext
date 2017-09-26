@@ -47,6 +47,9 @@ def set_versions(versions_file, version_mapping_json):
             # leave empty to keep current version
             continue
         resolved = git_resolve(config.get(service, 'url'), version)
+        if not resolved:
+            raise ValueError('%s: Could not resolve version %s.' % (
+                service, version))
         log('%s: resolved version %s to: %s', service, version, resolved)
         config.set(service, 'revision', resolved)
         config.set(service, 'version', version)
@@ -66,7 +69,6 @@ def main():
        'versions_file',
        help='Name of "versions.ini"')
     p.set_defaults(func=list_components)
-
 
     p = subparsers.add_parser(
         'set-versions',
