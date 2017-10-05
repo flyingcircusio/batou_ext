@@ -99,6 +99,7 @@ class Certificate(batou.component.Component):
 
             self.key = self.key_file.path
             self.fullchain = self.crt_file.path
+            self.trusted = self.trusted_file.path
         else:
             self._may_need_to_generate_certificates = True
             self.key_dir = os.path.join(self.workdir, self.domain)
