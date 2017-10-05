@@ -63,6 +63,10 @@ class Certificate(batou.component.Component):
     # make usage of letsencrypt
     key_content = None
     crt_content = None
+
+    # OSCP stapling
+    trusted_crt_content = None
+
     use_letsencrypt = batou.component.Attribute('literal', True)
 
     letsencrypt_ca = "https://acme-v01.api.letsencrypt.org/directory"
@@ -86,6 +90,12 @@ class Certificate(batou.component.Component):
                 content=self.key_content,
                 mode=0o600)
             self += self.key_file
+
+            if self.trusted_crt_content:
+                sellf.trusted_file = batou.lib.file.File(
+                    os.path.join('{}/{}.key'.format(self.workdir, self.domain)),
+                    content=self.trusted_crt_content,
+                    mode=0o600)
 
             self.key = self.key_file.path
             self.fullchain = self.crt_file.path
