@@ -43,7 +43,7 @@ class GitCheckout(batou.component.Component):
     git_clone_url = None
     git_revision = None
     git_target = None
-    git_port = None
+    git_port = 22
     exclude = ()
     sync_parent_folder = None
 
