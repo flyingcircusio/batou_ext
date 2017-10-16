@@ -96,6 +96,7 @@ class Certificate(batou.component.Component):
                     os.path.join('{}/{}.trust.crt'.format(self.workdir, self.domain)),
                     content=self.trusted_crt_content,
                     mode=0o600)
+                self += self.trusted_file
                 self.trusted = self.trusted_file.path
 
             self.key = self.key_file.path
