@@ -66,7 +66,7 @@ class PHPEnvironment(batou.component.Component):
                 'php.ini',
                 source=os.path.join(
                     os.path.dirname(__file__),
-                    'resources/php/php.ini')
+                    'resources/php/php.ini'),
             self.php_ini = self._
         checksum.update(self.php_ini.content)
 
