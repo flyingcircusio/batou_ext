@@ -2,6 +2,7 @@ import batou.component
 import batou.lib.file
 import batou_ext.ssl
 import batou_ext.nix
+import os.path
 
 
 @batou_ext.nix.rebuild
@@ -66,7 +67,9 @@ class Mirror(batou.component.Component):
                 self.nginx_config_path,
                 self.public_name
             ),
-            source='resources/mirror.conf'
+            source=os.path.join(
+                os.path.dirname(__file__),
+                'resources/mirror.conf')
         )
 
         self += self.cert.activate_letsencrypt()
