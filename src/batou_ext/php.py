@@ -2,6 +2,7 @@ import batou_ext.nix
 import batou.component
 import batou.lib.file
 import hashlib
+import os.path
 
 
 class PHPEnvironment(batou.component.Component):
