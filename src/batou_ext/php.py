@@ -36,7 +36,6 @@ class PHPEnvironment(batou.component.Component):
             checksum.update(s)
 
         # External address.
-        self.address = batou.utils.Address(self.host.fqdn, self.port)
         self.fpm_address = batou.utils.Address(self.host.fqdn, self.fpm_port)
 
         self._extensions_dir = os.path.expanduser(
