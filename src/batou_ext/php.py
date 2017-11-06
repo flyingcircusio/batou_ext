@@ -1,6 +1,6 @@
 import batou_ext.nix
 import batou.component
-import batou.file
+import batou.lib.file
 import hashlib
 
 
