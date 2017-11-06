@@ -66,7 +66,7 @@ class PHPEnvironment(batou.component.Component):
                 'php.ini',
                 source=os.path.join(
                     os.path.dirname(__file__),
-                    'resources/php/php.ini'),
+                    'resources/php/php.ini'))
             self.php_ini = self._
         checksum.update(self.php_ini.content)
 
@@ -76,7 +76,7 @@ class PHPEnvironment(batou.component.Component):
                 'php-fpm.conf',
                 source=os.path.join(
                     os.path.dirname(__file__),
-                    'resources/php/php-fpm.conf')
+                    'resources/php/php-fpm.conf'))
             self.php_fpm_ini = self._
         checksum.update(self.php_fpm_ini.content)
 
@@ -85,7 +85,7 @@ class PHPEnvironment(batou.component.Component):
             self.name, mode=0o755,
             source=os.path.join(
                 os.path.dirname(__file__),
-                'resources/php/php-fpm.sh')
+                'resources/php/php-fpm.sh'))
         checksum.update(self._.content)
 
         self += batou.lib.service.Service(
