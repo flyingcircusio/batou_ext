@@ -40,6 +40,14 @@ class Certificate(batou.component.Component):
         # If you need to run some command after executing dehydrated, e.g.
         # restarting a service, you can use the extracommand argument
         # to configure it. It will be called everytime the script is invoked.
+
+        # The component is setting up a cronjob (in case of you are using
+        # Let's encrypt). So you need to add the CronTab-component to your
+        # deployment. This line should do the trick:
+
+        from batou.lib.cron import CronTab
+
+        # As well as you need to add crontab to your environment.
     """
 
     # Let's Encrypt
