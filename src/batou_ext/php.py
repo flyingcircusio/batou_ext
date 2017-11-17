@@ -23,6 +23,8 @@ class PHPEnvironment(batou.component.Component):
 
     # Providoe your own php-fpm.conf
     php_fpm_ini = None
+    php_fpm_ini_global_overrides = batou.component.Attribute(str, '')
+    php_fpm_ini_pool_overrides = batou.component.Attribute(str, '')
 
     opcache_dir = batou.component.Attribute(str, 'no-debug-zts-20151012')
     extensions = ()
