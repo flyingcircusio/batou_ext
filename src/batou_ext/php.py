@@ -92,4 +92,5 @@ class PHPEnvironment(batou.component.Component):
             self.name,
             checksum=checksum.hexdigest(),
             systemd=dict(
-                PIDFile=self.pid_file))
+                PIDFile=self.pid_file,
+                Restart='always'))
