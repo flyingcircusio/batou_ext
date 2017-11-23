@@ -56,6 +56,8 @@ class PHPEnvironment(batou.component.Component):
         self += batou_ext.nix.Package(attribute=self.php_attribute)
         checksum.update(self.php_attribute)
 
+        self += batou_ext.nix.Package(attribute='nixos.libiconv')
+
         # Folder for logfiles
         self += batou.lib.file.File('logs', leading=True, ensure='directory')
         self.logfiledir = self._
