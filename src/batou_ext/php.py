@@ -19,10 +19,14 @@ class PHPEnvironment(batou.component.Component):
     php_attribute = batou.component.Attribute(str, 'nixos.php70')
 
     # Provide your own php.ini
+    # Expects a batou-File-object
     php_ini = None
 
     # Providoe your own php-fpm.conf
+    # Expects a batou-File-object
     php_fpm_ini = None
+
+    # Optional additional settings for default php-fpm.ini
     php_fpm_ini_global_overrides = batou.component.Attribute(str, '')
     php_fpm_ini_pool_overrides = batou.component.Attribute(str, '')
 
