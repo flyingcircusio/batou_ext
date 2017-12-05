@@ -119,13 +119,10 @@ class User(batou.component.Component):
     username = None
     password = None
     tags = None
-    permissions = None
 
     def configure(self):
         self.tags = sorted(self.tags)
         self.tags_str = ' '.join(self.tags)
-        if self.permissions:
-            self += Permissions(self.username, permissions=self.permissions)
 
     def verify(self):
         stdout, stderr = self.cmd('rabbitmqctl -q list_users')
