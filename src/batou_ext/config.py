@@ -89,12 +89,12 @@ class CustomizeYaml(batou.component.Component):
     source = None
     config = None
 
-    def configure(self):
-        pass
-
     def _generate(self):
-        with open(self.source) as f:
-            data = yaml.load(f)
+        if self.source:
+            with open(self.source) as f:
+                data = yaml.load(f)
+        else:
+            data = {}
         return dict_merge(data, self.config)
 
     def verify(self):
@@ -150,7 +150,7 @@ class RegexPatch(batou.component.Component):
 
 
 class MultiRegexPatch(batou.component.Component):
-    """Patch existing file with multiple regexpt.
+    """Patch existing file with multiple regexp.
 
     Usage::
 
