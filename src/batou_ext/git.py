@@ -151,3 +151,54 @@ class SymlinkAndCleanup(batou.component.Component):
                     shutil.rmtree(el)
                 except OSError:
                     pass
+
+
+class Commit(batou.component.Component):
+    """Commit a file."""
+
+    namevar = 'filename'
+    message = None
+    workingdir = '.'
+    author_name = 'Batou'
+    author_email = 'batou@flyingcircus.io'
+
+    def configure(self):
+        assert self.message
+
+    def verify(self):
+        if self.has_changes():
+            raise batou.UpdateNeeded()
+
+    def update(self):
+        with self.chdir(self.workingdir):
+            self.cmd("git config user.email '{{component.author_email}}'")
+            self.cmd("git config user.name '{{component.author_name}}'")
+            self.cmd(
+                "git add {{component.filename}}")
+            self.cmd(
+                "git commit -m '{{component.message}}' {{component.filename}}")
+
+    def has_changes(self):
+        with self.chdir(self.workingdir):
+            stdout, stderr = self.cmd(
+                'git status --porcelain {{component.filename}}')
+        return bool(stdout.strip())
+
+
+class Push(batou.component.Component):
+    """`git push` if there are outgoing changes."""
+
+    workingdir = '.'
+
+    def verify(self):
+        if self.has_outgoing_changesets():
+            raise batou.UpdateNeeded()
+
+    def update(self):
+        with self.chdir(self.workingdir):
+            self.cmd('git push')
+
+    def has_outgoing_changesets(self):
+        with self.chdir(self.workingdir):
+            stdout, stderr = self.cmd('LANG=C git status')
+        return 'Your branch is ahead of' in stdout
