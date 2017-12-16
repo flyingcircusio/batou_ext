@@ -69,7 +69,7 @@ class PurgePackage(batou.component.Component):
 
     def verify(self):
         stdout, stderr = self.cmd('nix-env --query')
-        if self._installs_package in stdout.splitlines():
+        if self.package in stdout.splitlines():
             raise batou.UpdateNeeded()
 
     def update(self):
