@@ -73,7 +73,7 @@ class PurgePackage(batou.component.Component):
             raise batou.UpdateNeeded()
 
     def update(self):
-        self.cmd('nix-env --uninstall {{component.pacakge}}')
+        self.cmd('nix-env --uninstall {{component.package}}')
 
 
 class Rebuild(batou.component.Component):
