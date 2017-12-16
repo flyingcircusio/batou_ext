@@ -28,6 +28,7 @@ class Package(batou.component.Component):
     package = None
     attribute = None
     file = None
+    reinstall_on_update = False
 
     def __init__(self, namevar=None, **kw):
         # Make 'namevar' optional
@@ -43,20 +44,23 @@ class Package(batou.component.Component):
     def verify(self):
         if self.attribute:
             stdout, stderr = self.cmd('nix-env -qaA {{component.attribute}}')
-            would_install = stdout.strip()
+            self._installs_package = stdout.strip()
         else:
-            would_install = self.package
+            self._installs_package = self.package
         stdout, stderr = self.cmd('nix-env --query')
-        if would_install not in stdout.splitlines():
+        if self._installs_package not in stdout.splitlines():
             raise batou.UpdateNeeded()
 
     def update(self):
+        if self.reinstall_on_update:
+            self.cmd('nix-env --uninstall {{component._installs_package}}',
+                     ignore_returncode=True)
         if self.attribute:
-            self.cmd('nix-env -iA {}'.format(self.attribute))
+            self.cmd('nix-env -iA {{component.attribute}}')
         elif self.file:
-            self.cmd('nix-env -if {}'.format(self.file))
+            self.cmd('nix-env -if {{component.file}}')
         else:
-            self.cmd('nix-env -i {}'.format(self.package))
+            self.cmd('nix-env -i {{component.package}}')
 
     @property
     def namevar_for_breadcrumb(self):
