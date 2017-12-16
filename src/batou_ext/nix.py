@@ -28,7 +28,6 @@ class Package(batou.component.Component):
     package = None
     attribute = None
     file = None
-    reinstall_on_update = False
 
     def __init__(self, namevar=None, **kw):
         # Make 'namevar' optional
@@ -52,9 +51,6 @@ class Package(batou.component.Component):
             raise batou.UpdateNeeded()
 
     def update(self):
-        if self.reinstall_on_update:
-            self.cmd('nix-env --uninstall {{component._installs_package}}',
-                     ignore_returncode=True)
         if self.attribute:
             self.cmd('nix-env -iA {{component.attribute}}')
         elif self.file:
@@ -65,6 +61,19 @@ class Package(batou.component.Component):
     @property
     def namevar_for_breadcrumb(self):
         return self.attribute if self.attribute else self.package
+
+
+class PurgePackage(batou.component.Component):
+
+    namevar = 'package'
+
+    def verify(self):
+        stdout, stderr = self.cmd('nix-env --query')
+        if self._installs_package in stdout.splitlines():
+            raise batou.UpdateNeeded()
+
+    def update(self):
+        self.cmd('nix-env --uninstall {{component.pacakge}}')
 
 
 class Rebuild(batou.component.Component):
