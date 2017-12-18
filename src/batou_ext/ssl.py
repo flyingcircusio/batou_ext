@@ -12,7 +12,7 @@ import tempfile
 class Certificate(batou.component.Component):
     """SSL certificate management using let's encrypt -- or not
 
-    Usage:
+    Usage::
 
         # Add certificate component. After this step, a key and certificate
         # is available. In case of Let's Encrypt it's a self-signed one.
@@ -21,7 +21,8 @@ class Certificate(batou.component.Component):
             docroot=self.docroot,
             key_content=self.key_content,
             crt_content=self.crt_content,
-            use_letsencrypt=self.letsencrypt
+            use_letsencrypt=self.letsencrypt,
+            extracommand='sudo systemctl reload nginx',
         )
         self += self.cert
 
@@ -37,17 +38,19 @@ class Certificate(batou.component.Component):
         # nothing, if you don't use LE.
         self += self.cert.activate_letsencrypt()
 
-        # If you need to run some command after executing dehydrated, e.g.
-        # restarting a service, you can use the extracommand argument
-        # to configure it. It will be called everytime the script is invoked.
 
-        # The component is setting up a cronjob (in case of you are using
-        # Let's encrypt). So you need to add the CronTab-component to your
-        # deployment. This line should do the trick:
+    If you need to run some command after executing dehydrated, e.g.
+    restarting a service, you can use the extracommand argument
+    to configure it. It will be called everytime the script is invoked.
+
+    The component is setting up a cronjob (in case of you are using
+    Let's encrypt). So you need to add the CronTab-component to your
+    deployment. Import::
 
         from batou.lib.cron import CronTab
 
-        # As well as you need to add crontab to your environment.
+    ... and add the crontab component to the nginx host in your environment.
+
     """
 
     # Let's Encrypt
