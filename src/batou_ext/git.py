@@ -5,6 +5,7 @@ import batou_ext.ssh
 import glob
 import os
 import shutil
+import urlparse
 
 
 class GitCheckout(batou.component.Component):
@@ -19,7 +20,6 @@ class GitCheckout(batou.component.Component):
     Add GitCheckout-component to your custom component
 
     self.checkout += GitCheckout(
-        git_host = 'git.example.org',
         git_clone_url = 'git@git.example.org:12345/example-repo.git',
         git_revision = '1234567892134131313132231',
         git_target = self.map('checkout'),
@@ -47,12 +47,18 @@ class GitCheckout(batou.component.Component):
     exclude = ()
     sync_parent_folder = None
 
+    # Automatically scan the remote ssh hostkey (once)
+    scan_host = True
+
     def configure(self):
         # We need a SSH key
         self.require('sshkeypair')
 
-        # Add remote host to known hosts
-        self += batou_ext.ssh.ScanHost(self.git_host, port=self.git_port)
+        if self.scan_host:
+            if not self.git_host:
+                self.git_host = urlparse.urlparse(self.git_clone_url).hostname
+            # Add remote host to known hosts
+            self += batou_ext.ssh.ScanHost(self.git_host, port=self.git_port)
 
         # Get a recent checkout
         self += batou.lib.git.Clone(
