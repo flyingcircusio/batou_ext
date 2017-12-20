@@ -56,7 +56,8 @@ class GitCheckout(batou.component.Component):
 
         if self.scan_host:
             if not self.git_host:
-                self.git_host = urlparse.urlparse(self.git_clone_url).hostname
+                self.git_host = urlparse.urlparse(
+                    'ssh://' + self.git_clone_url).hostname
             # Add remote host to known hosts
             self += batou_ext.ssh.ScanHost(self.git_host, port=self.git_port)
 
