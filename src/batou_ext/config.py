@@ -1,6 +1,7 @@
 import batou.component
 import copy
 import json
+import os.path
 import re
 import yaml
 
@@ -136,6 +137,10 @@ class RegexPatch(batou.component.Component):
         return self.pattern.sub(self.replacement, self.source)
 
     def verify(self):
+        if not os.path.exists(self.path):
+            # During predict, the file might not exist.
+            self.source = None
+            raise batou.UpdateNeeded()
         with open(self.path, 'r') as f:
             self.source = f.read()
         m = self.pattern.search(self.source)
@@ -145,6 +150,9 @@ class RegexPatch(batou.component.Component):
             raise batou.UpdateNeeded()
 
     def update(self):
+        if self.source is None:
+            raise RuntimeError("The file to be patched does not exist:",
+                               self.path)
         with open(self.path, 'w') as f:
             f.write(self._patch())
 
