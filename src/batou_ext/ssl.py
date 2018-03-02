@@ -85,6 +85,10 @@ class Certificate(batou.component.Component):
     letsencrypt_challange = "http-01"
     letsencrypt_hook = ""
 
+    # Whether a certificate check should be deployed, too
+    # You will need something like nrpehost or sensuchecks on the host
+    enable_check = batou.component.Attribute('literal', True)
+
     _may_need_to_generate_certificates = False
 
     def configure(self):
@@ -162,6 +166,9 @@ DOMAINS_TXT={{component.domains_txt.path}}
                     'batou_ext', 'resources/cert.sh'),
                 mode=0o700)
             self.cert_sh = self._
+
+            if enable_check:
+                self += CertificateCheck(self.domain)
 
             self += batou.lib.cron.CronJob(
                 self.cert_sh.path,
