@@ -167,7 +167,7 @@ DOMAINS_TXT={{component.domains_txt.path}}
                 mode=0o700)
             self.cert_sh = self._
 
-            if enable_check:
+            if self.enable_check:
                 self += CertificateCheck(self.domain)
 
             self += batou.lib.cron.CronJob(
