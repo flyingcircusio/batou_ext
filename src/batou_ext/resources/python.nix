@@ -1,5 +1,4 @@
 with import <nixpkgs> {};
-with pkgs.python34Packages;
 
 buildPythonPackage {
   name = "impurePythonEnv";
