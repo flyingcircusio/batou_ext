@@ -2,6 +2,7 @@ import batou.component
 import batou.lib.cron
 import batou.lib.download
 import batou.lib.file
+import batou.lib.nagios
 import hashlib
 import os
 import os.path
@@ -84,6 +85,10 @@ class Certificate(batou.component.Component):
     letsencrypt_challange = "http-01"
     letsencrypt_hook = ""
 
+    # Whether a certificate check should be deployed, too
+    # You will need something like nrpehost or sensuchecks on the host
+    enable_check = batou.component.Attribute('literal', True)
+
     _may_need_to_generate_certificates = False
 
     def configure(self):
@@ -162,6 +167,9 @@ DOMAINS_TXT={{component.domains_txt.path}}
                 mode=0o700)
             self.cert_sh = self._
 
+            if self.enable_check:
+                self += CertificateCheck(self.domain)
+
             self += batou.lib.cron.CronJob(
                 self.cert_sh.path,
                 timing=self.refresh_timing,
@@ -215,3 +223,25 @@ class ActivateLetsEncrypt(batou.component.Component):
     @property
     def namevar_for_breadcrumb(self):
         return self.cert.namevar_for_breadcrumb
+
+
+class CertificateCheck(batou.component.Component):
+
+    namevar = 'public_name'
+    warning_days = 25
+    critical_days = 14
+
+    # If HTTPS is not running on 443
+    port = batou.component.Attribute(int, 443)
+
+    def configure(self):
+        self += batou.lib.nagios.ServiceCheck(
+            self.expand(
+                'https://{{component.public_name}} certificate valid?'),
+            name=self.expand('ssl_cert_{{component.public_name}}'),
+            command='check_http',
+            args=self.expand(
+                '-H {{component.public_name}} '
+                '-p {{component.port}} '
+                '-S --sni '
+                '-C {{component.warning_days}},{{component.critical_days}}'))
