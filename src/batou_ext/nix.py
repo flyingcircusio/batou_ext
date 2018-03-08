@@ -260,8 +260,14 @@ class PythonWithNixPackages(batou.component.Component):
     # sequence of nix package attributes
     # this must include the actual python, .i.e.  pkgs.python34
     nix_packages = ()
+    pythonPackages = None
 
     def configure(self):
+        if not self.pythonPackages:
+            self.pythonPackages = 'pkgs.{}Packages'. format(
+                self.python.replace('.', ''))
+
+
         self += batou.lib.file.File(
             '{}.nix'.format(self.python),
             content=pkg_resources.resource_string(
