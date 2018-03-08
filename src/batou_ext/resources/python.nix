@@ -1,5 +1,5 @@
 with import <nixpkgs> {};
-with {{component.buildPythonPackages}};
+with {{component.pythonPackages}};
 
 buildPythonPackage {
   name = "impurePythonEnv";
