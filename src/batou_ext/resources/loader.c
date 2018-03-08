@@ -23,18 +23,18 @@ int main(int argc, char* argv[]) {
     char *loaded = getenv("pythonEnvLoaded");
     if (loaded) {
         // If the environment is already loaded, don't load again
-        result = execvp("{{component.python}}}", argv);
-        printf("Python loader fail: %d / %d", result, errno);
+        result = execvp("{{component.python}}", argv);
+        fprintf(stderr, "Python loader (1) fail: %d / %d", result, errno);
         exit(errno);
     }
 
-    char *a[] = { "{{component.workdir}}setupEnv" };
+    char *a[] = { "{{component.env_file.path}}" };
     char **newargs = ARRAY_CONCAT(char*, a, 1, argv, argc);
 
-    result = execvp("{{component.workdir}}/setupEnv-{{component.python}}",
+    result = execvp("{{component.env_file.path}}",
                     newargs);
 
-    printf("Python loader fail: %d / %d", result, errno);
+    fprintf(stderr, "Python loader (2) fail: %d / %d", result, errno);
     exit(errno);
 
 }
