@@ -8,6 +8,6 @@ Environment="LOCALE_ARCHIVE={{component.env['LOCALE_ARCHIVE']}}"
 Environment="PATH={{component.env['PATH']}}"
 Environment="TZDIR={{component.env['TZDIR']}}"
 
-{% for key, value in component.service.items() %}
+{% for key, value in component.service_configuration() %}
 {{key}}={{value}}
-{% endfor %}
+{% endfor -%}

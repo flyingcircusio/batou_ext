@@ -156,6 +156,14 @@ class UserInit(batou.component.Component):
         env.update(os.environ)
         return env
 
+    def service_configuration(self):
+        for key, value in self.service.items():
+            if isinstance(value, (list, tuple)):
+                for v in value:
+                    yield key, v
+            else:
+                yield key, value
+
     def start(self):
         self.cmd('sudo systemctl start {}'.format(self.name))
 
@@ -262,6 +270,7 @@ class PythonWithNixPackages(batou.component.Component):
             'setupEnv-{}'.format(self.python), mode=0o755,
             content=pkg_resources.resource_string(
                 'batou_ext', 'resources/setupEnv.sh'))
+        self.env_file = self._
         self.provide(self.python, os.path.join(self.workdir, self.python))
 
     def verify(self):
