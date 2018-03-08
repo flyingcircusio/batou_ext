@@ -254,8 +254,12 @@ class PythonWithNixPackages(batou.component.Component):
 
     """
 
-    python = None  # expython interpreter, "python3.5"
-    nix_packages = ()  # sequence of nix package attributes
+    # python interpreter, "python3.5"
+    python = None
+
+    # sequence of nix package attributes
+    # this must include the actual python, .i.e.  pkgs.python34
+    nix_packages = ()
 
     def configure(self):
         self += batou.lib.file.File(
@@ -263,14 +267,14 @@ class PythonWithNixPackages(batou.component.Component):
             content=pkg_resources.resource_string(
                 'batou_ext', 'resources/python.nix'))
         self += batou.lib.file.File(
-            '{}.c'.format(self.python),
-            content=pkg_resources.resource_string(
-                'batou_ext', 'resources/loader.c'))
-        self += batou.lib.file.File(
             'setupEnv-{}'.format(self.python), mode=0o755,
             content=pkg_resources.resource_string(
                 'batou_ext', 'resources/setupEnv.sh'))
         self.env_file = self._
+        self += batou.lib.file.File(
+            '{}.c'.format(self.python),
+            content=pkg_resources.resource_string(
+                'batou_ext', 'resources/loader.c'))
         self.provide(self.python, os.path.join(self.workdir, self.python))
 
     def verify(self):
