@@ -213,6 +213,10 @@ class SensuChecks(batou.component.Component):
 
     default_interval = 60
 
+    # We should remove old batou.json files to avoid conflicts but this might
+    # trigger unexpected behavior.
+    purge_old_batou_json = batou.component.Attribute('literal', False)
+
     def configure(self):
         self.services = self.require(batou.lib.nagios.Service.key,
                                      host=self.host)
@@ -227,8 +231,11 @@ class SensuChecks(batou.component.Component):
 
         sensu = dict(checks=checks)
         self += batou.lib.file.File(
-            '/etc/local/sensu-client/batou.json',
+            '/etc/local/sensu-client/{}-batou.json'.format(
+                self.environment.service_user),
             content=json.dumps(sensu, sort_keys=True, indent=4))
+        if self.purge_old_batou_json:
+            self += batou.lib.file.Purge('/etc/local/sensu-client/batou.json')
 
 
 @batou.component.platform('nixos', batou.lib.logrotate.Logrotate)
@@ -266,7 +273,6 @@ class PythonWithNixPackages(batou.component.Component):
         if not self.pythonPackages:
             self.pythonPackages = 'pkgs.{}Packages'. format(
                 self.python.replace('.', ''))
-
 
         self += batou.lib.file.File(
             '{}.nix'.format(self.python),
