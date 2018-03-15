@@ -213,9 +213,7 @@ class SensuChecks(batou.component.Component):
 
     default_interval = 60
 
-    # We should remove old batou.json files to avoid conflicts but this might
-    # trigger unexpected behavior.
-    purge_old_batou_json = batou.component.Attribute('literal', False)
+    purge_old_batou_json = batou.component.Attribute('literal', True)
 
     def configure(self):
         self.services = self.require(batou.lib.nagios.Service.key,
