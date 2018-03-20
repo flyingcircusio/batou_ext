@@ -21,7 +21,7 @@ class Mirror(batou.component.Component):
     # Define non-default reload command for Nginx used e.g. on renewal
     # of SSL-certificate if possible
     nginx_reload_command = batou.component.Attribute(
-        str, 'sudo systmectl reload nginx')
+        str, 'sudo systemctl reload nginx')
 
     provide_itself = batou.component.Attribute('literal', True)
 
