@@ -10,9 +10,10 @@
 
 void *array_concat(const void *a, size_t an,const void *b, size_t bn, size_t s)
 {
-    char *p = malloc(s * (an + bn));
+    char *p = malloc(s * (an + bn + 1));
     memcpy(p, a, an*s);
     memcpy(p + an*s, b, bn*s);
+    p[s * (an+bn)] = 0;
     return p;
 }
 
@@ -23,7 +24,7 @@ int main(int argc, char* argv[]) {
     if (loaded) {
         // If the environment is already loaded, don't load again
         result = execvp("{{component.python}}", argv);
-        fprintf(stderr, "Python loader (1) fail: %d / %d", result, errno);
+        fprintf(stderr, "Python loader (1) fail: %d / %d\n", result, errno);
         exit(errno);
     }
 
@@ -33,7 +34,7 @@ int main(int argc, char* argv[]) {
     result = execvp("{{component.env_file.path}}",
                     newargs);
 
-    fprintf(stderr, "Python loader (2) fail: %d / %d", result, errno);
+    fprintf(stderr, "Python loader (2) fail: %d / %d\n", result, errno);
     exit(errno);
 
 }
