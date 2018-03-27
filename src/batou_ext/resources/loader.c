@@ -13,7 +13,7 @@ void *array_concat(const void *a, size_t an,const void *b, size_t bn, size_t s)
     char *p = malloc(s * (an + bn + 1));
     memcpy(p, a, an*s);
     memcpy(p + an*s, b, bn*s);
-    p[s * (an+bn)] = 0;
+    p[an+bn] = 0;
     return p;
 }
 
