@@ -5,36 +5,35 @@
 #include <unistd.h>
 
 
-#define ARRAY_CONCAT(TYPE, A, An, B, Bn) \
-(TYPE *)array_concat((const void *)(A), (An), (const void *)(B), (Bn), sizeof(TYPE));
-
-void *array_concat(const void *a, size_t an,const void *b, size_t bn, size_t s)
-{
-    char *p = malloc(s * (an + bn + 1));
-    memcpy(p, a, an*s);
-    memcpy(p + an*s, b, bn*s);
-    p[an+bn] = 0;
-    return p;
-}
-
-
 int main(int argc, char* argv[]) {
     int result;
+    int i;
     char *loaded = getenv("pythonEnvLoaded");
+    char *newargs[argc + 2];
+
     if (loaded) {
         // If the environment is already loaded, don't load again
-        result = execvp("{{component.python}}", argv);
-        fprintf(stderr, "Python loader (1) fail: %d / %d\n", result, errno);
+        for (i=0; i<argc; i++){
+           newargs[i] = argv[i];
+         }
+        newargs[argc] = 0;
+
+        result = execvp("{{component.python}}",
+                        newargs);
+        fprintf(stderr, "Python loader (reentry) fail: %d / %d\n",
+                result, errno);
         exit(errno);
     }
 
-    char *a[] = { "{{component.env_file.path}}" };
-    char **newargs = ARRAY_CONCAT(char*, a, 1, argv, argc);
+    newargs[0] = "{{component.env_file.path}}"
+    for (i=0; i<argc; i++){
+       newargs[i+1] = argv[i];
+     }
+    newargs[argc+2] = 0;
 
     result = execvp("{{component.env_file.path}}",
                     newargs);
-
-    fprintf(stderr, "Python loader (2) fail: %d / %d\n", result, errno);
+    fprintf(stderr, "Python loader (initial) fail: %d / %d\n", result, errno);
     exit(errno);
 
 }
