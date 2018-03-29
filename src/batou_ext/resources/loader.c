@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
         exit(errno);
     }
 
-    newargs[0] = "{{component.env_file.path}}"
+    newargs[0] = "{{component.env_file.path}}";
     for (i=0; i<argc; i++){
        newargs[i+1] = argv[i];
      }
