@@ -1,7 +1,7 @@
 import batou.component
 
 
-class Pipenv(batou.component.component):
+class Pipenv(batou.component.Component):
     """Sync pipenv
 
     Usage:
