@@ -23,7 +23,8 @@ class Pipenv(batou.component.Component):
     target = None
 
     def configure(self):
-        self.executable = self.expand('{{component.workdir}}/.venv/bin/python')
+        self.venv = self.expand('{{component.workdir}}/.venv')
+        self.executable = self.expand('{{component.venv}}/bin/python')
         if self.target is None:
             self.target = self.workdir
 
