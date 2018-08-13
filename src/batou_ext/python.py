@@ -1,4 +1,5 @@
 import batou.component
+import os.path
 
 
 class Pipenv(batou.component.Component):
@@ -23,10 +24,10 @@ class Pipenv(batou.component.Component):
     target = None
 
     def configure(self):
-        self.venv = self.expand('{{component.workdir}}/.venv')
-        self.executable = self.expand('{{component.venv}}/bin/python')
         if self.target is None:
             self.target = self.workdir
+        self.venv = os.path.join(self.workdir, self.target, '.venv')
+        self.executable = os.path.join(self.venv, 'bin/python')
 
     def verify(self):
         with self.chdir(self.target):
