@@ -20,18 +20,24 @@ class Pipenv(batou.component.component):
 
     """
 
+    target = None
+
     def configure(self):
         self.executable = self.expand('{{component.workdir}}/.venv/bin/python')
+        if self.target is None:
+            self.target = self.workdir
 
     def verify(self):
-        self.assert_file_is_current(
-            '.venv/bin/python',
-            ['Pipfile', 'Pipfile.lock'])
-        # Is this Python (still) functional 'enough'
-        # from a setuptools/distribute perspective?
-        self.assert_cmd('bin/python -c "import pkg_resources"')
+        with self.chdir(self.target):
+            self.assert_file_is_current(
+                '.venv/bin/python',
+                ['Pipfile', 'Pipfile.lock'])
+            # Is this Python (still) functional 'enough'
+            # from a setuptools/distribute perspective?
+            self.assert_cmd('bin/python -c "import pkg_resources"')
 
     def update(self):
-        self.cmd('rm -rf .venv')
-        self.cmd('pipenv sync',
-                 env={'PIPENV_VENV_IN_PROJECT': '1'})
+        with self.chdir(self.target):
+            self.cmd('rm -rf .venv')
+            self.cmd('pipenv sync',
+                     env={'PIPENV_VENV_IN_PROJECT': '1'})
