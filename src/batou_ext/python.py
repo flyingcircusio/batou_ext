@@ -32,11 +32,12 @@ class Pipenv(batou.component.Component):
     def verify(self):
         with self.chdir(self.target):
             self.assert_file_is_current(
-                '.venv/bin/python',
+                self.executable,
                 ['Pipfile', 'Pipfile.lock'])
             # Is this Python (still) functional 'enough'
             # from a setuptools/distribute perspective?
-            self.assert_cmd('bin/python -c "import pkg_resources"')
+            self.assert_cmd(
+                '{{component.executable}} -c "import pkg_resources"')
 
     def update(self):
         with self.chdir(self.target):
