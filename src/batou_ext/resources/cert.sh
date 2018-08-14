@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 {{component.workdir}}/dehydrated \
     --config {{component.config.path}} \
     --register --accept-terms
