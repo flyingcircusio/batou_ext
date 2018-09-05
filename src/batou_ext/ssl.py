@@ -167,13 +167,14 @@ DOMAINS_TXT={{component.domains_txt.path}}
                 mode=0o700)
             self.cert_sh = self._
 
-            if self.enable_check:
-                self += CertificateCheck(self.domain)
-
             self += batou.lib.cron.CronJob(
                 self.cert_sh.path,
                 timing=self.refresh_timing,
                 logger='cert-update')
+
+        if self.enable_check:
+            self += CertificateCheck(self.domain)
+
 
     def activate_letsencrypt(self):
         """Return a component which really activates LE"""
