@@ -245,8 +245,7 @@ class LogrotateIntegration(batou.component.Component):
             '/etc/local/logrotate', user, 'batou.conf')
         self += batou.lib.file.File(
             user_logrotate_conf,
-            ensure='symlink',
-            link_to=self.parent.logrotate_conf.path)
+            source=self.parent.logrotate_conf.path)
 
 
 class PythonWithNixPackages(batou.component.Component):
