@@ -10,10 +10,10 @@ class NFS(batou.component.Component):
     """
 
     # Path where NFS on client is mounted on
-    basepath = batou.component.Attribute(str, '/mnt/nfs/shared')
+    basepath = batou.component.Attribute(str, '/mnt/nfs/shared/')
 
     # Path where NFS-share is located on the NFS server
-    serverpath = batou.component.Attribute(str, '/srv/nfs/shared')
+    serverpath = batou.component.Attribute(str, '/srv/nfs/shared/')
 
     def configure(self):
 
