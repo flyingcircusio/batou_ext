@@ -61,13 +61,12 @@ class SSHKeyPair(Component):
 
 
 class ScanHost(Component):
-
     """This component adds the host key of a provided host to the service
        user's known host file."""
 
     namevar = 'hostname'
     known_hosts = '~/.ssh/known_hosts'
-    port = Attribute(int, 22)
+    port = 22
 
     def configure(self):
         self.known_hosts = self.map(self.known_hosts)
