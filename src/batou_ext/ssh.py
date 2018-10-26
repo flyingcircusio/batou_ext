@@ -93,5 +93,7 @@ class ScanHost(Component):
             del os.environ['SSH_AUTH_SOCK']
         except KeyError:
             pass
-        self.cmd('ssh-keyscan -p {} "{}" >> "{}"'.format(
+        self.cmd('ssh-keyscan -4 -p {} "{}" >> "{}"'.format(
+                 self.port, self.hostname, self.known_hosts))
+        self.cmd('ssh-keyscan -6 -p {} "{}" >> "{}"'.format(
                  self.port, self.hostname, self.known_hosts))
