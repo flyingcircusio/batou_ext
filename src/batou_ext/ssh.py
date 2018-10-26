@@ -82,7 +82,11 @@ class ScanHost(Component):
             raise UpdateNeeded()
         with open(self.known_hosts, 'r') as f:
             content = f.read()
-        if self.hostname not in content:
+        if self.port == 22:
+            match = self.hostname
+        else:
+            match = '[{}]:{}'.format(self.hostname, self.port)
+        if match not in content:
             raise UpdateNeeded()
 
     def update(self):
