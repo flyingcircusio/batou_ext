@@ -7,6 +7,33 @@ import os.path
 
 @batou_ext.nix.rebuild
 class Mirror(batou.component.Component):
+    """Provide a package download mirror (server), and access to it (client).
+
+    Usage: Server::
+
+        [component:mirror]
+        nginx_enable = True
+        authstring = htpasswd-compatible file format
+        nginx_config_path = /etc/local/nginx
+        public_name = packages.example.com
+
+    Usage: Client::
+
+        [component:mirror]
+        credentials = username:password
+        public_name = packages.example.com
+
+
+    Usage in components::
+
+        mirror = self.require_one('mirror')
+        self += Download(mirror.url('/path/to/package'))
+
+
+    Server and client can be folded into one, when defining the options
+    required for both in the same component.
+
+    """
 
     public_name = None
     base = batou.component.Attribute(
