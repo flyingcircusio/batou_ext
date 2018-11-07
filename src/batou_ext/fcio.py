@@ -151,8 +151,8 @@ class Provision(batou.component.Component):
 
     @staticmethod
     def get_api(environment):
-        rg_name = environment.overrides['dnsaliases']['project']
-        api_key = environment.overrides['dnsaliases']['api_key']
+        rg_name = environment.overrides['provision']['project']
+        api_key = environment.overrides['provision']['api_key']
         api = xmlrpclib.ServerProxy(
             'https://%s:%s@api.flyingcircus.io/v1' % (rg_name, api_key))
         return api
@@ -171,7 +171,7 @@ class Provision(batou.component.Component):
     @classmethod
     def apply(cls, env_name=None, dry_run=False, **kwargs):
         environment = cls.load_env(env_name)
-        rg_name = environment.overrides['dnsaliases']['project']
+        rg_name = environment.overrides['provision']['project']
         api = cls.get_api(environment)
         calls = []
 
