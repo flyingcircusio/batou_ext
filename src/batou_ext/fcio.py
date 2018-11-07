@@ -184,7 +184,7 @@ class Provision(batou.component.Component):
         for name, host in sorted(environment.hosts.items()):
             d = host.data
             roles = d.get('roles', '').splitlines()
-            classes = ['role::' + r for r in roles]
+            classes = ['role::' + r for r in roles if r]
             call = dict(
                 __type__='virtualmachine',
                 cores=int(d['cores']),
@@ -201,11 +201,11 @@ class Provision(batou.component.Component):
             )
 
             def alias(interface):
-                aliases = d.get('aliases-' + interface)
+                aliases = d.get('alias-' + interface)
                 if aliases:
                     aliases = aliases.split()
                     aliases.sort()
-                call[interface + '_aliases'] = aliases
+                    call[interface + '_aliases'] = aliases
             alias('srv')
             alias('fe')
 
@@ -214,9 +214,7 @@ class Provision(batou.component.Component):
         if dry_run:
             pprint(calls)
         else:
-            for call in calls:
-                result = api.apply([call])
-                print('{name} ({memory}MiB): {kvm_host}'.format(**result[0]))
+            pprint(api.apply(calls))
 
 
 def main():
