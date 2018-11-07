@@ -1,6 +1,11 @@
+from __future__ import print_function
+from pprint import pprint
+import argparse
 import batou
 import batou.component
+import batou.environment
 import batou.lib.file
+import batou.template
 import socket
 import time
 import xmlrpclib
@@ -124,3 +129,115 @@ class DNSAliases(batou.component.Component):
                     for (family, type, proto, canonname, sockaddr) in addrs)
             results.append('{}: {}'.format(fqdn, result))
         return error, results
+
+
+class Provision(batou.component.Component):
+    """FCIO provisioning component.
+
+    During a `batou deploy` run, this component does not do anything. It's
+    there to hold the configuration.
+
+    """
+
+    project = None
+    api_key = None
+
+    @staticmethod
+    def load_env(env_name):
+        environment = batou.environment.Environment(env_name)
+        environment.load()
+        environment.load_secrets()
+        return environment
+
+    @staticmethod
+    def get_api(environment):
+        rg_name = environment.overrides['dnsaliases']['project']
+        api_key = environment.overrides['dnsaliases']['api_key']
+        api = xmlrpclib.ServerProxy(
+            'https://%s:%s@api.flyingcircus.io/v1' % (rg_name, api_key))
+        return api
+
+    def _add_calls(self, hostname, interface, aliases_str):
+        if not aliases_str:
+            return
+        aliases = aliases_str.split()
+        aliases.sort()
+        self.calls.append({
+            '__type__': 'virtualmachine',
+            'name': hostname + self.postfix,
+            'aliases_' + interface: aliases})
+        self.aliases.extend(aliases)
+
+    @classmethod
+    def apply_resources(cls, env_name=None, dry_run=False, **kwargs):
+        environment = cls.load_env(env_name)
+        rg_name = environment.overrides['dnsaliases']['project']
+        api = cls.get_api(environment)
+        calls = []
+
+        calls.append(dict(
+            __type__='serviceuser',
+            uid=environment.service_user,
+            resource_group=rg_name
+        ))
+
+        for name, host in sorted(environment.hosts.items()):
+            d = host.data
+            roles = d.get('roles', '').splitlines()
+            classes = ['role::' + r for r in roles]
+            call = dict(
+                __type__='virtualmachine',
+                cores=int(d['cores']),
+                disk=max(int(d['disk']), 30),
+                memory=int(d['ram']) * 1024,
+                online=True,
+                name=host.name,
+                classes=classes,
+                resource_group=rg_name,
+                environment_class='NixOS',
+                environment='fc-15.09-production',
+                location='rzob',
+                rbd_pool=d.get('rbdpool', 'rbd.hdd'),
+            )
+
+            def alias(interface):
+                aliases = d.get('aliases-' + interface)
+                if aliases:
+                    aliases = aliases.split()
+                    aliases.sort()
+                call[interface + '_aliases'] = aliases
+            alias('srv')
+            alias('fe')
+
+            calls.append(call)
+
+        if dry_run:
+            pprint(calls)
+        else:
+            for call in calls:
+                result = api.apply([call])
+                print('{name} ({memory}MiB): {kvm_host}'.format(**result[0]))
+
+
+def main():
+
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers()
+
+    p = subparsers.add_parser(
+        'provision',
+        help='Apply resource settings')
+    p.add_argument('env_name', help='Environment')
+    p.add_argument('-n', '--dry-run', help='Dry run',
+                   action='store_true')
+    p.set_defaults(func=Provision.apply)
+
+    args = parser.parse_args()
+
+    func_args = dict(args._get_kwargs())
+    del func_args['func']
+    return args.func(**func_args)
+
+
+if __name__ == '__main__':
+    main()

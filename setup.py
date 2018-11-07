@@ -46,6 +46,7 @@ Programming Language :: Python :: 2 :: Only
     data_files=[('', glob.glob(project_path('*.txt')))],
     entry_points=dict(console_scripts=[
         'jenkins = batou_ext.jenkins:main',
+        'fcio = batou_ext.fcio:main',
     ]),
     zip_safe=False,
 )
