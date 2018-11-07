@@ -2,6 +2,10 @@
 
 set -e
 
+{% if component.host.platform == "nixos" -%}
+source /etc/profile
+{% endif -%}
+
 {{component.workdir}}/dehydrated \
     --config {{component.config.path}} \
     --register --accept-terms
