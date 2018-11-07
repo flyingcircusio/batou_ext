@@ -169,7 +169,7 @@ class Provision(batou.component.Component):
         self.aliases.extend(aliases)
 
     @classmethod
-    def apply_resources(cls, env_name=None, dry_run=False, **kwargs):
+    def apply(cls, env_name=None, dry_run=False, **kwargs):
         environment = cls.load_env(env_name)
         rg_name = environment.overrides['dnsaliases']['project']
         api = cls.get_api(environment)
