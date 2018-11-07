@@ -198,6 +198,8 @@ class Provision(batou.component.Component):
                 environment='fc-15.09-production',
                 location='rzob',
                 rbd_pool=d.get('rbdpool', 'rbd.hdd'),
+                frontend_ips_v4=int(d.get('frontend-ipv4', 0)),
+                frontend_ips_v6=int(d.get('frontend-ipv6', 0)),
             )
 
             def alias(interface):
