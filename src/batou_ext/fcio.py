@@ -207,7 +207,7 @@ class Provision(batou.component.Component):
                 if aliases:
                     aliases = aliases.split()
                     aliases.sort()
-                    call[interface + '_aliases'] = aliases
+                    call['aliases_' + interface] = aliases
             alias('srv')
             alias('fe')
 
