@@ -141,6 +141,8 @@ class Provision(batou.component.Component):
 
     project = None
     api_key = None
+    location = 'rzob'
+    vm_environment = 'fc-15.09-production'
 
     @staticmethod
     def load_env(env_name):
@@ -171,7 +173,14 @@ class Provision(batou.component.Component):
     @classmethod
     def apply(cls, env_name=None, dry_run=False, **kwargs):
         environment = cls.load_env(env_name)
-        rg_name = environment.overrides['provision']['project']
+
+        def config(name):
+            value = environment.overrides['provision'].get('location')
+            if not value:
+                value = getattr(cls, name)
+            return value
+
+        rg_name = config('project')
         api = cls.get_api(environment)
         calls = []
 
@@ -195,8 +204,8 @@ class Provision(batou.component.Component):
                 classes=classes,
                 resource_group=rg_name,
                 environment_class='NixOS',
-                environment='fc-15.09-production',
-                location='rzob',
+                environment=config('vm_environment'),
+                location=config('location'),
                 rbd_pool=d.get('rbdpool', 'rbd.hdd'),
                 frontend_ips_v4=int(d.get('frontend-ipv4', 0)),
                 frontend_ips_v6=int(d.get('frontend-ipv6', 0)),
@@ -220,7 +229,6 @@ class Provision(batou.component.Component):
 
 
 def main():
-
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
 
