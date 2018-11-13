@@ -175,7 +175,7 @@ class Provision(batou.component.Component):
         environment = cls.load_env(env_name)
 
         def config(name):
-            value = environment.overrides['provision'].get('location')
+            value = environment.overrides['provision'].get(name)
             if not value:
                 value = getattr(cls, name)
             return value
