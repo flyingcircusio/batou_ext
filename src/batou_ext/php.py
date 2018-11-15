@@ -37,10 +37,17 @@ class PHPEnvironment(batou.component.Component):
 
     fpm_port = batou.component.Attribute(int, 9001)
 
+    # If True, service activation is the responsible of the parent
+    # component via `self += self.php.activate_service()`. The service
+    # will be activated automatically otherwise. Deferring can be useful to
+    # control the time of service start/restart, e.g. after actually building
+    # the application.
+    defer_service = False
+
     def configure(self):
-        checksum = hashlib.new('md5')
+        self._checksum = hashlib.new('md5')
         for s in self.additional_checksum:
-            checksum.update(s)
+            self._checksum.update(s)
 
         # External address.
         self.fpm_address = batou.utils.Address(self.host.fqdn, self.fpm_port)
@@ -58,7 +65,7 @@ class PHPEnvironment(batou.component.Component):
 """)
 
         self += batou_ext.nix.Package(attribute=self.php_attribute)
-        checksum.update(self.php_attribute)
+        self._checksum.update(self.php_attribute)
 
         self += batou_ext.nix.Package(attribute='nixos.libiconv')
 
@@ -76,7 +83,7 @@ class PHPEnvironment(batou.component.Component):
                     os.path.dirname(__file__),
                     'resources/php/php.ini'))
             self.php_ini = self._
-        checksum.update(self.php_ini.content)
+        self._checksum.update(self.php_ini.content)
 
         # Providing a php-fpm.conf
         if not self.php_fpm_ini:
@@ -86,7 +93,7 @@ class PHPEnvironment(batou.component.Component):
                     os.path.dirname(__file__),
                     'resources/php/php-fpm.conf'))
             self.php_fpm_ini = self._
-        checksum.update(self.php_fpm_ini.content)
+        self._checksum.update(self.php_fpm_ini.content)
 
         self.pid_file = self.map('php-fpm.pid')
         self += batou.lib.file.File(
@@ -94,11 +101,15 @@ class PHPEnvironment(batou.component.Component):
             source=os.path.join(
                 os.path.dirname(__file__),
                 'resources/php/php-fpm.sh'))
-        checksum.update(self._.content)
+        self._checksum.update(self._.content)
 
-        self += batou.lib.service.Service(
+        if not self.defer_service:
+            self += self.activate_service()
+
+    def activate_service(self):
+        return batou.lib.service.Service(
             self.name,
-            checksum=checksum.hexdigest(),
+            checksum=self._checksum.hexdigest(),
             systemd=dict(
                 PIDFile=self.pid_file,
                 Restart='always'))
