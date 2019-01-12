@@ -51,8 +51,6 @@ class GitCheckout(batou.component.Component):
     scan_host = True
 
     def configure(self):
-        # We need a SSH key
-        self.require('sshkeypair')
 
         if not urlparse.urlparse(self.git_clone_url).scheme:
             self.log('WARNING: `git_url` has no scheme. Guessing `ssh://`')
@@ -63,6 +61,10 @@ class GitCheckout(batou.component.Component):
                 self.git_port = urlparse.urlparse(self.git_clone_url).port
             # Add remote host to known hosts
             self += batou_ext.ssh.ScanHost(self.git_host, port=self.git_port)
+
+        # Chek whether we need a SSH key
+        if urlparse.urlparse(self.git_clone_url).scheme == 'ssh':
+            self.require('sshkeypair')
 
         # Get a recent checkout
         self += batou.lib.git.Clone(
