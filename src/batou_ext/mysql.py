@@ -14,7 +14,7 @@ class MySQLGeneric(batou.component.Component):
         admin_password='myadminpassword',
         allow_from_host_name='127.0.0.1')
     """
-    namevar = database
+    namevar = 'database'
     username = None
     password = None
     admin_password = None
