@@ -19,7 +19,7 @@ class GitCheckout(batou.component.Component):
 
     Add GitCheckout-component to your custom component
 
-    self.checkout += GitCheckout(
+    self.checkout = GitCheckout(
         git_clone_url = 'git@git.example.org:12345/example-repo.git',
         git_revision = '1234567892134131313132231',
         git_target = self.map('checkout'),
