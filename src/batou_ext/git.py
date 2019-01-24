@@ -52,9 +52,10 @@ class GitCheckout(batou.component.Component):
 
     def configure(self):
 
-        if not urlparse.urlparse(self.git_clone_url).scheme:
-            self.log('WARNING: `git_url` has no scheme. Guessing `ssh://`')
-            self.git_clone_url = 'ssh://' + self.git_clone_url
+        # We need to ensure to have a valid URL. Assuming URL with schema
+        # should be valid.
+        assert urlparse.urlparse(self.git_clone_url).scheme
+
         if self.scan_host:
             if not self.git_host:
                 self.git_host = urlparse.urlparse(self.git_clone_url).hostname
