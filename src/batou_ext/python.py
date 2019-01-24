@@ -58,6 +58,9 @@ class VirtualEnvRequirements(batou.component.Component):
     version = batou.component.Attribute(str, '2.7')
     requirements_path = batou.component.Attribute(str, 'requirements.txt')
 
+    # Shell script to be sourced before creating VirtualEnv and pip
+    pre_run_script_path = None
+
     def configure(self):
         self.venv = batou.lib.python.VirtualEnv(self.version)
         self += self.venv
@@ -67,6 +70,14 @@ class VirtualEnvRequirements(batou.component.Component):
         self.parent.assert_no_changes()
 
     def update(self):
-        self.cmd('{} -m pip install --upgrade -r {}'.format(
-            self.venv.python,
-            self.requirements_path))
+        if pre_run_script_path:
+            self.cmd(
+                ('source {} && {}'
+                 '-m pip install --upgrade -r {}').format(
+                    self.pre_run_Script_path
+                    self.venv.python,
+                    self.requirements_path))
+        else:
+            self.cmd('{} -m pip install --upgrade -r {}'.format(
+                self.venv.python,
+                self.requirements_path))
