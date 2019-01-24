@@ -1,5 +1,6 @@
 import batou.component
 import os.path
+import batou.lib.python
 
 
 class Pipenv(batou.component.Component):
@@ -44,3 +45,28 @@ class Pipenv(batou.component.Component):
             self.cmd('rm -rf .venv')
             self.cmd('pipenv sync',
                      env={'PIPENV_VENV_IN_PROJECT': '1'})
+
+
+class VirtualEnvRequirements(batou.component.Component):
+    """
+    Installs a Python VirtualEnv with a given requirements.txt
+
+    Usage:
+    self += VirtualEnvRequirements('2.7', '/path/to/my/requirements.txt')
+    """
+
+    version = batou.component.Attribute(str, '2.7')
+    requirements_path = batou.component.Attribute(str, 'requirements.txt')
+
+    def configure(self):
+        self.venv = batou.lib.python.VirtualEnv(self.version)
+        self += self.venv
+
+    def verify(self):
+        self.assert_no_changes()
+        self.parent.assert_no_changes()
+
+    def update(self):
+        self.cmd('{} -m pip install --upgrade -r {}'.format(
+            self.venv.python,
+            self.requirements_path))
