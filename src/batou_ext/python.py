@@ -74,7 +74,7 @@ class VirtualEnvRequirements(batou.component.Component):
             self.cmd(
                 ('source {} && {}'
                  '-m pip install --upgrade -r {}').format(
-                    self.pre_run_Script_path,
+                    self.pre_run_script_path,
                     self.venv.python,
                     self.requirements_path))
         else:
