@@ -61,6 +61,9 @@ class VirtualEnvRequirements(batou.component.Component):
     # Shell script to be sourced before creating VirtualEnv and pip
     pre_run_script_path = None
 
+    # Passing environmental variables to batou's cmd
+    env = None
+
     def configure(self):
         self.venv = batou.lib.python.VirtualEnv(self.version)
         self += self.venv
@@ -76,8 +79,10 @@ class VirtualEnvRequirements(batou.component.Component):
                  '-m pip install --upgrade -r {}').format(
                     self.pre_run_script_path,
                     self.venv.python,
-                    self.requirements_path))
+                    self.requirements_path),
+                env=self.env)
         else:
             self.cmd('{} -m pip install --upgrade -r {}'.format(
                 self.venv.python,
-                self.requirements_path))
+                self.requirements_path),
+                env=self.env)
