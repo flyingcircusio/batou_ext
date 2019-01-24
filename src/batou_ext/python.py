@@ -70,7 +70,7 @@ class VirtualEnvRequirements(batou.component.Component):
         self.parent.assert_no_changes()
 
     def update(self):
-        if pre_run_script_path:
+        if self.pre_run_script_path:
             self.cmd(
                 ('source {} && {}'
                  '-m pip install --upgrade -r {}').format(
