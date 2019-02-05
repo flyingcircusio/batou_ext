@@ -4,10 +4,11 @@ import batou.lib.cron
 import batou.lib.file
 import batou.lib.logrotate
 import batou.lib.nagios
-import batou.utils
 import batou.lib.service
 import batou.lib.supervisor
+import batou.utils
 import collections
+import hashlib
 import json
 import os
 import os.path
@@ -74,6 +75,51 @@ class PurgePackage(batou.component.Component):
 
     def update(self):
         self.cmd('nix-env --uninstall {{component.package}}')
+
+
+class UserEnv(batou.component.Component):
+    """Provide a NixOS user environment.
+
+    Usage::
+        self += batou_ext_nix.UserEnv(
+                "django",
+                packages=[
+                    "gcc",
+                    "gettext",
+                    "glibc",
+                    "liberation_ttf",
+                    "libffi",
+                    "libxml2",
+                    "libxslt",
+                    "mysql55",
+                    "nodejs-8_x",
+                    "openssl",
+                    "python27Full",
+                    "yarn",
+                    "zip",
+                ],
+                shellInit="# additional shell init")
+    """
+
+    namevar = "profile_name"
+    channel = "https://releases.nixos.org/nixos/18.09/nixos-18.09.1974.50f41ea2fcf/nixexprs.tar.xz"
+    shellInit = ""
+    packages = ()
+
+    def configure(self):
+        self.checksum = hashlib.sha256()
+        template = pkg_resources.resource_string(__name__,
+                                                 'resources/userenv.nix')
+        self.profile = self.expand(template)
+        self.checksum.update(self.profile)
+        self.nix_env_name = self.expand(
+            "{{component.profile_name}}-{{component.checksum.hexdigest()}}"
+        )
+        self += batou.lib.file.File(self.profile_name + ".nix",
+                                    content=self.profile)
+        self += Package(self.nix_env_name, file=self._.path)
+        self.user_profile_path = os.path.expanduser(
+            "~/.nix-profile/etc/profile.d/{}.sh".format(self.profile_name))
 
 
 class Rebuild(batou.component.Component):
