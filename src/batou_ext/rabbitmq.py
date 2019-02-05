@@ -144,8 +144,8 @@ class User(batou.component.Component):
 
     def update(self):
         if self.create:
-            self.cmd('rabbitmqctl add_user'
-                     ' {{component.username}} {{component.password}}')
+            self.cmd("rabbitmqctl add_user"
+                     " '{{component.username}}' '{{component.password}}'")
         if self.set_tags:
             self.cmd('rabbitmqctl set_user_tags'
                      ' {{component.username}} {{component.tags_str}}')
