@@ -113,7 +113,7 @@ class UserEnv(batou.component.Component):
         self.profile = self.expand(template)
         self.checksum.update(self.profile)
         self.nix_env_name = self.expand(
-            "{{component.profile_name}}-{{component.checksum.hexdigest()}}"
+            "{{component.profile_name}}-1.{{component.checksum.hexdigest()}}"
         )
         self += batou.lib.file.File(self.profile_name + ".nix",
                                     content=self.profile)
