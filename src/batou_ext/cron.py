@@ -78,8 +78,8 @@ class CronJob(batou.component.Component):
                 cmd.append(str(int(self.checkCritical) * 60))
 
             self += batou.lib.nagios.Service(
+                self.expand("Cronjob {{component.tag}} finished?"),
                 command="check_file_age",
                 args=" ".join(cmd),
                 name=self.expand("cronjob_{{component.tag}}"),
-                description=self.expand("Cronjob {{component.tag}} finished?"),
             )
