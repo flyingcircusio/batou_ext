@@ -29,11 +29,20 @@ def git_resolve(url, version):
     return stdout.split('\t', 1)[0]
 
 
-def list_components(versions_file):
+def list_components(versions_file, verbose=False):
     config = ConfigParser.SafeConfigParser()
     config.read(versions_file)
-    versions = sorted(config.sections())
-    print(json.dumps(versions))
+    components = sorted(config.sections())
+    if verbose:
+        result = []
+        for component in components:
+            c = dict(config.items(component))
+            c['name'] = component
+            result.append(c)
+    else:
+        result = components
+
+    print(json.dumps(result, sort_keys=True))
 
 
 def set_versions(versions_file, version_mapping_json):
@@ -65,6 +74,10 @@ def main():
     p = subparsers.add_parser(
         'list-components',
         help='List available components where versions can be set')
+    p.add_argument(
+       '-v', '--verbose',
+       action='store_true',
+       help='Return all options from versions.ini, not only component names')
     p.add_argument(
        'versions_file',
        help='Name of "versions.ini"')
