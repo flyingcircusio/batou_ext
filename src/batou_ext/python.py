@@ -52,7 +52,9 @@ class VirtualEnvRequirements(batou.component.Component):
     Installs a Python VirtualEnv with a given requirements.txt
 
     Usage:
-    self += VirtualEnvRequirements('2.7', '/path/to/my/requirements.txt')
+    self += VirtualEnvRequirements(
+        version='2.7',
+        '/path/to/my/requirements.txt')
     """
 
     version = batou.component.Attribute(str, '2.7')
