@@ -67,6 +67,14 @@ class VirtualEnvRequirements(batou.component.Component):
     env = None
 
     def configure(self):
+
+        if isinstance(self.requirements_path, str):
+            self.requirements_paths = list(self.requirements_path)
+        elif isinstance(self.requirements_path, list):
+            self.requirements_paths = self.requirements_path
+        else:
+            raise RuntimeError('Needs to be either string or list')
+
         self.venv = batou.lib.python.VirtualEnv(self.version)
         self += self.venv
 
@@ -75,16 +83,14 @@ class VirtualEnvRequirements(batou.component.Component):
         self.parent.assert_no_changes()
 
     def update(self):
-        if self.pre_run_script_path:
-            self.cmd(
-                ('source {} && {} '
-                 '-m pip install --upgrade -r {}').format(
-                    self.pre_run_script_path,
-                    self.venv.python,
-                    self.requirements_path),
-                env=self.env)
-        else:
-            self.cmd('{} -m pip install --upgrade -r {}'.format(
-                self.venv.python,
-                self.requirements_path),
-                env=self.env)
+        for req in self.requirements_paths:
+            if self.pre_run_script_path:
+                self.cmd(
+                    ('source {} && {} '
+                     '-m pip install --upgrade -r {}').format(
+                        self.pre_run_script_path, self.venv.python, req),
+                    env=self.env)
+            else:
+                self.cmd('{} -m pip install --upgrade -r {}'.format(
+                    self.venv.python, req),
+                    env=self.env)
