@@ -16,9 +16,9 @@ Example::
             self += PurgeUser('guest')
             self += VHost(self.vhost)
             self += User(
-                self.username, password=self.password, tags=['management'],
-                permissions={self.vhost: ('.*', '.*', '.*')})
-
+                self.username, password=self.password, tags=['management'])
+            self += Permissions(
+                self.username, permissions={self.vhost: ('.*', '.*', '.*')}
 
 """
 
