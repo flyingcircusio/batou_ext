@@ -69,7 +69,7 @@ class VirtualEnvRequirements(batou.component.Component):
     def configure(self):
 
         if isinstance(self.requirements_path, str):
-            self.requirements_paths = [self.requirements_path, ]
+            self.requirements_paths = [self.requirements_path]
         elif isinstance(self.requirements_path, list):
             self.requirements_paths = self.requirements_path
         else:
