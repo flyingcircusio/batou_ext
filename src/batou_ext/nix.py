@@ -274,10 +274,16 @@ class SensuChecks(batou.component.Component):
                     '{{component.command}} {{component.args}}'))
 
         sensu = dict(checks=checks)
-        self += batou.lib.file.File(
-            '/etc/local/sensu-client/{}-batou.json'.format(
-                self.environment.service_user),
-            content=json.dumps(sensu, sort_keys=True, indent=4))
+        config_file_name = '/etc/local/sensu-client/{}-batou.json'.format(
+            self.environment.service_user)
+
+        if sensu:
+            self += batou.lib.file.File(
+                config_file_name,
+                content=json.dumps(sensu, sort_keys=True, indent=4))
+        else:
+            self += batou.lib.file.Purge(config_file_name)
+
         if self.purge_old_batou_json:
             self += batou.lib.file.Purge('/etc/local/sensu-client/batou.json')
 
