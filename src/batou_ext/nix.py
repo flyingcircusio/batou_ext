@@ -273,11 +273,12 @@ class SensuChecks(batou.component.Component):
                 command=service.expand(
                     '{{component.command}} {{component.args}}'))
 
-        sensu = dict(checks=checks)
         config_file_name = '/etc/local/sensu-client/{}-batou.json'.format(
             self.environment.service_user)
 
-        if sensu:
+        if checks:
+            sensu = dict(checks=checks)
+
             self += batou.lib.file.File(
                 config_file_name,
                 content=json.dumps(sensu, sort_keys=True, indent=4))
