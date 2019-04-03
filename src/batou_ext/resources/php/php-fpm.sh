@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 exec php-fpm \
-    -y {{component.php_fpm_ini.path}} \
-    -c {{component.php_ini.path}} \
+    -y {{component.php_fpm_ini}} \
+    -c {{component.php_ini}} \
     -g {{component.pid_file}}

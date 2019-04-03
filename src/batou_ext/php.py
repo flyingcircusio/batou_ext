@@ -1,115 +1,129 @@
-import batou_ext.nix
+"""Components for managing PHP.
+
+Example for NixOS::
+
+
+    class PHPApp(batou.component.Component):
+
+        def configure(self):
+            self.settings = self.require_one("settings")
+
+            self += batou_ext.nix.UserEnv(
+                "portal",
+                packages=["php71", "php71Packages.redis"],
+            )
+
+            self += batou_ext.php.Ini(settings="", extensions=["redis.so"])
+            self += batou_ext.php.FPM(
+                "portal", dependency_strings=(self._.php_ini.content,)
+            )
+
+"""
+
 import batou.component
 import batou.lib.file
+import batou_ext.nix
 import hashlib
 import os.path
+import pkg_resources
 
 
-class PHPEnvironment(batou.component.Component):
+class Ini(batou.component.Component):
+    """Manage php.ini."""
 
-    name = None
-    namevar = 'name'
-
-    # Generic php.ini overwrites as a string
-    # Will be added to generated php.ini
-    # Consider not mixing with php_ini argument
-    ini_overrides = batou.component.Attribute(str, '')
-
-    # Version of PHP to be installed idendified by Nix-attribute
-    php_attribute = batou.component.Attribute(str, 'nixos.php70')
-
-    # Provide your own php.ini
-    # Expects a batou-File-object
-    php_ini = None
-
-    # Providoe your own php-fpm.conf
-    # Expects a batou-File-object
-    php_fpm_ini = None
-
-    # Optional additional settings for default php-fpm.ini
-    php_fpm_ini_global_overrides = batou.component.Attribute(str, '')
-    php_fpm_ini_pool_overrides = batou.component.Attribute(str, '')
-
-    opcache_dir = batou.component.Attribute(str, 'no-debug-zts-20151012')
     extensions = ()
-    additional_checksum = ()
-    fcgi_timeout = "30s"
-
-    fpm_port = batou.component.Attribute(int, 9001)
-
-    # If True, service activation is the responsible of the parent
-    # component via `self += self.php.activate_service()`. The service
-    # will be activated automatically otherwise. Deferring can be useful to
-    # control the time of service start/restart, e.g. after actually building
-    # the application.
-    defer_service = False
+    settings = ""
+    logs = None
 
     def configure(self):
-        self._checksum = hashlib.new('md5')
-        for s in self.additional_checksum:
-            self._checksum.update(s)
-
-        # External address.
-        self.fpm_address = batou.utils.Address(self.host.fqdn, self.fpm_port)
-
         self._extensions_dir = os.path.expanduser(
-            '~/.nix-profile/lib/php/extensions/')
+            "~/.nix-profile/lib/php/extensions/"
+        )
 
-        # Enable threads in PHP, required for redis.
-        self += batou.lib.file.File('~/.nixpkgs', ensure='directory')
-        self += batou.lib.file.File('~/.nixpkgs/config.nix',
-                                    content="""\
-{
-  php.zts = true;
-}
-""")
-
-        self += batou_ext.nix.Package(attribute=self.php_attribute)
-        self._checksum.update(self.php_attribute)
-
-        self += batou_ext.nix.Package(attribute='nixos.libiconv')
-
-        # Folder for logfiles
-        self += batou.lib.file.File('logs', leading=True, ensure='directory')
-        self.logfiledir = self._
-        self += batou.lib.logrotate.RotatedLogfile(
-            self.expand('{{component.logfiledir.path}}/*.log'))
+        if self.logs is None:
+            self.logs = self.map("logs")
+        self += batou.lib.file.File(
+            self.logs, leading=True, ensure="directory"
+        )
+        self.error_log = os.path.join(self.logs, "php-error.log")
+        self += batou.lib.logrotate.RotatedLogfile(self.error_log)
 
         # Providing a php.ini
-        if not self.php_ini:
-            self += batou.lib.file.File(
-                'php.ini',
-                source=os.path.join(
-                    os.path.dirname(__file__),
-                    'resources/php/php.ini'))
-            self.php_ini = self._
-        self._checksum.update(self.php_ini.content)
-
-        # Providing a php-fpm.conf
-        if not self.php_fpm_ini:
-            self += batou.lib.file.File(
-                'php-fpm.conf',
-                source=os.path.join(
-                    os.path.dirname(__file__),
-                    'resources/php/php-fpm.conf'))
-            self.php_fpm_ini = self._
-        self._checksum.update(self.php_fpm_ini.content)
-
-        self.pid_file = self.map('php-fpm.pid')
         self += batou.lib.file.File(
-            self.name, mode=0o755,
-            source=os.path.join(
-                os.path.dirname(__file__),
-                'resources/php/php-fpm.sh'))
+            "php.ini",
+            content=pkg_resources.resource_string(
+                __name__, "resources/php/php.ini"
+            ),
+        )
+        self.php_ini = self._
+
+
+class FPM(batou.component.Component):
+    """Provde running FPM.
+
+    Usage::
+
+        self += batou_ext.php.FPM("myphpproject")
+
+    """
+
+    name = None
+    namevar = "name"
+
+    php_ini = None  # defaults to `php.ini` in workdir
+    logs = None  # defaults to `logs` in workdir
+
+    global_settings = ""
+    pool_settings = ""
+
+    port = 9001
+
+    dependency_strings = ()
+
+    def configure(self):
+        self._checksum = hashlib.new("sha256")
+        for s in self.dependency_strings:
+            self._checksum.update(s)
+
+        self.address = batou.utils.Address(self.host.fqdn, self.port)
+
+        # Logging
+        if self.logs is None:
+            self.logs = self.map("logs")
+        self += batou.lib.file.File(
+            self.logs, leading=True, ensure="directory"
+        )
+        self.slow_log = os.path.join(self.logs, "slow.log")
+        self += batou.lib.logrotate.RotatedLogfile(self.slow_log)
+
+        # fpm.ini
+        self += batou.lib.file.File(
+            "php-fpm.conf",
+            content=pkg_resources.resource_string(
+                __name__, "resources/php/php-fpm.conf"
+            ),
+        )
+        self._checksum.update(self._.content)
+        self.php_fpm_ini = self._.path
+
+        if self.php_ini is None:
+            self.php_ini = self.map("php.ini")
+
+        # Start script
+        self.pid_file = self.map("php-fpm.pid")
+        self += batou.lib.file.File(
+            self.name,
+            mode=0o755,
+            content=pkg_resources.resource_string(
+                __name__, "resources/php/php-fpm.sh"
+            ),
+        )
         self._checksum.update(self._.content)
 
-        if not self.defer_service:
-            self += self.activate_service()
-
-    def activate_service(self):
-        return batou.lib.service.Service(
+        # Service startup. We expect the service to be monitored by a generic
+        # systemd "all proceses are running" check.
+        self += batou.lib.service.Service(
             self.name,
             checksum=self._checksum.hexdigest(),
-            systemd=dict(
-                PIDFile=self.pid_file,
-                Restart='always'))
+            systemd=dict(PIDFile=self.pid_file, Restart="always"),
+        )
