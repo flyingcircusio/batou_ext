@@ -101,7 +101,7 @@ class FPM(batou.component.Component):
         # fpm.ini
 
         # Ensure we don't clear up environment
-        if env:
+        if self.env:
             self.clear_env = True
 
         self += batou.lib.file.File(
