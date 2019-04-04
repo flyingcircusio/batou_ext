@@ -99,6 +99,11 @@ class FPM(batou.component.Component):
         self += batou.lib.logrotate.RotatedLogfile(self.slow_log)
 
         # fpm.ini
+
+        # Ensure we don't clear up environment
+        if env:
+            self.clear_env = True
+
         self += batou.lib.file.File(
             "php-fpm.conf",
             content=pkg_resources.resource_string(
