@@ -78,6 +78,8 @@ class FPM(batou.component.Component):
 
     port = 9001
 
+    env = {} # Additional environmental values for FPM
+
     dependency_strings = ()
 
     def configure(self):
