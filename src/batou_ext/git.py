@@ -43,7 +43,7 @@ class GitCheckout(batou.component.Component):
     git_clone_url = None
     git_revision = None
     git_target = None
-    git_port = 22
+    git_port = None
     exclude = ()
     sync_parent_folder = None
 
@@ -60,7 +60,8 @@ class GitCheckout(batou.component.Component):
             if not self.git_host:
                 self.git_host = urlparse.urlparse(self.git_clone_url).hostname
             if not self.git_port:
-                self.git_port = urlparse.urlparse(self.git_clone_url).port
+                self.git_port = (
+                    urlparse.urlparse(self.git_clone_url).port or 22)
             # Add remote host to known hosts
             self += batou_ext.ssh.ScanHost(self.git_host, port=self.git_port)
 
