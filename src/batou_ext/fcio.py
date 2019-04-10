@@ -7,6 +7,7 @@ import batou.environment
 import batou.lib.file
 import batou.template
 import socket
+import sys
 import time
 import xmlrpclib
 
@@ -149,6 +150,13 @@ class Provision(batou.component.Component):
         environment = batou.environment.Environment(env_name)
         environment.load()
         environment.load_secrets()
+        if environment.exceptions:
+            # Yeah, this is awkward.
+            batou.output = batou._output.Output(
+                batou._output.TerminalBackend())
+            for exc in environment.exceptions:
+                exc.report()
+            sys.exit(1)
         return environment
 
     @staticmethod
