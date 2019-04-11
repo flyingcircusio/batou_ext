@@ -144,6 +144,7 @@ class Provision(batou.component.Component):
     api_key = None
     location = 'rzob'
     vm_environment = 'fc-15.09-production'
+    api_url = 'https://{project}:{api_key}@api.flyingcircus.io/v1'
 
     @staticmethod
     def load_env(env_name):
@@ -159,12 +160,15 @@ class Provision(batou.component.Component):
             sys.exit(1)
         return environment
 
-    @staticmethod
-    def get_api(environment):
+    @classmethod
+    def get_api(cls, environment):
         rg_name = environment.overrides['provision']['project']
         api_key = environment.overrides['provision']['api_key']
+        api_url = environment.overrides['provision'].get('api_url')
+        if not api_url:
+            api_url = cls.api_url
         api = xmlrpclib.ServerProxy(
-            'https://%s:%s@api.flyingcircus.io/v1' % (rg_name, api_key))
+            api_url.format(project=rg_name, api_key=api_key))
         return api
 
     def _add_calls(self, hostname, interface, aliases_str):
