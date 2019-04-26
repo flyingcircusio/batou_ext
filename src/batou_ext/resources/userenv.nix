@@ -9,11 +9,6 @@ with pkgs;
 let
 
   shellInit = writeText "shellInit"''
-    export LIBRARY_PATH=$HOME/.nix-profile/lib
-    export CPATH=$HOME/.nix-profile/include
-    export C_INCLUDE_PATH=$CPATH
-    export CPLUS_INCLUDE_PATH=$CPATH
-    export PKG_CONFIG_PATH=$HOME/.nix-profile/lib/pkgconfig
 
     {{component.shellInit.replace('\n', '\n    ').strip()}}
   '';
