@@ -23,7 +23,7 @@ class GeoIPDatabase(batou.component.Component):
         self += batou.lib.file.File(
             'geoip-update.sh',
             source=os.path.join(os.path.dirname(__file__),
-                'resurces/geoip-update.sh'),
+                'resources/geoip-update.sh'),
             mode=0o744)
         self.script = self._.path
 
