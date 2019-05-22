@@ -13,6 +13,7 @@ import json
 import os
 import os.path
 import pkg_resources
+import shlex
 import time
 
 
@@ -177,7 +178,8 @@ class UserInit(batou.component.Component):
 
     def configure(self):
         self.executable = self.parent.executable
-        self.name = os.path.basename(self.executable)
+
+        self.name = os.path.basename(shlex.split(self.executable)[0])
 
         self.service = dict(
             Type='forking',
