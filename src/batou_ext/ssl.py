@@ -277,7 +277,7 @@ class CertificateCheckLocal(batou.component.Component):
             'cert_check_{}.sh'.format(self.name),
             content=pkg_resources.resource_string(
                 __name__, "resources/ssl/local_certificate_check.sh"),
-            mode=0o744
+            mode=0o755
             )
         self.script = self._.path
         self += batou.lib.nagios.ServiceCheck(
