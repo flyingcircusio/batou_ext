@@ -175,7 +175,6 @@ DOMAINS_TXT={{component.domains_txt.path}}
         if self.enable_check:
             self += CertificateCheck(self.domain)
 
-
     def activate_letsencrypt(self):
         """Return a component which really activates LE"""
         return ActivateLetsEncrypt(cert=self)
@@ -246,3 +245,42 @@ class CertificateCheck(batou.component.Component):
                 '-p {{component.port}} '
                 '-S --sni '
                 '-C {{component.warning_days}},{{component.critical_days}}'))
+
+
+class CertificateCheckLocal(batou.component.Component):
+    """
+    This component helps to check whether a local certificate has expired
+    or will expire soon. Useful in e.g. combination with
+    client-certificates.
+
+    Usage:
+
+    self += batou_ext.ssl.CertificateCheckLocal(
+        '/path/to/your/certificate,
+        name='My client certificate,
+        waring_days=30,
+        critical_days=10)
+
+    """
+    namevar = 'certificate_path'
+    name = None
+    warning_days = 25
+    critical_days = 14
+
+    def configure(self):
+        self.critical = critical_days * 24 * 3600
+        self.warning = warning_days * 24 * 3600
+
+        assert self.name
+
+        self += batou.lib.file.File(
+            'cert_check_{}.sh'.format(self.name),
+            content=pkg_resources.resource_string(
+                __name__, "resources/ssl/local_certificate_check.sh"
+            ))
+        self.script = self._.path
+        self += batou.lib.nagios.ServiceCheck(
+            self.expand(
+                '{{component.certificate_path}} certificate valid?'),
+            name=self.name,
+            command='self.script',)
