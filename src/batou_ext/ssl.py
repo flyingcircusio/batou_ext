@@ -284,4 +284,4 @@ class CertificateCheckLocal(batou.component.Component):
             self.expand(
                 '{{component.certificate_path}} certificate valid?'),
             name=self.name,
-            command='self.script',)
+            command=self.script,)
