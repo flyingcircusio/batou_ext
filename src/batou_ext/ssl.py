@@ -268,8 +268,8 @@ class CertificateCheckLocal(batou.component.Component):
     critical_days = 14
 
     def configure(self):
-        self.critical = critical_days * 24 * 3600
-        self.warning = warning_days * 24 * 3600
+        self.critical = self.critical_days * 24 * 3600
+        self.warning = self.warning_days * 24 * 3600
 
         assert self.name
 
