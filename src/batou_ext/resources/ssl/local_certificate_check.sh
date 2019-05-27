@@ -1,4 +1,10 @@
+{% if component.host.platform == "nixos" -%}
+#! /usr/bin/env nix-shell
+#! nix-shell -i bash -p pkgs.openssl
+{% else -%}
 #!/usr/bin/env sh
+{% endif -%}
+
 set -e
 declare -i state_ok=0
 declare -i state_warning=1
