@@ -258,7 +258,7 @@ class CertificateCheckLocal(batou.component.Component):
     self += batou_ext.ssl.CertificateCheckLocal(
         'path/to/your/certificate',
         name='My client certificate',
-        waring_days=30,
+        warning_days=30,
         critical_days=10)
 
     """
