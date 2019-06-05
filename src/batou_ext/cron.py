@@ -40,7 +40,7 @@ class CronJob(batou.component.Component):
 {{component.timing}} \
  timeout {{component.timeout}} \
  {{component.wrapped_command}} \
- > {{component.log_file}} 2>&1"""
+ >> {{component.log_file}} 2>&1"""
         )
 
     def configure(self):
