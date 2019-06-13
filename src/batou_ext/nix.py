@@ -100,6 +100,8 @@ class UserEnv(batou.component.Component):
                     "zip",
                 ],
                 shellInit="# additional shell init")
+
+    A list of available channels can be found at e.g. https://nixos.org/channels/
     """
 
     namevar = "profile_name"
