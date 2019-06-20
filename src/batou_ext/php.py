@@ -79,6 +79,7 @@ class FPM(batou.component.Component):
     port = 9001
 
     env = {} # Additional environmental values for FPM
+    keep_env = batou.component.Attribute('literal', False)
 
     dependency_strings = ()
 
@@ -100,9 +101,9 @@ class FPM(batou.component.Component):
 
         # fpm.ini
 
-        # Ensure we don't clear up environment
+        # Ensure we don't clear up environment if there is an env
         if self.env:
-            self.clear_env = True
+            self.keep_env = True
 
         self += batou.lib.file.File(
             "php-fpm.conf",
