@@ -13,6 +13,8 @@ let
     {{component.shellInit.replace('\n', '\n    ').strip()}}
   '';
 
+  {{component.let_extra}}
+
 in buildEnv {
     name = "{{ '{{' }}component.nix_env_name{{ '}}' }}";
     paths = [

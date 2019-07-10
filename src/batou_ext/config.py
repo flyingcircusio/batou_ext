@@ -118,7 +118,7 @@ class RegexPatch(batou.component.Component):
 
     Usage::
 
-        self += batou_ext_config.RegexPatch(
+        self += batou_ext.config.RegexPatch(
             '/path/to/file',
             pattern=r'^foo=\d+(\w+)',
             replacement=r'foo=27\1')
@@ -162,7 +162,7 @@ class MultiRegexPatch(batou.component.Component):
 
     Usage::
 
-        self += batou_ext_config.MultiRegexPatch(
+        self += batou_ext.config.MultiRegexPatch(
             '/path/to/file', patterns=[
             (r'pattern-to-match',
              r'value-to-replace-with'),

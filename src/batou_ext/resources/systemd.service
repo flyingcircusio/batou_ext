@@ -1,13 +1,9 @@
 # Managed by Batou.
-[Unit]
-Description={{component.name}}
-# {{component.checksum}}
+# Checksum: {{component.checksum}}
 
-[Service]
-Environment="LOCALE_ARCHIVE={{component.env['LOCALE_ARCHIVE']}}"
-Environment="PATH={{component.env['PATH']}}"
-Environment="TZDIR={{component.env['TZDIR']}}"
-
-{% for key, value in component.service_configuration() -%}
+{% for section in component.config|sort -%}
+[{{section}}]
+{% for key, value in component.config[section]|sort -%}
 {{key}}={{value}}
+{% endfor %}
 {% endfor %}
