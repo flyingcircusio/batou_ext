@@ -271,7 +271,8 @@ class CertificateCheckLocal(batou.component.Component):
         self.critical = self.critical_days * 24 * 3600
         self.warning = self.warning_days * 24 * 3600
 
-        assert self.name
+        if self.name is None:
+            raise ValueError("Required name is missing from certificate check")
 
         self += batou.lib.file.File(
             'cert_check_{}.sh'.format(self.name),
