@@ -66,3 +66,50 @@ class User(PostgresDataComponent):
             '{{component.flags}} \\\" | psql -d postgres"'
         )
         self.pgcmd(command)
+
+
+class Extension(PostgresDataComponent):
+    """
+        Creats an extension to a given PostgreSQL-DB.
+
+        Please note: The extensions needs to be already present in context
+        of the database cluser.
+
+        Usage:
+
+        self += batou_ext.postgres.Extension(
+            'uuid-ossp',
+            db='my_database')
+
+    """
+
+    namevar = "extension_name"
+    db = None
+
+    def configure(self):
+        if self.extension_name is None:
+            raise ValueError("Need to set extension name")
+        if self.db is None:
+            raise ValueError(
+                "Need to specify a database to "
+                "create extension in")
+
+    def verify(self):
+        cmd_out, cmt_err = self.pgcmd(
+            self.expand(
+                "psql -d {{component.db}} -qtAX "
+                '-c "SELECT extname FROM pg_extension '
+                "WHERE extname = '{{component.extension_name}}';\""
+            )
+        )
+        if cmd_out.strip() != self.extension_name:
+            raise batou.UpdateNeeded()
+
+    def update(self):
+        self.pgcmd(
+            self.expand(
+                "psql -c "
+                '"CREATE EXTENSION '
+                '\\"{{component.extension_name}}\\";" -d {{component.db}}'
+            )
+        )
