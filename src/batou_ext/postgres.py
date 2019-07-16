@@ -15,9 +15,24 @@ class PostgresServer(batou.component.Component):
 
 class PostgresDataComponent(batou.component.Component):
 
+    command_prefix = batou.component.Attribute(str, "sudo -u postgres")
+
+    def configure(self):
+        try:
+            self._command_prefix = self.parent.command_prefix
+            self.log("{}: Warning: The usage of command_prefix from parent-"
+                 "component will be deprecated in future. Please update "
+                 "your deployment to make usage of {}.command_prefix "
+                 "rather than defining it via {}.command_prefix.".format(
+                    self._breadcrumbs,
+                    self.__class__.__name__,
+                    self.parent.__class__.__name__))
+        except AttributeError:
+            self._command_prefix = self.command_prefix
+
     def pgcmd(self, cmd, *args, **kw):
         return self.cmd('{} {}'.format(
-            self.parent.command_prefix, cmd), *args, **kw)
+            self.command_prefix, cmd), *args, **kw)
 
 
 class DB(PostgresDataComponent):
