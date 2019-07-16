@@ -39,6 +39,13 @@ class DB(PostgresDataComponent):
 
     namevar = 'db'
     locale = 'en_US.UTF-8'
+    owner = None
+
+    def configure(self):
+        super(DB, self).configure()
+        if self.owner is None:
+            raise ValueError(
+                "You have to specify an owner for the database \"{}\"".format(self.db))
 
     def verify(self):
         try:
