@@ -20,10 +20,11 @@ class PostgresDataComponent(batou.component.Component):
     def configure(self):
         try:
             self._command_prefix = self.parent.command_prefix
-            self.log("{}: Warning: The usage of command_prefix from parent-"
-                 "component will be deprecated in future. Please update "
-                 "your deployment to make usage of {}.command_prefix "
-                 "rather than defining it via {}.command_prefix.".format(
+            self.log(
+                "{}: Warning: The usage of command_prefix from parent-"
+                "component will be deprecated in future. Please update "
+                "your deployment to make usage of {}.command_prefix "
+                "rather than defining it via {}.command_prefix.".format(
                     self._breadcrumbs,
                     self.__class__.__name__,
                     self.parent.__class__.__name__))
@@ -36,6 +37,16 @@ class PostgresDataComponent(batou.component.Component):
 
 
 class DB(PostgresDataComponent):
+    """
+    Ensures a given database is created and owned by a specific role.
+
+    Usage:
+    self += batou_ext.postgres.DB(
+        "mydatabase",
+        owner="myuser")
+
+    Attention: The user will not be created automatically.
+    """
 
     namevar = 'db'
     locale = 'en_US.UTF-8'
@@ -45,7 +56,8 @@ class DB(PostgresDataComponent):
         super(DB, self).configure()
         if self.owner is None:
             raise ValueError(
-                "You have to specify an owner for the database \"{}\"".format(self.db))
+                "You have to specify an owner for the "
+                "database \"{}\"".format(self.db))
 
     def verify(self):
         try:
@@ -62,6 +74,15 @@ class DB(PostgresDataComponent):
 
 
 class User(PostgresDataComponent):
+    """
+        Creates a user/role at the database cluster with a given password
+        and flags.
+
+        Usage:
+        self += batou_ext.postgres.User(
+            "crocodile",
+            password="aligator3")
+    """
 
     namevar = 'name'
     flags = 'NOCREATEDB NOCREATEROLE NOSUPERUSER'
@@ -92,17 +113,15 @@ class User(PostgresDataComponent):
 
 class Extension(PostgresDataComponent):
     """
-        Creats an extension to a given PostgreSQL-DB.
-
-        Please note: The extensions needs to be already present in context
-        of the database cluser.
+        Creates an extension to a given PostgreSQL-DB.
 
         Usage:
-
         self += batou_ext.postgres.Extension(
             'uuid-ossp',
             db='my_database')
 
+        Please note: The extension needs to be already present in context
+        of the database cluster.
     """
 
     namevar = "extension_name"
