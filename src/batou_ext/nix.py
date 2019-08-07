@@ -123,6 +123,7 @@ class UserEnv(batou.component.Component):
         self.user_profile_path = os.path.expanduser(
             "~/.nix-profile/etc/profile.d/{}.sh".format(self.profile_name)
         )
+        self.user_bin_path = os.path.expanduser("~/.nix-profile/bin")
 
 
 class Rebuild(batou.component.Component):
