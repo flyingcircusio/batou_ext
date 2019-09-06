@@ -34,26 +34,33 @@ class Mailhog(batou.component.Component):
     docroot = None
 
     def configure(self):
-        #self.provide('mail', self)
+        # self.provide('mail', self)
 
         self.address = batou.utils.Address(self.public_name, self.public_http)
         self.ssl_address = batou.utils.Address(self.public_name, self.public_https)
         self.address_mail = batou.utils.Address(self.host.fqdn, self.mailport)
         self.address_ui = batou.utils.Address(self.host.fqdn, self.uiport)
 
-        self += batou.lib.file.File("mailhog_env",
-            content=self.expand("""
+        self += batou.lib.file.File(
+            "mailhog_env",
+            content=self.expand(
+                """
 # File managed by batou. Don't edit manually
 
 MH_HOSTNAME={{component.public_name}}
 MH_SMTP_BIND_ADDR={{component.address_mail.listen}}
 MH_API_BIND_ADDR={{component.address_ui.listen}}
 MH_UI_BIND_ADDR={{component.address_ui.listen}}
-"""))
+"""
+            ),
+        )
         self.envfile = self._
 
-        self += batou.lib.file.File("mailhog", mode=0o755,
-            content=self.expand("""#!/bin/sh
+        self += batou.lib.file.File(
+            "mailhog",
+            mode=0o755,
+            content=self.expand(
+                """#!/bin/sh
 set -e
 NAME={{component.public_name}}
 
@@ -69,14 +76,14 @@ docker run \
 --env-file={{component.envfile.path}} \
 --mount source=mailhog-vol,dst=/var/lib/mailhog \
 mailhog/mailhog
-"""))
+"""
+            ),
+        )
 
         # use own nginx config to integrate into frontend, if mailhog is used
         if not self.docroot:
             self.docroot = self.map("htdocs")
-        self += batou.lib.file.File(
-            self.docroot, ensure="directory", leading=True
-        )
+        self += batou.lib.file.File(self.docroot, ensure="directory", leading=True)
 
         self.cert = batou_ext.ssl.Certificate(
             self.public_name,
