@@ -18,6 +18,9 @@ class Mailhog(batou.component.Component):
     so you should use a subdomain to avoid conflicts or overwrite
     public_http(s).
     Mails can be send to srv address on port 1025.
+
+    For usage with basic auth you might like to use
+    batou_ext.http.HTTPBasicAuth.
     """
 
     public_name = None
@@ -35,6 +38,8 @@ class Mailhog(batou.component.Component):
     letsencrypt = batou.component.Attribute("literal", True)
     docroot = None
 
+    http_auth_enable = batou.component.Attribute("literal", False)
+
     def configure(self):
         # self.provide('mail', self)
 
@@ -42,6 +47,9 @@ class Mailhog(batou.component.Component):
         self.ssl_address = batou.utils.Address(self.public_name, self.public_https)
         self.address_mail = batou.utils.Address(self.host.fqdn, self.mailport)
         self.address_ui = batou.utils.Address(self.host.fqdn, self.uiport)
+
+        if http_auth_enable:
+            http_auth = self.require_one("http_basic_auth")
 
         self += batou.lib.file.File(
             "mailhog_env",
