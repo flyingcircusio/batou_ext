@@ -8,7 +8,8 @@ import pkg_resources
 class Mailhog(batou.component.Component):
     """
     This component provides a local dev mail setup.
-    You need to activate docker role.
+    You need to activate docker role, nginx and a frontend IP for the UI
+    to be accessible.
 
     Usage:
     Just add mailhog to the enivronment and overwrite needed public_name.
