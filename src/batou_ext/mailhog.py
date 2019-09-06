@@ -5,6 +5,7 @@ import os.path
 import pkg_resources
 
 
+@batou_ext.nix.rebuild
 class Mailhog(batou.component.Component):
     """
     This component provides a local dev mail setup.
