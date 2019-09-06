@@ -71,7 +71,7 @@ docker stop $NAME || true
 docker rm $NAME || true
 
 docker run \
- --network host \
+--network host \
 --name="$NAME" \
 --env-file={{component.envfile.path}} \
 --mount source=mailhog-vol,dst=/var/lib/mailhog \
