@@ -48,8 +48,8 @@ class Mailhog(batou.component.Component):
         self.address_mail = batou.utils.Address(self.host.fqdn, self.mailport)
         self.address_ui = batou.utils.Address(self.host.fqdn, self.uiport)
 
-        if http_auth_enable:
-            http_auth = self.require_one("http_basic_auth")
+        if self.http_auth_enable:
+            self.http_auth = self.require_one("http_basic_auth")
 
         self += batou.lib.file.File(
             "mailhog_env",
