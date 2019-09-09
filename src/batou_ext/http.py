@@ -32,9 +32,11 @@ class HTTPBasicAuth(batou.component.Component):
     username = None
     password = None
     basic_auth_string = None
+    providing = batou.component.Attribute("literal", True)
 
     def configure(self):
-        self.provide("http_basic_auth", self)
+        if self.providing:
+            self.provide("http_basic_auth", self)
         if self.fcio_auth:
             self.path = "/etc/local/nginx/htpasswd_fcio_users"
         else:
