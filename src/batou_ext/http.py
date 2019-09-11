@@ -18,6 +18,7 @@ class HTTPBasicAuth(batou.component.Component):
     from batou_ext.http import HTTPBasicAuth
 
     self += batou_ext.http.HTTPBasicAuth(
+        "myauth",
         username="joe",
         password="secret",
         basic_auth_string="joe:$apr1$Ma0Fc6pW$Kl5dV4ecBXH12gDieRHVq.")
@@ -28,6 +29,7 @@ class HTTPBasicAuth(batou.component.Component):
     self += batou_ext.http.HTTPBasicAuth(fcio_auth=True)
     """
 
+    env_name = None
     fcio_auth = batou.component.Attribute("literal", False)
     username = None
     password = None
@@ -43,5 +45,11 @@ class HTTPBasicAuth(batou.component.Component):
             self._deploy_customer_http_auth_file()
 
     def _deploy_customer_http_auth_file(self):
-        self += batou.lib.file.File("htpasswd_portal", content=self.basic_auth_string)
+        if self.env_name is None:
+             raise ValueError(
+                "You need to define an environment name for "
+                "your http_baisc_auth-file")
+        self += batou.lib.file.File(
+            "htpasswd_{}".format(self.env_name),
+            content=self.basic_auth_string)
         self.path = self._.path
