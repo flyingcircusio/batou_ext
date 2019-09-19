@@ -21,6 +21,20 @@ class Mailhog(batou.component.Component):
 
     For usage with basic auth you might like to use
     batou_ext.http.HTTPBasicAuth.
+
+    When using it explicit in one of your components you may add it by
+    making usage of something like that:
+
+    self.http_auth = self.require_one("http_basic_auth")
+    self += batou_ext.mailhog.Mailhog(
+            public_name=self.mail_public_name,
+            http_auth_enable=True,
+            http_basic_auth=self.http_auth
+        )
+
+    This example is adding an explicit batou_ext.http.HTTPBasicAuth
+    rather than just pulling the one from environment.
+
     """
 
     public_name = None
@@ -45,7 +59,9 @@ class Mailhog(batou.component.Component):
         # self.provide('mail', self)
 
         self.address = batou.utils.Address(self.public_name, self.public_http)
-        self.ssl_address = batou.utils.Address(self.public_name, self.public_https)
+        self.ssl_address = batou.utils.Address(
+            self.public_name, self.public_https
+        )
         self.address_mail = batou.utils.Address(self.host.fqdn, self.mailport)
         self.address_ui = batou.utils.Address(self.host.fqdn, self.uiport)
 
@@ -97,7 +113,9 @@ mailhog/mailhog
         # use own nginx config to integrate into frontend, if mailhog is used
         if not self.docroot:
             self.docroot = self.map("htdocs")
-        self += batou.lib.file.File(self.docroot, ensure="directory", leading=True)
+        self += batou.lib.file.File(
+            self.docroot, ensure="directory", leading=True
+        )
 
         self.cert = batou_ext.ssl.Certificate(
             self.public_name,
