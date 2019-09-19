@@ -39,6 +39,7 @@ class Mailhog(batou.component.Component):
     docroot = None
 
     http_auth_enable = batou.component.Attribute("literal", False)
+    http_basic_auth = None
 
     def configure(self):
         # self.provide('mail', self)
@@ -49,7 +50,10 @@ class Mailhog(batou.component.Component):
         self.address_ui = batou.utils.Address(self.host.fqdn, self.uiport)
 
         if self.http_auth_enable:
-            self.http_auth = self.require_one("http_basic_auth")
+            if self.http_basic_auth is not None:
+                self.http_auth = self.http_basic_auth
+            else:
+                self.http_auth = self.require_one("http_basic_auth")
 
         self += batou.lib.file.File(
             "mailhog_env",
