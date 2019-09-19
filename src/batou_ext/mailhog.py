@@ -7,33 +7,35 @@ import pkg_resources
 
 @batou_ext.nix.rebuild
 class Mailhog(batou.component.Component):
-    """
+    """Set up a local testing mail server with mailog.
+
     This component provides a local dev mail setup.
     You need to activate docker role, nginx and a frontend IP for the UI
     to be accessible.
 
     Usage:
-    Just add mailhog to the enivronment and overwrite needed public_name.
-    Mailog will then be availabe under public_name on port 80 and 443,
-    so you should use a subdomain to avoid conflicts or overwrite
-    public_http(s).
-    Mails can be send to srv address on port 1025.
+    Just add mailhog to the enivronment and set `public_name`.
+    Mailog will then be availabe under the `public_name` on port 80 and 443.
+    You should use a subdomain to avoid conflicts, or change public_http(s).
+    Mails can be send to the srv address on port 1025.
 
     For usage with basic auth you might like to use
     batou_ext.http.HTTPBasicAuth.
 
-    When using it explicit in one of your components you may add it by
-    making usage of something like that:
+    When using the Mailhog component explicitly in one of your components you 
+    may do so like this::
 
-    self.http_auth = self.require_one("http_basic_auth")
-    self += batou_ext.mailhog.Mailhog(
+        self.http_auth = self.require_one("http_basic_auth")
+        self += batou_ext.mailhog.Mailhog(
             public_name=self.mail_public_name,
             http_auth_enable=True,
             http_basic_auth=self.http_auth
-        )
+         )
 
     This example is adding an explicit batou_ext.http.HTTPBasicAuth
-    rather than just pulling the one from environment.
+    rather than just pulling it from environment.
+
+
 
     """
 
