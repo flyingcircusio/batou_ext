@@ -23,7 +23,7 @@ def git_resolve(url, version):
         else:
             return version
     # Symbolic name?
-    cmd = subprocess.Popen(['git', 'ls-remote', url, version],
+    cmd = subprocess.Popen(['git', 'ls-remote', url, version+'^{}'],
                            stdout=subprocess.PIPE)
     stdout, stderr = cmd.communicate()
     return stdout.split('\t', 1)[0]
