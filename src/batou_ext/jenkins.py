@@ -26,6 +26,10 @@ def git_resolve(url, version):
     cmd = subprocess.Popen(['git', 'ls-remote', url, version+'^{}'],
                            stdout=subprocess.PIPE)
     stdout, stderr = cmd.communicate()
+    if not len(stdout) > 0:
+        cmd = subprocess.Popen(['git', 'ls-remote', url, version],
+                                stdout=subprocess.PIPE)
+        stdout, stderr = cmd.communicate()
     return stdout.split('\t', 1)[0]
 
 
