@@ -34,9 +34,6 @@ class Mailhog(batou.component.Component):
 
     This example is adding an explicit batou_ext.http.HTTPBasicAuth
     rather than just pulling it from environment.
-
-
-
     """
 
     public_name = None
