@@ -26,7 +26,8 @@ def git_resolve(url, version):
     cmd = subprocess.Popen(['git', 'ls-remote', url, version+'^{}'],
                            stdout=subprocess.PIPE)
     stdout, stderr = cmd.communicate()
-    if not len(stdout) > 0:
+    # if its not a tag, start another more generic attempt
+    if not stdout:
         cmd = subprocess.Popen(['git', 'ls-remote', url, version],
                                 stdout=subprocess.PIPE)
         stdout, stderr = cmd.communicate()
