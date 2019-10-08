@@ -105,7 +105,7 @@ class UserEnv(batou.component.Component):
     """
 
     namevar = "profile_name"
-    channel = "https://releases.nixos.org/nixos/18.09/nixos-18.09.2574.a7e559a5504/nixexprs.tar.xz"
+    channel = "https://releases.nixos.org/nixos/19.03/nixos-19.03.173575.0e0ee084d6d/nixexprs.tar.xz"
     shellInit = ""
     packages = ()
     let_extra = ""
