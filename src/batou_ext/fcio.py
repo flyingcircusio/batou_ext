@@ -51,7 +51,7 @@ class DNSAliases(batou.component.Component):
 
     """
 
-    postfix = ''
+    postfix = ""
     project = None
     api_key = None
 
@@ -72,16 +72,16 @@ class DNSAliases(batou.component.Component):
         assert self.project
         self.aliases = []
         for host in self.environment.hosts.values():
-            self._add_calls(
-                host.name, 'srv', host.data.get('alias-srv'))
-            self._add_calls(
-                host.name, 'fe', host.data.get('alias-fe'))
-        self.calls.sort(key=lambda c: c['name'])
+            self._add_calls(host.name, "srv", host.data.get("alias-srv"))
+            self._add_calls(host.name, "fe", host.data.get("alias-fe"))
+        self.calls.sort(key=lambda c: c["name"])
 
     def _call(self):
         api = xmlrpclib.ServerProxy(
-            'https://{s.project}:{s.api_key}@api.flyingcircus.io/v1'.format(
-                s=self))
+            "https://{s.project}:{s.api_key}@api.flyingcircus.io/v1".format(
+                s=self
+            )
+        )
         api.apply(self.calls)
 
     def _add_calls(self, hostname, interface, aliases_str):
@@ -89,17 +89,21 @@ class DNSAliases(batou.component.Component):
             return
         aliases = aliases_str.split()
         aliases.sort()
-        self.calls.append({
-            '__type__': 'virtualmachine',
-            'name': hostname + self.postfix,
-            'aliases_' + interface: aliases})
+        self.calls.append(
+            {
+                "__type__": "virtualmachine",
+                "name": hostname + self.postfix,
+                "aliases_" + interface: aliases,
+            }
+        )
         self.aliases.extend(aliases)
 
     def _wait_for_aliases(self):
         if not self.wait_for_aliases:
             return
-        batou.output.line('Waiting up to %s seconds for aliases.'
-                          % self.wait_for_aliases)
+        batou.output.line(
+            "Waiting up to %s seconds for aliases." % self.wait_for_aliases
+        )
         started = time.time()
         error = True
         while started + self.wait_for_aliases > time.time():
@@ -110,25 +114,26 @@ class DNSAliases(batou.component.Component):
                 break
             time.sleep(10)
         if error:
-            raise RuntimeError('Aliases did not resolve in time.')
+            raise RuntimeError("Aliases did not resolve in time.")
 
     def _check_aliases(self):
         error = False
         results = []
         for alias in self.aliases:
-            fqdn = '{}{}.{}.fcio.net'.format(
-                alias, self.postfix, self.project)
+            fqdn = "{}{}.{}.fcio.net".format(alias, self.postfix, self.project)
             try:
                 addrs = socket.getaddrinfo(
-                    fqdn, None, 0, 0, socket.IPPROTO_TCP)
+                    fqdn, None, 0, 0, socket.IPPROTO_TCP
+                )
             except socket.gaierror as e:
                 result = str(e)
                 error = True
             else:
-                result = ', '.join(
+                result = ", ".join(
                     sockaddr[0]
-                    for (family, type, proto, canonname, sockaddr) in addrs)
-            results.append('{}: {}'.format(fqdn, result))
+                    for (family, type, proto, canonname, sockaddr) in addrs
+                )
+            results.append("{}: {}".format(fqdn, result))
         return error, results
 
 
@@ -142,9 +147,9 @@ class Provision(batou.component.Component):
 
     project = None
     api_key = None
-    location = 'rzob'
-    vm_environment = 'fc-15.09-production'
-    api_url = 'https://{project}:{api_key}@api.flyingcircus.io/v1'
+    location = "rzob"
+    vm_environment = "fc-15.09-production"
+    api_url = "https://{project}:{api_key}@api.flyingcircus.io/v1"
 
     @staticmethod
     def load_env(env_name):
@@ -154,7 +159,8 @@ class Provision(batou.component.Component):
         if environment.exceptions:
             # Yeah, this is awkward.
             batou.output = batou._output.Output(
-                batou._output.TerminalBackend())
+                batou._output.TerminalBackend()
+            )
             for exc in environment.exceptions:
                 exc.report()
             sys.exit(1)
@@ -162,13 +168,14 @@ class Provision(batou.component.Component):
 
     @classmethod
     def get_api(cls, environment):
-        rg_name = environment.overrides['provision']['project']
-        api_key = environment.overrides['provision']['api_key']
-        api_url = environment.overrides['provision'].get('api_url')
+        rg_name = environment.overrides["provision"]["project"]
+        api_key = environment.overrides["provision"]["api_key"]
+        api_url = environment.overrides["provision"].get("api_url")
         if not api_url:
             api_url = cls.api_url
         api = xmlrpclib.ServerProxy(
-            api_url.format(project=rg_name, api_key=api_key))
+            api_url.format(project=rg_name, api_key=api_key)
+        )
         return api
 
     def _add_calls(self, hostname, interface, aliases_str):
@@ -176,10 +183,13 @@ class Provision(batou.component.Component):
             return
         aliases = aliases_str.split()
         aliases.sort()
-        self.calls.append({
-            '__type__': 'virtualmachine',
-            'name': hostname + self.postfix,
-            'aliases_' + interface: aliases})
+        self.calls.append(
+            {
+                "__type__": "virtualmachine",
+                "name": hostname + self.postfix,
+                "aliases_" + interface: aliases,
+            }
+        )
         self.aliases.extend(aliases)
 
     @classmethod
@@ -187,50 +197,53 @@ class Provision(batou.component.Component):
         environment = cls.load_env(env_name)
 
         def config(name):
-            value = environment.overrides['provision'].get(name)
+            value = environment.overrides["provision"].get(name)
             if not value:
                 value = getattr(cls, name)
             return value
 
-        rg_name = config('project')
+        rg_name = config("project")
         api = cls.get_api(environment)
         calls = []
 
-        calls.append(dict(
-            __type__='serviceuser',
-            uid=environment.service_user,
-            resource_group=rg_name
-        ))
+        calls.append(
+            dict(
+                __type__="serviceuser",
+                uid=environment.service_user,
+                resource_group=rg_name,
+            )
+        )
 
         for name, host in sorted(environment.hosts.items()):
             d = host.data
-            roles = d.get('roles', '').splitlines()
-            classes = ['role::' + r for r in roles if r]
+            roles = d.get("roles", "").splitlines()
+            classes = ["role::" + r for r in roles if r]
             call = dict(
-                __type__='virtualmachine',
-                cores=int(d['cores']),
-                disk=max(int(d['disk']), 30),
-                memory=int(d['ram']) * 1024,
+                __type__="virtualmachine",
+                cores=int(d["cores"]),
+                disk=max(int(d["disk"]), 30),
+                memory=int(d["ram"]) * 1024,
                 online=True,
                 name=host.name,
                 classes=classes,
                 resource_group=rg_name,
-                environment_class='NixOS',
-                environment=config('vm_environment'),
-                location=config('location'),
-                rbd_pool=d.get('rbdpool', 'rbd.hdd'),
-                frontend_ips_v4=int(d.get('frontend-ipv4', 0)),
-                frontend_ips_v6=int(d.get('frontend-ipv6', 0)),
+                environment_class="NixOS",
+                environment=config("vm_environment"),
+                location=config("location"),
+                rbd_pool=d.get("rbdpool", "rbd.hdd"),
+                frontend_ips_v4=int(d.get("frontend-ipv4", 0)),
+                frontend_ips_v6=int(d.get("frontend-ipv6", 0)),
             )
 
             def alias(interface):
-                aliases = d.get('alias-' + interface)
+                aliases = d.get("alias-" + interface)
                 if aliases:
                     aliases = aliases.split()
                     aliases.sort()
-                    call['aliases_' + interface] = aliases
-            alias('srv')
-            alias('fe')
+                    call["aliases_" + interface] = aliases
+
+            alias("srv")
+            alias("fe")
 
             calls.append(call)
 
@@ -244,20 +257,17 @@ def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
 
-    p = subparsers.add_parser(
-        'provision',
-        help='Apply resource settings')
-    p.add_argument('env_name', help='Environment')
-    p.add_argument('-n', '--dry-run', help='Dry run',
-                   action='store_true')
+    p = subparsers.add_parser("provision", help="Apply resource settings")
+    p.add_argument("env_name", help="Environment")
+    p.add_argument("-n", "--dry-run", help="Dry run", action="store_true")
     p.set_defaults(func=Provision.apply)
 
     args = parser.parse_args()
 
     func_args = dict(args._get_kwargs())
-    del func_args['func']
+    del func_args["func"]
     return args.func(**func_args)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
