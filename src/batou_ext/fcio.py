@@ -148,6 +148,7 @@ class Provision(batou.component.Component):
     project = None
     api_key = None
     location = "rzob"
+    vm_environment_class = "NixOS"
     vm_environment = "fc-15.09-production"
     api_url = "https://{project}:{api_key}@api.flyingcircus.io/v1"
 
@@ -227,8 +228,10 @@ class Provision(batou.component.Component):
                 name=host.name,
                 classes=classes,
                 resource_group=rg_name,
-                environment_class="NixOS",
-                environment=config("vm_environment"),
+                environment_class=d.get(
+                    "environment_class", config("vm_environment_class")
+                ),
+                environment=d.get("environment", config("vm_environment")),
                 location=config("location"),
                 rbd_pool=d.get("rbdpool", "rbd.hdd"),
                 frontend_ips_v4=int(d.get("frontend-ipv4", 0)),
