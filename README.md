@@ -3,7 +3,7 @@
 To add `batou_ext` to your deployment, add a like to the `requirements.txt` of your batou deployment::
 
 ```
-   git+git://github.com/flyingcircusio/batou_ext.git@9ba0ad46576c3f23cedc6271bcd2a25d8572bb33#egg=batou_ext
+git+git://github.com/flyingcircusio/batou_ext.git@9ba0ad46576c3f23cedc6271bcd2a25d8572bb33#egg=batou_ext
 ```
 
 Another option is to use the zip provided by github:
