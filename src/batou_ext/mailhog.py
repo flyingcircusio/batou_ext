@@ -22,7 +22,7 @@ class Mailhog(batou.component.Component):
     For usage with basic auth you might like to use
     batou_ext.http.HTTPBasicAuth.
 
-    When using the Mailhog component explicitly in one of your components you 
+    When using the Mailhog component explicitly in one of your components you
     may do so like this::
 
         self.http_auth = self.require_one("http_basic_auth")
@@ -41,10 +41,6 @@ class Mailhog(batou.component.Component):
     public_https = 443
     mailport = 1025
     uiport = 8025
-    address = None
-    ssl_address = None
-    address_mail = None
-    address_ui = None
 
     key_content = None
     crt_content = None
