@@ -17,7 +17,10 @@ class Mailhog(batou.component.Component):
     Just add mailhog to the enivronment and set `public_name`.
     Mailog will then be availabe under the `public_name` on port 80 and 443.
     You should use a subdomain to avoid conflicts, or change public_http(s).
-    Mails can be send to the srv address on port 1025.
+
+    Note: Mails can be send to the FQDN of the host mailhog is running
+    on. If you need: Connection details are stored inside the
+    Address-object of self.address_mail.
 
     For usage with basic auth you might like to use
     batou_ext.http.HTTPBasicAuth.
