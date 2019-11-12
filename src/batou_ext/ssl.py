@@ -81,7 +81,7 @@ class Certificate(batou.component.Component):
 
     use_letsencrypt = batou.component.Attribute('literal', True)
 
-    letsencrypt_ca = "https://acme-v01.api.letsencrypt.org/directory"
+    letsencrypt_ca = "https://acme-v02.api.letsencrypt.org/directory"
     letsencrypt_challange = "http-01"
     letsencrypt_hook = ""
 
