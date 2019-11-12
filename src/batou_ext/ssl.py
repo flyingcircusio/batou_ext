@@ -57,8 +57,8 @@ class Certificate(batou.component.Component):
     # Let's Encrypt
     dehydrated_url = (
         "https://raw.githubusercontent.com/lukas2511/dehydrated"
-        "/74a536c16178312845503caa5322c19de34b2dca/dehydrated")
-    dehydrated_checksum = 'md5:ff538eb0509b8d9c76307702748dec63'
+        "/e2eeaf7ec6932cdcea1e82b68630ac98a331f571/dehydrated")
+    dehydrated_checksum = 'md5:13aa69c790565f0ed881bff3df301055'
 
     extracommand = None
 
