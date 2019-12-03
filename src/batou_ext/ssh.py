@@ -20,7 +20,7 @@ class SSHKeyPair(Component):
     id_ed25519 = None
     id_ed25519_pub = None
 
-    scan_hosts = Attribute(list, '')
+    scan_hosts = Attribute('list', '')
     provide_itself = Attribute('literal', True)
     purge_unmanaged_keys = Attribute('literal', False)
 
