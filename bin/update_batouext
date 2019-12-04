@@ -1,0 +1,9 @@
+#!/bin/sh
+
+ext_dir=$(dirname $0)/../.git
+rev=$(git --git-dir ${ext_dir} ls-remote origin refs/heads/master | awk '{print $1}')
+
+pip3 download --quiet --no-deps https://github.com/flyingcircusio/batou_ext/archive/${rev}.zip
+checksum=$(pip3 hash ${rev}.zip | grep -- '--hash' | cut -d: -f2)
+rm ${rev}.zip
+echo "batou_ext @ https://github.com/flyingcircusio/batou_ext/archive/${rev}.zip#sha256=${checksum}"
