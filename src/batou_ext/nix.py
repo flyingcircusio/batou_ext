@@ -299,7 +299,7 @@ class InstallCrontab(batou.lib.cron.InstallCrontab):
         self.cmd(self.expand("cat {{component.crontab.path}} | crontab -"))
 
 
-@batou_ext.nix.rebuild
+@rebuild
 class SensuChecks(batou.component.Component):
 
     default_interval = 60
