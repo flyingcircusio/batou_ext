@@ -23,5 +23,5 @@ in buildEnv {
       {{name}}
       {%- endfor %}
     ];
-    extraOutputsToInstall = [ "out" "dev" "bin" "man" ];
+    extraOutputsToInstall = [ "bin" "dev" "lib" "man" "out" ];
 }
