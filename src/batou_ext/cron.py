@@ -19,7 +19,7 @@ class CronJob(batou.component.Component):
             checkWarning=6,
             checkCritical=10)
 
-    Where `tag` is an identifier from which is derifed: script name,
+    Where `tag` is an identifier from which is derived: script name,
     lock file, log file, stamp file.
 
     """
