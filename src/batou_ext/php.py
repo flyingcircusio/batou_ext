@@ -78,7 +78,7 @@ class FPM(batou.component.Component):
 
     port = 9001
 
-    env = {} # Additional environmental values for FPM
+    env = {}  # Additional environmental values for FPM
     keep_env = batou.component.Attribute('literal', False)
 
     dependency_strings = ()
