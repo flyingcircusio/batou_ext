@@ -17,6 +17,7 @@ setup(
         'batou>=1.0b20',
         'pyaml',
         'setuptools',
+        'six',
     ],
     extras_require={
         'test': [

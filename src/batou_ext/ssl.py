@@ -7,6 +7,7 @@ import hashlib
 import os
 import os.path
 import pkg_resources
+import six
 import tempfile
 
 
@@ -93,7 +94,8 @@ class Certificate(batou.component.Component):
 
     def configure(self):
         if not self.refresh_timing:
-            h = int(hashlib.md5(self.domain).hexdigest(), 16)
+            h = int(hashlib.md5(
+                six.ensure_binary(self.domain, "UTF-8")).hexdigest(), 16)
             self.refresh_timing = '{} {} * * *'.format(
                 h % 60, h % 24)
         if self.key_content and not self.use_letsencrypt:
