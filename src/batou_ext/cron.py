@@ -73,7 +73,7 @@ class CronJob(batou.component.Component):
         self.wrapped_command = self._.path
 
         if self.checkWarning or self.checkCritical:
-            cmd = ["-i -f", self.stamp_file]
+            cmd = ["-f", self.stamp_file]
             if self.checkWarning:
                 cmd.append("-w")
                 cmd.append(str(int(self.checkWarning) * 60))
