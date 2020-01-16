@@ -59,6 +59,10 @@ class CronJob(batou.component.Component):
         self.lock_file = self.map(self.expand(".{{component.tag}}.lock"))
         self.stamp_file = self.map(self.expand(".{{component.tag}}.stamp"))
 
+        # Ensure, we do have the stamp file there so the sensu-check is
+        # getting red if next runs are not successful
+        self += batou.lib.file.File(self.stamp_file, content="")
+
         self += batou.lib.file.File(
             self.expand("{{component.tag}}.sh"),
             content=pkg_resources.resource_string(
