@@ -13,7 +13,7 @@ class CronJob(batou.component.Component):
 
         self += batou_ext.cron.CronJob(
             "cleanup",
-            command="bin/cleanup some stuff',
+            command="bin/cleanup some stuff",
             timing="*/4 * * * * ",
             timeout="3m",
             checkWarning=6,
