@@ -16,6 +16,10 @@ class GeoIPDatabase(batou.component.Component):
 
     Needs curl and gunzip inside $PATH
     """
+    license_key = None
+    download_url = batou.component.Attribute(
+        str,
+        "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City&suffix=tar.gz&license_key={{component.license_key}}")
 
     def configure(self):
 
