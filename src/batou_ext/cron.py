@@ -25,7 +25,7 @@ class CronJob(batou.component.Component):
     `checkWarning` and `checkCritical` should be given in minutes since
     last update of the stamp-file (=last successfully run of cronJob)
     and will turn the service check into warning or critical state after
-    these time were exceeded.
+    these times were exceeded.
     Ensure this values are fitting the settings done within `timing`.
     """
 
