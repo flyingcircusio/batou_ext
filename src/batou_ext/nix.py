@@ -303,7 +303,41 @@ class InstallCrontab(batou.lib.cron.InstallCrontab):
 
 @rebuild
 class SensuChecks(batou.component.Component):
+    """SensuChecks gathers ServiceChecks and creates sensu checks accordingly.
 
+    This is a substitute for batou.lib.nagios.NRPEHost.
+
+    `ServiceCheck` instances require an additional attribute `name`, to
+    identify the check::
+
+        self += ServiceCheck(
+            'Testname',
+            name='accounting',
+            ...)
+
+
+    The default execution interval is 60 seconds, and can be changed by
+    setting `interval` on the ServiceCheck instance, e.g.::
+
+        self += ServiceCheck(
+            'Testname',
+            name='accounting',
+            command='/path/to/checker,
+            args="--my-check-args,
+            interval=120)
+
+    Sensu also supports a cron notation:
+
+        self += ServiceCheck(
+            'Testname',
+            name='accounting',
+            command='/path/to/checker,
+            args="--my-check-args,
+            interval=None,
+            cron="*5/ 3-7 * * *")
+
+
+    """
     default_interval = 60
 
     purge_old_batou_json = batou.component.Attribute("literal", True)
@@ -313,11 +347,16 @@ class SensuChecks(batou.component.Component):
         checks = {}
         for service in self.services:
             assert getattr(service, "name", None)
-            checks[service.name] = dict(
-                interval=getattr(service, "interval", self.default_interval),
+            checks[service.name] = check = dict(
                 standalone=True,
                 command=service.expand("{{component.command}} {{component.args}}"),
             )
+            interval = getattr(service, "interval", self.default_interval)
+            if interval:
+                check["interval"] = interval
+            cron = getattr(service, "cron", None)
+            if cron:
+                check["cron"] = cron
 
         config_file_name = "/etc/local/sensu-client/{}-batou.json".format(
             self.environment.service_user
