@@ -83,6 +83,11 @@ class Permissions(batou.component.Component):
         self.to_update = []
         self.to_delete = []
         for line in lines:
+            if not line or line == "vhost\tconfigure\twrite\tread":
+                # Table header. This used to be hidden with `-q` but was
+                # moved to `-s` in recent rabbit mq versions. Alas old
+                # versions don't support `-s`. So filter manually.
+                continue
             vhost, conf, write, read = line.split('\t', 3)
             perms = to_validate.pop(vhost, None)
             if perms is None:
@@ -130,7 +135,7 @@ class User(batou.component.Component):
         self.create = True
         self.set_tags = True
         for line in users:
-            if not line:
+            if not line or line.startswith("user\t"):
                 continue
             user, tags = line.split('\t', 1)
             tags = sorted(tags[1:-1].split(', '))
@@ -160,7 +165,7 @@ class PurgeUser(batou.component.Component):
         stdout, stderr = self.cmd('rabbitmqctl -q list_users')
         users = stdout.splitlines()
         for line in users:
-            if not line:
+            if not line or line.startswith("user\t"):
                 continue
             user, tags = line.split('\t', 1)
             if user == self.username:
