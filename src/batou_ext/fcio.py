@@ -79,9 +79,7 @@ class DNSAliases(batou.component.Component):
     def _call(self):
         api = xmlrpclib.ServerProxy(
             "https://{s.project}:{s.api_key}@api.flyingcircus.io/v1".format(
-                s=self
-            )
-        )
+                s=self))
         api.apply(self.calls)
 
     def _add_calls(self, hostname, interface, aliases_str):
@@ -89,21 +87,18 @@ class DNSAliases(batou.component.Component):
             return
         aliases = aliases_str.split()
         aliases.sort()
-        self.calls.append(
-            {
-                "__type__": "virtualmachine",
-                "name": hostname + self.postfix,
-                "aliases_" + interface: aliases,
-            }
-        )
+        self.calls.append({
+            "__type__": "virtualmachine",
+            "name": hostname + self.postfix,
+            "aliases_" + interface: aliases,
+        })
         self.aliases.extend(aliases)
 
     def _wait_for_aliases(self):
         if not self.wait_for_aliases:
             return
-        batou.output.line(
-            "Waiting up to %s seconds for aliases." % self.wait_for_aliases
-        )
+        batou.output.line("Waiting up to %s seconds for aliases." %
+                          self.wait_for_aliases)
         started = time.time()
         error = True
         while started + self.wait_for_aliases > time.time():
@@ -122,17 +117,15 @@ class DNSAliases(batou.component.Component):
         for alias in self.aliases:
             fqdn = "{}{}.{}.fcio.net".format(alias, self.postfix, self.project)
             try:
-                addrs = socket.getaddrinfo(
-                    fqdn, None, 0, 0, socket.IPPROTO_TCP
-                )
+                addrs = socket.getaddrinfo(fqdn, None, 0, 0,
+                                           socket.IPPROTO_TCP)
             except socket.gaierror as e:
                 result = str(e)
                 error = True
             else:
-                result = ", ".join(
-                    sockaddr[0]
-                    for (family, type, proto, canonname, sockaddr) in addrs
-                )
+                result = ", ".join(sockaddr[0]
+                                   for (family, type, proto, canonname,
+                                        sockaddr) in addrs)
             results.append("{}: {}".format(fqdn, result))
         return error, results
 
@@ -160,8 +153,7 @@ class Provision(batou.component.Component):
         if environment.exceptions:
             # Yeah, this is awkward.
             batou.output = batou._output.Output(
-                batou._output.TerminalBackend()
-            )
+                batou._output.TerminalBackend())
             for exc in environment.exceptions:
                 exc.report()
             sys.exit(1)
@@ -175,8 +167,7 @@ class Provision(batou.component.Component):
         if not api_url:
             api_url = cls.api_url
         api = xmlrpclib.ServerProxy(
-            api_url.format(project=rg_name, api_key=api_key)
-        )
+            api_url.format(project=rg_name, api_key=api_key))
         return api
 
     def _add_calls(self, hostname, interface, aliases_str):
@@ -184,13 +175,11 @@ class Provision(batou.component.Component):
             return
         aliases = aliases_str.split()
         aliases.sort()
-        self.calls.append(
-            {
-                "__type__": "virtualmachine",
-                "name": hostname + self.postfix,
-                "aliases_" + interface: aliases,
-            }
-        )
+        self.calls.append({
+            "__type__": "virtualmachine",
+            "name": hostname + self.postfix,
+            "aliases_" + interface: aliases,
+        })
         self.aliases.extend(aliases)
 
     @classmethod
@@ -212,8 +201,7 @@ class Provision(batou.component.Component):
                 __type__="serviceuser",
                 uid=environment.service_user,
                 resource_group=rg_name,
-            )
-        )
+            ))
 
         for name, host in sorted(environment.hosts.items()):
             d = host.data
@@ -228,9 +216,8 @@ class Provision(batou.component.Component):
                 name=host.name,
                 classes=classes,
                 resource_group=rg_name,
-                environment_class=d.get(
-                    "environment_class", config("vm_environment_class")
-                ),
+                environment_class=d.get("environment_class",
+                                        config("vm_environment_class")),
                 environment=d.get("environment", config("vm_environment")),
                 location=config("location"),
                 rbd_pool=d.get("rbdpool", "rbd.hdd"),
