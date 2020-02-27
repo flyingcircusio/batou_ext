@@ -1,3 +1,4 @@
+# coding: utf8
 from __future__ import print_function
 from pprint import pprint
 import argparse
@@ -71,7 +72,7 @@ class DNSAliases(batou.component.Component):
     def _compute_calls(self):
         assert self.project
         self.aliases = []
-        for host in self.environment.hosts.values():
+        for host in self.environment_.hosts.values():
             self._add_calls(host.name, "srv", host.data.get("alias-srv"))
             self._add_calls(host.name, "fe", host.data.get("alias-fe"))
         self.calls.sort(key=lambda c: c["name"])
@@ -145,9 +146,13 @@ class Provision(batou.component.Component):
     vm_environment = "fc-15.09-production"
     api_url = "https://{project}:{api_key}@api.flyingcircus.io/v1"
 
-    @staticmethod
-    def load_env(env_name):
-        environment = batou.environment.Environment(env_name)
+    def __init__(self, env_name=None, dry_run=False, diff=False, **kwargs):
+        self.env_name = env_name
+        self.dry_run = dry_run
+        self.diff = diff
+
+    def load_env(self):
+        environment = batou.environment.Environment(self.env_name)
         environment.load()
         environment.load_secrets()
         if environment.exceptions:
@@ -159,51 +164,33 @@ class Provision(batou.component.Component):
             sys.exit(1)
         return environment
 
-    @classmethod
-    def get_api(cls, environment):
-        rg_name = environment.overrides["provision"]["project"]
-        api_key = environment.overrides["provision"]["api_key"]
-        api_url = environment.overrides["provision"].get("api_url")
+    def get_api(self):
+        rg_name = self.environment_.overrides["provision"]["project"]
+        api_key = self.environment_.overrides["provision"]["api_key"]
+        api_url = self.environment_.overrides["provision"].get("api_url")
         if not api_url:
-            api_url = cls.api_url
+            api_url = self.api_url
         api = xmlrpclib.ServerProxy(
             api_url.format(project=rg_name, api_key=api_key))
         return api
 
-    def _add_calls(self, hostname, interface, aliases_str):
-        if not aliases_str:
-            return
-        aliases = aliases_str.split()
-        aliases.sort()
-        self.calls.append({
-            "__type__": "virtualmachine",
-            "name": hostname + self.postfix,
-            "aliases_" + interface: aliases,
-        })
-        self.aliases.extend(aliases)
+    def get_currently_provisioned_vms(self):
+        return self.api.query('virtualmachine')
 
-    @classmethod
-    def apply(cls, env_name=None, dry_run=False, **kwargs):
-        environment = cls.load_env(env_name)
+    def apply(self):
+        self.environment_ = self.load_env()
+        self.api = self.get_api()
 
         def config(name):
-            value = environment.overrides["provision"].get(name)
+            value = self.environment_.overrides["provision"].get(name)
             if not value:
-                value = getattr(cls, name)
+                value = getattr(self, name)
             return value
 
         rg_name = config("project")
-        api = cls.get_api(environment)
-        calls = []
 
-        calls.append(
-            dict(
-                __type__="serviceuser",
-                uid=environment.service_user,
-                resource_group=rg_name,
-            ))
-
-        for name, host in sorted(environment.hosts.items()):
+        vms = []
+        for name, host in sorted(self.environment_.hosts.items()):
             d = host.data
             roles = d.get("roles", "").splitlines()
             classes = ["role::" + r for r in roles if r]
@@ -236,12 +223,69 @@ class Provision(batou.component.Component):
             alias("srv")
             alias("fe")
 
-            calls.append(call)
+            vms.append(call)
 
-        if dry_run:
-            pprint(calls)
+        if self.diff:
+            diff = self.get_diff(self.get_currently_provisioned_vms(), vms)
+            print(
+                "Applying the configuration to {env} would yield the following"
+                " changes:\n".format(env=self.env_name))
+
+            for vm, changes in sorted(diff.items()):
+                if changes:
+                    print(vm)
+                    for key, (old, new) in sorted(changes.items()):
+                        if old or new:
+                            print("    {key:20}: {old} → {new}".format(
+                                **locals()))
+                        else:
+                            print("    {key}".format(**locals()))
+                else:
+                    print("{vm}: <no changes>".format(vm=vm))
         else:
-            pprint(api.apply(calls))
+            serviceuser = dict(
+                __type__="serviceuser",
+                uid=self.environment_.service_user,
+                resource_group=rg_name,
+            )
+            calls = [serviceuser] + vms
+            if self.dry_run:
+                pprint(calls)
+            else:
+                pprint(self.api.apply(calls))
+
+    def get_diff(self, old, new):
+        result = {}
+
+        old = {vm['name']: vm for vm in old}
+        new = {vm['name']: vm for vm in new}
+
+        for vm_name, old_vm in old.items():
+            result[vm_name] = changes = {}
+            new_vm = new.get(vm_name)
+            if not new_vm:
+                changes["DELETE VM"] = (None, None)
+                continue
+            # starting with new because that only includes the data we
+            # can set. We ignore all the other keys.
+            for key, new_value in new_vm.items():
+                old_value = old_vm.get(key)
+                if key == 'classes':
+                    # Roles need special treatment, generic is always included
+                    try:
+                        old_value.remove('role::generic')
+                    except ValueError:
+                        pass
+                if old_value != new_value:
+                    changes[key] = (old_value, new_value)
+        for vm_name, new_vm in new.items():
+            if vm_name in result:
+                continue
+            result[vm_name] = {"CREATE VM": (None, None)}
+            result[vm_name].update(
+                {key: (None, value)
+                 for key, value in new_vm.items()})
+        return result
 
 
 def main():
@@ -251,7 +295,11 @@ def main():
     p = subparsers.add_parser("provision", help="Apply resource settings")
     p.add_argument("env_name", help="Environment")
     p.add_argument("-n", "--dry-run", help="Dry run", action="store_true")
-    p.set_defaults(func=Provision.apply)
+    p.add_argument("-d",
+                   "--diff",
+                   help="Show changes in resources",
+                   action="store_true")
+    p.set_defaults(func=lambda **kw: Provision(**kw).apply())
 
     args = parser.parse_args()
 
