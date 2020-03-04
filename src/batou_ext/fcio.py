@@ -146,11 +146,6 @@ class Provision(batou.component.Component):
     vm_environment = "fc-15.09-production"
     api_url = "https://{project}:{api_key}@api.flyingcircus.io/v1"
 
-    def __init__(self, env_name=None, dry_run=False, diff=False, **kwargs):
-        self.env_name = env_name
-        self.dry_run = dry_run
-        self.diff = diff
-
     def load_env(self):
         environment = batou.environment.Environment(self.env_name)
         environment.load()
