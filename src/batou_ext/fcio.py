@@ -143,7 +143,7 @@ class Provision(batou.component.Component):
     api_key = None
     location = "rzob"
     vm_environment_class = "NixOS"
-    vm_environment = "fc-15.09-production"
+    vm_environment = None
     api_url = "https://{project}:{api_key}@api.flyingcircus.io/v1"
 
     def load_env(self):
@@ -189,6 +189,12 @@ class Provision(batou.component.Component):
             d = host.data
             roles = d.get("roles", "").splitlines()
             classes = ["role::" + r for r in roles if r]
+
+            if d.get("environment", config("vm_environment")) is None:
+                raise ValueError(
+                    "'environment' for {} must be set.".format(
+                        name))
+
             call = dict(
                 __type__="virtualmachine",
                 cores=int(d["cores"]),
