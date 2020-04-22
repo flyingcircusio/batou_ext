@@ -123,36 +123,66 @@ class RegexPatch(batou.component.Component):
             pattern=r'^foo=\d+(\w+)',
             replacement=r'foo=27\1')
 
+    If you don't want to patch inplace:
+
+        self += batou_ext.config.RegexPatch(
+            '/path/to/file',
+            source='/path/to/some/file/'
+            pattern=r'^foo=\d+(\w+)',
+            replacement=r'foo=27\1')
+
     """
 
     path = None
     namevar = 'path'
+
+    source = None
     pattern = None
     replacement = None
 
     def configure(self):
         self.pattern = re.compile(self.pattern, re.MULTILINE)
 
+        if not self.path:
+            raise ValueError("`path` must be set.")
+
+        if not self.source:
+            self.source = self.path
+
     def _patch(self):
-        return self.pattern.sub(self.replacement, self.source)
+        return self.pattern.sub(self.replacement, self._source_data)
 
     def verify(self):
+
+        if not os.path.exists(self.source):
+            # During predict, the file might not exist.
+            raise batou.UpdateNeeded()
+        with open(self.source, 'r') as f:
+            self._source_data = f.read()
+
         if not os.path.exists(self.path):
             # During predict, the file might not exist.
-            self.source = None
             raise batou.UpdateNeeded()
         with open(self.path, 'r') as f:
-            self.source = f.read()
-        m = self.pattern.search(self.source)
+            self._target_data = f.read()
+
+        m = self.pattern.search(self._source_data)
         assert m, "Could not configure, no match for pattern: {}".format(
             self.pattern.pattern)
-        if self.source != self._patch():
+        if self._target_data != self._patch():
             raise batou.UpdateNeeded()
 
     def update(self):
-        if self.source is None:
-            raise RuntimeError("The file to be patched does not exist:",
-                               self.path)
+        if not os.path.exists(self.source):
+            raise FileNotFoundError(
+                "The file to be patched does not exist:",
+                self.source)
+
+        if self._source_data is None:
+            raise RuntimeError(
+                "The file to be patched seems to have no valid content:",
+                self.source)
+
         with open(self.path, 'w') as f:
             f.write(self._patch())
 
