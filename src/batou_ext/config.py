@@ -174,7 +174,7 @@ class RegexPatch(batou.component.Component):
 
     def update(self):
         if not os.path.exists(self.source):
-            raise FileNotFoundError(
+            raise IOError(
                 "The file to be patched does not exist:",
                 self.source)
 
