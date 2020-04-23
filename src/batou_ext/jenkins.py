@@ -1,7 +1,7 @@
 """Helper for Jenkins pipeline deployments."""
 
-from __future__ import print_function
-import ConfigParser
+
+import configparser
 import argparse
 import json
 import subprocess
@@ -35,7 +35,7 @@ def git_resolve(url, version):
 
 
 def list_components(versions_file, verbose=False):
-    config = ConfigParser.SafeConfigParser()
+    config = configparser.SafeConfigParser()
     config.read(versions_file)
     components = sorted(config.sections())
     if verbose:
@@ -53,7 +53,7 @@ def list_components(versions_file, verbose=False):
 def set_versions(versions_file, version_mapping_json):
     version_mapping = json.loads(version_mapping_json)
 
-    config = ConfigParser.SafeConfigParser()
+    config = configparser.SafeConfigParser()
     config.read(versions_file)
 
     for service, version in sorted(version_mapping.items()):

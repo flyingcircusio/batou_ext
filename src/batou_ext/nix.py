@@ -225,7 +225,7 @@ class UserInit(batou.component.Component):
         )
 
         # Phase 1: allow overriding keys, do not append lists
-        for key, value in getattr(self.parent, "systemd", {}).items():
+        for key, value in list(getattr(self.parent, "systemd", {}).items()):
             if "_" in key:
                 section, key = key.split("_", 1)
             else:
@@ -236,7 +236,7 @@ class UserInit(batou.component.Component):
         self.config = {}
         for section in config:
             self.config[section] = []
-            for key, value in config[section].items():
+            for key, value in list(config[section].items()):
                 if not isinstance(value, (list, tuple)):
                     value = [value]
                 for v in value:

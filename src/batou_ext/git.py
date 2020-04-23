@@ -5,7 +5,7 @@ import batou_ext.ssh
 import glob
 import os
 import shutil
-import urlparse
+import urllib.parse
 
 
 class GitCheckout(batou.component.Component):
@@ -54,19 +54,19 @@ class GitCheckout(batou.component.Component):
 
         # We need to ensure to have a valid URL. Assuming URL with schema
         # should be valid.
-        assert urlparse.urlparse(self.git_clone_url).scheme
+        assert urllib.parse.urlparse(self.git_clone_url).scheme
 
         if self.scan_host:
             if not self.git_host:
-                self.git_host = urlparse.urlparse(self.git_clone_url).hostname
+                self.git_host = urllib.parse.urlparse(self.git_clone_url).hostname
             if not self.git_port:
                 self.git_port = (
-                    urlparse.urlparse(self.git_clone_url).port or 22)
+                    urllib.parse.urlparse(self.git_clone_url).port or 22)
             # Add remote host to known hosts
             self += batou_ext.ssh.ScanHost(self.git_host, port=self.git_port)
 
         # Check whether we need a SSH key
-        if urlparse.urlparse(self.git_clone_url).scheme == 'ssh':
+        if urllib.parse.urlparse(self.git_clone_url).scheme == 'ssh':
             self.require('sshkeypair')
 
         # Get a recent checkout

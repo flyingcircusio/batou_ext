@@ -1,5 +1,5 @@
 # coding: utf8
-from __future__ import print_function
+
 from pprint import pprint
 import argparse
 import batou
@@ -10,7 +10,7 @@ import batou.template
 import socket
 import sys
 import time
-import xmlrpclib
+import xmlrpc.client
 
 
 class DNSAliases(batou.component.Component):
@@ -72,13 +72,13 @@ class DNSAliases(batou.component.Component):
     def _compute_calls(self):
         assert self.project
         self.aliases = []
-        for host in self.environment_.hosts.values():
+        for host in list(self.environment_.hosts.values()):
             self._add_calls(host.name, "srv", host.data.get("alias-srv"))
             self._add_calls(host.name, "fe", host.data.get("alias-fe"))
         self.calls.sort(key=lambda c: c["name"])
 
     def _call(self):
-        api = xmlrpclib.ServerProxy(
+        api = xmlrpc.client.ServerProxy(
             "https://{s.project}:{s.api_key}@api.flyingcircus.io/v1".format(
                 s=self))
         api.apply(self.calls)
@@ -165,7 +165,7 @@ class Provision(batou.component.Component):
         api_url = self.environment_.overrides["provision"].get("api_url")
         if not api_url:
             api_url = self.api_url
-        api = xmlrpclib.ServerProxy(
+        api = xmlrpc.client.ServerProxy(
             api_url.format(project=rg_name, api_key=api_key))
         return api
 
@@ -261,7 +261,7 @@ class Provision(batou.component.Component):
         old = {vm['name']: vm for vm in old}
         new = {vm['name']: vm for vm in new}
 
-        for vm_name, old_vm in old.items():
+        for vm_name, old_vm in list(old.items()):
             result[vm_name] = changes = {}
             new_vm = new.get(vm_name)
             if not new_vm:
@@ -269,7 +269,7 @@ class Provision(batou.component.Component):
                 continue
             # starting with new because that only includes the data we
             # can set. We ignore all the other keys.
-            for key, new_value in new_vm.items():
+            for key, new_value in list(new_vm.items()):
                 old_value = old_vm.get(key)
                 if key == 'classes':
                     # Roles need special treatment, generic is always included
@@ -279,13 +279,13 @@ class Provision(batou.component.Component):
                         pass
                 if old_value != new_value:
                     changes[key] = (old_value, new_value)
-        for vm_name, new_vm in new.items():
+        for vm_name, new_vm in list(new.items()):
             if vm_name in result:
                 continue
             result[vm_name] = {"CREATE VM": (None, None)}
             result[vm_name].update(
                 {key: (None, value)
-                 for key, value in new_vm.items()})
+                 for key, value in list(new_vm.items())})
         return result
 
 

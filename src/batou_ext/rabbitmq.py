@@ -94,7 +94,7 @@ class Permissions(batou.component.Component):
                 self.to_delete.append(vhost)
             elif perms != (conf, write, read):
                 self.to_update.append(vhost)
-        self.to_update.extend(to_validate.keys())
+        self.to_update.extend(list(to_validate.keys()))
         if self.to_update or self.to_delete:
             raise batou.UpdateNeeded()
 
