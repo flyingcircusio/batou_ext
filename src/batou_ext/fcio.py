@@ -265,7 +265,8 @@ class Provision(batou.component.Component):
             result[vm_name] = changes = {}
             new_vm = new.get(vm_name)
             if not new_vm:
-                changes["DELETE VM"] = (None, None)
+                changes["VM exists and is unknown to deployment"] = (
+                    None, None)
                 continue
             # starting with new because that only includes the data we
             # can set. We ignore all the other keys.
