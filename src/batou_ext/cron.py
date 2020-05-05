@@ -41,7 +41,7 @@ class CronJob(batou.component.Component):
 
     def format(self):
         return self.expand(
-            """
+            """\
 {{component.timing}} \
  timeout {{component.timeout}} \
  {{component.wrapped_command}} \
