@@ -55,6 +55,10 @@ class Mirror(batou.component.Component):
     credentials = None
     authstring = None
 
+    # Whether we shall run let's encrypt for Nginx configuration
+    # If set to 'False', a self-signed certificate will be deployed instead
+    use_letsencrypt = batou.component.Attribute('literal', True)
+
     def configure(self):
 
         if self.provide_itself:
@@ -83,7 +87,8 @@ class Mirror(batou.component.Component):
         self.cert = batou_ext.ssl.Certificate(
             self.public_name,
             docroot=self.nginx_docroot,
-            extracommand=self.nginx_reload_command
+            extracommand=self.nginx_reload_command,
+            use_letsencrypt=self.use_letsencrypt
         )
         self += self.cert
 
