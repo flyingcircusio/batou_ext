@@ -322,8 +322,8 @@ class SensuChecks(batou.component.Component):
         self += ServiceCheck(
             'Testname',
             name='accounting',
-            command='/path/to/checker,
-            args="--my-check-args,
+            command='/path/to/checker',
+            args="--my-check-args",
             interval=120)
 
     Sensu also supports a cron notation:
