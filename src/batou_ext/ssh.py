@@ -34,7 +34,8 @@ class SSHKeyPair(Component):
         if self.id_rsa:
             self += File('~/.ssh/id_rsa',
                          content=self.id_rsa,
-                         mode=0o600)
+                         mode=0o600,
+                         sensitive_data=True)
         elif self.purge_unmanaged_keys:
             self += Purge('~/.ssh/id_rsa')
 
@@ -46,7 +47,8 @@ class SSHKeyPair(Component):
         if self.id_ed25519:
             self += File('~/.ssh/id_ed25519',
                          content='{}\n'.format(self.id_ed25519),
-                         mode=0o600)
+                         mode=0o600,
+                         sensitive_data=True)
 
         elif self.purge_unmanaged_keys:
             self += Purge('~/.ssh/id_ed25519')
