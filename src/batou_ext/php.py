@@ -46,7 +46,10 @@ class Ini(batou.component.Component):
             self.logs, leading=True, ensure="directory"
         )
         self.error_log = os.path.join(self.logs, "php-error.log")
-        self += batou.lib.logrotate.RotatedLogfile(self.error_log)
+        self += batou.lib.logrotate.RotatedLogfile(
+            self.error_log,
+            postrotate='kill -USR1 $(cat {}/php-fpm.pid)'.format(
+                self.workdir))
 
         # Providing a php.ini
         self += batou.lib.file.File(
@@ -97,7 +100,10 @@ class FPM(batou.component.Component):
             self.logs, leading=True, ensure="directory"
         )
         self.slow_log = os.path.join(self.logs, "slow.log")
-        self += batou.lib.logrotate.RotatedLogfile(self.slow_log)
+        self += batou.lib.logrotate.RotatedLogfile(
+            self.slow_log,
+            postrotate='kill -USR1 $(cat {}/php-fpm.pid)'.format(
+                self.workdir))
 
         # fpm.ini
 
