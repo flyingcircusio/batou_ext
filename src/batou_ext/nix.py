@@ -378,6 +378,8 @@ class SensuChecks(batou.component.Component):
 @batou.component.platform("nixos", batou.lib.logrotate.Logrotate)
 class LogrotateIntegration(batou.component.Component):
     def configure(self):
+        assert self.environment.service_user, (
+            "Need to set service_user inside environment file.")
         user = self.environment.service_user
         user_logrotate_conf = os.path.join("/etc/local/logrotate", user, "batou.conf")
         self += batou.lib.file.File(
