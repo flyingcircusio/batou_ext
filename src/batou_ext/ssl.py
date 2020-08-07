@@ -93,6 +93,8 @@ class Certificate(batou.component.Component):
     _may_need_to_generate_certificates = False
 
     def configure(self):
+        if not isinstance(self.alternative_names, (tuple, list)):
+            raise ValueError('"alternative_names" needs to be a tuple of string.')
         if not self.refresh_timing:
             h = int(hashlib.md5(
                 six.ensure_binary(self.domain, "UTF-8")).hexdigest(), 16)
