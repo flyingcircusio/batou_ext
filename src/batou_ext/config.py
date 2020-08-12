@@ -52,14 +52,14 @@ class CustomizeJson(batou.component.Component):
         pass
 
     def _generate(self):
-        with open(self.source) as f:
+        with open(self.source, encoding='utf8') as f:
             data = json.load(f)
         return dict_merge(data, self.config)
 
     def verify(self):
         self._config = self._generate()
         try:
-            with open(self.target) as f:
+            with open(self.target, encoding='utf8') as f:
                 current_data = json.load(f)
         except (IOError, ValueError):
             raise batou.UpdateNeeded
@@ -67,7 +67,7 @@ class CustomizeJson(batou.component.Component):
             raise batou.UpdateNeeded
 
     def update(self):
-        with open(self.target, 'wb') as f:
+        with open(self.target, 'w', encoding='utf8') as f:
             json.dump(self._config, f)
 
 
