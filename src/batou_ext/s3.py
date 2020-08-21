@@ -29,7 +29,7 @@ class S3(batou.component.Component):
         self.fcio = batou_ext.s3.S3(
             [...]
             provide_name="s3_fcio")
-        self.fcio += self.require_one("s3_fcio"
+        self.fcio += self.require_one("s3_fcio")
     """
 
     endpoint_url = None
