@@ -14,8 +14,8 @@ class S3(batou.component.Component):
 
         self += batou_ext.s3.S3(
             endpoint_url="https://my.s3.endpoint",
-            access_token="1234567890ABCDEF",
-            secret="very_secure!1!",
+            access_key_id="1234567890ABCDEF",
+            secret_access_key="very_secure!1!",
             provide_name="s3_aws")
 
         This would you to define different S3 instances for your
@@ -25,7 +25,7 @@ class S3(batou.component.Component):
             [...]
             provide_name="s3_aws")
         [...]
-        self.aws += self.require_one("s3_aws"
+        self.aws += self.require_one("s3_aws")
         self.fcio = batou_ext.s3.S3(
             [...]
             provide_name="s3_fcio")
