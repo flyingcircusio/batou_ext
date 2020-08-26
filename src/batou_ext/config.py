@@ -17,7 +17,7 @@ def dict_merge(a, b):
     if not isinstance(b, dict):
         return b
     result = copy.deepcopy(a)
-    for k, v in b.iteritems():
+    for k, v in b.items():
         if k in result and isinstance(result[k], dict):
             result[k] = dict_merge(result[k], v)
         elif k in result and isinstance(result[k], list):
@@ -52,14 +52,14 @@ class CustomizeJson(batou.component.Component):
         pass
 
     def _generate(self):
-        with open(self.source) as f:
+        with open(self.source, encoding='utf8') as f:
             data = json.load(f)
         return dict_merge(data, self.config)
 
     def verify(self):
         self._config = self._generate()
         try:
-            with open(self.target) as f:
+            with open(self.target, encoding='utf8') as f:
                 current_data = json.load(f)
         except (IOError, ValueError):
             raise batou.UpdateNeeded
@@ -67,7 +67,7 @@ class CustomizeJson(batou.component.Component):
             raise batou.UpdateNeeded
 
     def update(self):
-        with open(self.target, 'wb') as f:
+        with open(self.target, 'w', encoding='utf8') as f:
             json.dump(self._config, f)
 
 
