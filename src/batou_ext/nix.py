@@ -171,6 +171,12 @@ def rebuild(cls):
     return cls
 
 
+# Uhugh. Patch service so we can set checksum/systemd data which is being used
+# by UserInit.
+batou.lib.service.Service.checksum = None
+batou.lib.service.Service.systemd = None
+
+
 @batou.component.platform("nixos", batou.lib.service.Service)
 class UserInit(batou.component.Component):
     """Start services on fc platform.
@@ -299,6 +305,11 @@ class InstallCrontab(batou.lib.cron.InstallCrontab):
 
     def update(self):
         self.cmd(self.expand("cat {{component.crontab.path}} | crontab -"))
+
+
+# Patch Service so we can pass down the name to sensu
+batou.lib.nagios.Service.name: str = None
+batou.lib.nagios.Service.interval: int = None
 
 
 @rebuild

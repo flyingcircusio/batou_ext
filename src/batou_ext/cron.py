@@ -29,6 +29,7 @@ class CronJob(batou.component.Component):
     Ensure this values are fitting the settings done within `timing`.
     """
 
+    timing = None
     log_file = None
     lock_file = None
     stamp_file = None

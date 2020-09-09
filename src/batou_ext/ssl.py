@@ -217,6 +217,8 @@ openssl x509 -req -days 3650 \
 
 class ActivateLetsEncrypt(batou.component.Component):
 
+    cert: Certificate = None
+
     def verify(self):
         if self.cert.use_letsencrypt:
             self.cert.assert_no_subcomponent_changes()
