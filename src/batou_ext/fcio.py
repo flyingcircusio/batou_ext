@@ -211,7 +211,7 @@ class Provision(batou.component.Component):
                 rbd_pool=d.get("rbdpool", "rbd.hdd"),
                 frontend_ips_v4=int(d.get("frontend-ipv4", 0)),
                 frontend_ips_v6=int(d.get("frontend-ipv6", 0)),
-                service_description=d.get("description", ""),
+                service_description=d.get("description", "").decode('UTF-8'),
             )
 
             def alias(interface):
