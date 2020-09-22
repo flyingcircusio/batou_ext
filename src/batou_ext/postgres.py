@@ -62,15 +62,15 @@ class DB(PostgresDataComponent):
     def verify(self):
         try:
             self.pgcmd(
-                self.expand('psql -c "SELECT true;" -d {{component.db}}'),
+                self.expand('psql -c "SELECT true;" -d "{{component.db}}"'),
                 silent=True)
         except batou.utils.CmdExecutionError:
             raise batou.UpdateNeeded()
 
     def update(self):
         self.pgcmd(self.expand(
-            'createdb -l {{component.locale}} -O {{component.owner}} '
-            '{{component.db}}'))
+            'createdb -l {{component.locale}} -O "{{component.owner}}" '
+            '"{{component.db}}"'))
 
 
 class User(PostgresDataComponent):
@@ -95,7 +95,7 @@ class User(PostgresDataComponent):
         os.environ['PGPASSWORD'] = self.password
         try:
             self.cmd(self.expand(
-                'psql -d postgres -c "SELECT true;" -U {{component.name}} '
+                'psql -d postgres -c "SELECT true;" -U "{{component.name}}" '
                 '-w -h localhost'))
         except batou.utils.CmdExecutionError:
             raise batou.UpdateNeeded()
@@ -104,9 +104,7 @@ class User(PostgresDataComponent):
 
     def update(self):
         command = self.expand(
-            'sh -c "echo \\\"CREATE USER {{component.name}} '
-            'PASSWORD \'{{component.password}}\' '
-            '{{component.flags}} \\\" | psql -d postgres"'
+            'psql -d postgres -c "CREATE USER \\\"{{component.name}}\\\" PASSWORD \'{{component.password}}\' {{component.flags}}"'
         )
         self.pgcmd(command)
 
