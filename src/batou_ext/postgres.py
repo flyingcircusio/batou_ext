@@ -20,20 +20,17 @@ class PostgresDataComponent(batou.component.Component):
     def configure(self):
         try:
             self._command_prefix = self.parent.command_prefix
-            self.log(
-                "{}: Warning: The usage of command_prefix from parent-"
-                "component will be deprecated in future. Please update "
-                "your deployment to make usage of {}.command_prefix "
-                "rather than defining it via {}.command_prefix.".format(
-                    self._breadcrumbs,
-                    self.__class__.__name__,
-                    self.parent.__class__.__name__))
+            self.log("{}: Warning: The usage of command_prefix from parent-"
+                     "component will be deprecated in future. Please update "
+                     "your deployment to make usage of {}.command_prefix "
+                     "rather than defining it via {}.command_prefix.".format(
+                         self._breadcrumbs, self.__class__.__name__,
+                         self.parent.__class__.__name__))
         except AttributeError:
             self._command_prefix = self.command_prefix
 
     def pgcmd(self, cmd, *args, **kw):
-        return self.cmd('{} {}'.format(
-            self.command_prefix, cmd), *args, **kw)
+        return self.cmd('{} {}'.format(self.command_prefix, cmd), *args, **kw)
 
 
 class DB(PostgresDataComponent):
@@ -55,22 +52,22 @@ class DB(PostgresDataComponent):
     def configure(self):
         super(DB, self).configure()
         if self.owner is None:
-            raise ValueError(
-                "You have to specify an owner for the "
-                "database \"{}\"".format(self.db))
+            raise ValueError("You have to specify an owner for the "
+                             "database \"{}\"".format(self.db))
 
     def verify(self):
         try:
             self.pgcmd(
-                self.expand('psql -c "SELECT true;" -d {{component.db}}'),
+                self.expand('psql -c "SELECT true;" -d "{{component.db}}"'),
                 silent=True)
         except batou.utils.CmdExecutionError:
             raise batou.UpdateNeeded()
 
     def update(self):
-        self.pgcmd(self.expand(
-            'createdb -l {{component.locale}} -O {{component.owner}} '
-            '{{component.db}}'))
+        self.pgcmd(
+            self.expand(
+                'createdb -l {{component.locale}} -O "{{component.owner}}" '
+                '"{{component.db}}"'))
 
 
 class User(PostgresDataComponent):
@@ -94,9 +91,10 @@ class User(PostgresDataComponent):
     def verify(self):
         os.environ['PGPASSWORD'] = self.password
         try:
-            self.cmd(self.expand(
-                'psql -d postgres -c "SELECT true;" -U {{component.name}} '
-                '-w -h localhost'))
+            self.cmd(
+                self.expand(
+                    'psql -d postgres -c "SELECT true;" -U "{{component.name}}" '
+                    '-w -h localhost'))
         except batou.utils.CmdExecutionError:
             raise batou.UpdateNeeded()
         finally:
@@ -104,9 +102,7 @@ class User(PostgresDataComponent):
 
     def update(self):
         command = self.expand(
-            'sh -c "echo \\\"CREATE USER {{component.name}} '
-            'PASSWORD \'{{component.password}}\' '
-            '{{component.flags}} \\\" | psql -d postgres"'
+            'psql -d postgres -c "CREATE USER \\\"{{component.name}}\\\" PASSWORD \'{{component.password}}\' {{component.flags}}"'
         )
         self.pgcmd(command)
 
@@ -131,18 +127,14 @@ class Extension(PostgresDataComponent):
         if self.extension_name is None:
             raise ValueError("Need to set extension name")
         if self.db is None:
-            raise ValueError(
-                "Need to specify a database to "
-                "create extension in")
+            raise ValueError("Need to specify a database to "
+                             "create extension in")
 
     def verify(self):
         cmd_out, cmt_err = self.pgcmd(
-            self.expand(
-                "psql -d {{component.db}} -qtAX "
-                '-c "SELECT extname FROM pg_extension '
-                "WHERE extname = '{{component.extension_name}}';\""
-            )
-        )
+            self.expand("psql -d {{component.db}} -qtAX "
+                        '-c "SELECT extname FROM pg_extension '
+                        "WHERE extname = '{{component.extension_name}}';\""))
         if cmd_out.strip() != self.extension_name:
             raise batou.UpdateNeeded()
 
@@ -151,6 +143,4 @@ class Extension(PostgresDataComponent):
             self.expand(
                 "psql -c "
                 '"CREATE EXTENSION '
-                '\\"{{component.extension_name}}\\";" -d {{component.db}}'
-            )
-        )
+                '\\"{{component.extension_name}}\\";" -d {{component.db}}'))
