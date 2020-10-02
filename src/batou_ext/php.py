@@ -89,7 +89,10 @@ class FPM(batou.component.Component):
     def configure(self):
         self._checksum = hashlib.new("sha256")
         for s in self.dependency_strings:
-            self._checksum.update(s)
+            if isinstance(s, str):
+                self._checksum.update(s.encode("utf-8"))
+            else:
+                self._checksum.update(s)
 
         self.address = batou.utils.Address(self.host.fqdn, self.port)
 
