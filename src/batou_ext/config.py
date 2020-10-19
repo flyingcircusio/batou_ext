@@ -109,7 +109,7 @@ class CustomizeYaml(batou.component.Component):
             raise batou.UpdateNeeded
 
     def update(self):
-        with open(self.target, 'wb') as f:
+        with open(self.target, 'w') as f:
             yaml.safe_dump(self._config, f, default_flow_style=False)
 
 
