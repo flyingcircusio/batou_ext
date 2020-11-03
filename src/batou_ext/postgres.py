@@ -83,6 +83,7 @@ class User(PostgresDataComponent):
 
     namevar = 'name'
     flags = 'NOCREATEDB NOCREATEROLE NOSUPERUSER'
+    password: str = None
 
     def configure(self):
         super(User, self).configure()

@@ -1,6 +1,6 @@
 from batou import UpdateNeeded
 from batou.component import Component, Attribute
-from batou.lib.file import Directory, File, Purge
+from batou.lib.file import File, Purge
 import os
 import os.path
 
@@ -28,7 +28,7 @@ class SSHKeyPair(Component):
         if self.provide_itself:
             self.provide('sshkeypair', self)
 
-        self += Directory('~/.ssh', mode=0o700)
+        self += File('~/.ssh', ensure='directory', mode=0o700)
 
         # RSA
         if self.id_rsa:
