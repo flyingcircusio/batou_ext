@@ -146,6 +146,7 @@ class Provision(batou.component.Component):
     vm_environment = None
     api_url = "https://{project}:{api_key}@api.flyingcircus.io/v1"
 
+    # Passed by the CLI runner, not meant to be set via environment:
     env_name: str = None
     diff: dict = None
     dry_run: bool = None
