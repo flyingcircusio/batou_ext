@@ -173,7 +173,7 @@ def rebuild(cls):
 
 # Uhugh. Patch service so we can set checksum/systemd data which is being used
 # by UserInit.
-batou.lib.service.Service.checksum = None
+batou.lib.service.Service.checksum = ""
 batou.lib.service.Service.systemd = None
 
 
@@ -231,7 +231,8 @@ class UserInit(batou.component.Component):
         )
 
         # Phase 1: allow overriding keys, do not append lists
-        for key, value in list(getattr(self.parent, "systemd", {}).items()):
+        systemd = self.parent.systemd or {}
+        for key, value in list(systemd.items()):
             if "_" in key:
                 section, key = key.split("_", 1)
             else:
@@ -248,7 +249,7 @@ class UserInit(batou.component.Component):
                 for v in value:
                     self.config[section].append((key, v))
 
-        self.checksum = getattr(self.parent, "checksum", "")
+        self.checksum = self.parent.checksum
         self += batou.lib.file.File(
             service_file,
             content=pkg_resources.resource_string(
@@ -309,7 +310,8 @@ class InstallCrontab(batou.lib.cron.InstallCrontab):
 
 # Patch Service so we can pass down the name to sensu
 batou.lib.nagios.Service.name: str = None
-batou.lib.nagios.Service.interval: int = None
+batou.lib.nagios.Service.interval: int = 60
+batou.lib.nagios.Service.cron: str = None
 
 
 @rebuild
@@ -349,36 +351,36 @@ class SensuChecks(batou.component.Component):
 
 
     """
-    default_interval = 60
 
     purge_old_batou_json = batou.component.Attribute("literal", True)
 
     def configure(self):
-        self.services = self.require(batou.lib.nagios.Service.key, host=self.host)
+        self.services = self.require(batou.lib.nagios.Service.key,
+                                     host=self.host)
         checks = {}
         for service in self.services:
             assert getattr(service, "name", None)
             checks[service.name] = check = dict(
                 standalone=True,
-                command=service.expand("{{component.command}} {{component.args}}"),
-            )
-            interval = getattr(service, "interval", self.default_interval)
-            if interval:
-                check["interval"] = interval
-            cron = getattr(service, "cron", None)
-            if cron:
-                check["cron"] = cron
+                command=service.expand(
+                    "{{component.command}} {{component.args}}"))
+
+            if service.interval:
+                check["interval"] = service.interval
+            elif service.cron:
+                check["cron"] = service.cron
+            else:
+                raise ValueError('Need either `interval` or `cron` setting.')
 
         config_file_name = "/etc/local/sensu-client/{}-batou.json".format(
-            self.environment.service_user
-        )
+            self.environment.service_user)
 
         if checks:
             sensu = dict(checks=checks)
 
             self += batou.lib.file.File(
-                config_file_name, content=json.dumps(sensu, sort_keys=True, indent=4)
-            )
+                config_file_name, content=json.dumps(sensu, sort_keys=True,
+                                                     indent=4))
         else:
             self += batou.lib.file.Purge(config_file_name)
 
