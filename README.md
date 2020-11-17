@@ -11,7 +11,7 @@ git+git://github.com/flyingcircusio/batou_ext.git@XXX#egg=batou_ext
 (Replace XXX by the revision you want to use. Please keep in mind, that using HEAD or master will result potential in not reproducable deployments)
 
 
-Another option is to use the zip provided by github:
+Another option is to use the zip provided by GitHub:
 
 ```
 batou_ext @ https://github.com/flyingcircusio/batou_ext/archive/xxx.zip#sha256=8yyy
