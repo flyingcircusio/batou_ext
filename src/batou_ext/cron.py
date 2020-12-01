@@ -29,34 +29,33 @@ class CronJob(batou.component.Component):
     Ensure this values are fitting the settings done within `timing`.
     """
 
+    namevar = "tag"
+
+    command = None
     timing = None
     log_file = None
     lock_file = None
     stamp_file = None
     timeout = "1h"
-    namevar = "tag"
     checkWarning = None  # minutes
     checkCritical = None  # minutes
 
     args = ""  # to satisfy sorting
 
     def format(self):
-        return self.expand(
-            """\
+        return self.expand("""\
 {{component.timing}} \
  timeout {{component.timeout}} \
  {{component.wrapped_command}} \
- >> {{component.log_file}} 2>&1"""
-        )
+ >> {{component.log_file}} 2>&1""")
 
     def configure(self):
         self.provide(batou.lib.cron.CronJob.key, self)
 
         if self.timing is None:
             raise ValueError(
-                "Required timing value missing from cron job %r."
-                % self.command
-            )
+                "Required timing value missing from cron job %r." %
+                self.command)
 
         self += batou.lib.file.File("logs", ensure="directory")
         self.log_file = self.map(self.expand("logs/{{component.tag}}.log"))
@@ -69,13 +68,10 @@ class CronJob(batou.component.Component):
         # getting red if next runs are not successful
         self += batou.lib.file.File(self.stamp_file, content="")
 
-        self += batou.lib.file.File(
-            self.expand("{{component.tag}}.sh"),
-            content=pkg_resources.resource_string(
-                __name__, "resources/cron-wrapper.sh"
-            ),
-            mode=0o755,
-        )
+        self += batou.lib.file.File(self.expand("{{component.tag}}.sh"),
+                                    content=pkg_resources.resource_string(
+                                        __name__, "resources/cron-wrapper.sh"),
+                                    mode=0o755)
         self.wrapped_command = self._.path
 
         if self.checkWarning or self.checkCritical:
@@ -91,5 +87,4 @@ class CronJob(batou.component.Component):
                 self.expand("Cronjob {{component.tag}} finished?"),
                 command="check_file_age",
                 args=" ".join(cmd),
-                name=self.expand("cronjob_{{component.tag}}"),
-            )
+                name=self.expand("cronjob_{{component.tag}}"))
