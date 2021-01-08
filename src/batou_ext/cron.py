@@ -27,6 +27,18 @@ class CronJob(batou.component.Component):
     and will turn the service check into warning or critical state after
     these times were exceeded.
     Ensure this values are fitting the settings done within `timing`.
+
+    Please note, that this component requires you to import the
+    `Logrotate` component (`from batou.lib.logrotate import Logrotate`)
+    and add it to the components list of the host on which you want to
+    deploy the cronjob.
+
+    e.g.
+
+            [host:yourhost]
+                components =
+                    ...
+                    logrotate
     """
 
     namevar = "tag"
