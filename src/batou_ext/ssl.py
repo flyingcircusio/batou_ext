@@ -108,7 +108,8 @@ class Certificate(batou.component.Component):
             self.key_file = batou.lib.file.File(
                 os.path.join('{}/{}.key'.format(self.workdir, self.domain)),
                 content=self.key_content,
-                mode=0o600)
+                mode=0o600,
+                sensitive_data=True)
             self += self.key_file
 
             if self.trusted_crt_content:
