@@ -102,10 +102,19 @@ class User(PostgresDataComponent):
             del os.environ['PGPASSWORD']
 
     def update(self):
-        command = self.expand(
-            'psql -d postgres -c "CREATE USER \\\"{{component.name}}\\\" PASSWORD \'{{component.password}}\' {{component.flags}}"'
-        )
-        self.pgcmd(command)
+        try:
+            command = self.expand(
+                'psql -d postgres -c "CREATE USER \\\"{{component.name}}\\\" PASSWORD \'{{component.password}}\' {{component.flags}}"'
+            )
+            self.pgcmd(command)
+        except batou.utils.CmdExecutionError as e:
+            if "already exists" in e.stderr:
+                command = self.expand(
+                    'psql -d postgres -c "ALTER ROLE \\\"{{component.name}}\\\" WITH ENCRYPTED PASSWORD \'{{component.password}}\' "'
+                )
+                self.pgcmd(command)
+            else:
+                raise e
 
 
 class Extension(PostgresDataComponent):
