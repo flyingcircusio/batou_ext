@@ -1,6 +1,7 @@
-from batou import UpdateNeeded
 from batou.component import Component, Attribute
 from batou.lib.file import File, Purge
+import batou
+import batou.utils
 import os
 import os.path
 
@@ -80,7 +81,7 @@ class ScanHost(Component):
 
     def verify(self):
         if not os.path.exists(self.known_hosts):
-            raise UpdateNeeded()
+            raise batou.UpdateNeeded()
         with open(self.known_hosts, 'r') as f:
             content = f.read()
         if self.port == 22:
@@ -88,14 +89,27 @@ class ScanHost(Component):
         else:
             match = '[{}]:{}'.format(self.hostname, self.port)
         if match not in content:
-            raise UpdateNeeded()
+            raise batou.UpdateNeeded()
 
     def update(self):
         try:
             del os.environ['SSH_AUTH_SOCK']
         except KeyError:
             pass
-        self.cmd('ssh-keyscan -4 -p {} "{}" >> "{}"'.format(
-                 self.port, self.hostname, self.known_hosts))
-        self.cmd('ssh-keyscan -6 -p {} "{}" >> "{}"'.format(
-                 self.port, self.hostname, self.known_hosts))
+
+        v4_failed = v6_failed = None
+        try:
+            self.cmd('ssh-keyscan -4 -p {} "{}" >> "{}"'.format(
+                     self.port, self.hostname, self.known_hosts))
+        except batou.utils.CmdExecutionError as e_v4:
+            v4_failed = e_v4
+        try:
+            self.cmd('ssh-keyscan -6 -p {} "{}" >> "{}"'.format(
+                     self.port, self.hostname, self.known_hosts))
+        except batou.utils.CmdExecutionError as e_v6:
+            v6_failed = e_v6
+
+        if v4_failed and v6_failed:
+            raise RuntimeError(f"Could not scan host {self.hostname}\n"
+                               f"IPv4: {v4_failed}\n"
+                               f"IPv6: {v6_failed}\n", v4_failed, v6_failed)
