@@ -34,7 +34,7 @@ class SSHKeyPair(Component):
         # RSA
         if self.id_rsa:
             self += File('~/.ssh/id_rsa',
-                         content=(self.id_rsa + "\n"),
+                         content=(self.id_rsa + '\n'),
                          mode=0o600,
                          sensitive_data=True)
         elif self.purge_unmanaged_keys:
