@@ -7,11 +7,6 @@ import subprocess
 import sys
 
 
-def log(msg, *args):
-    print(msg % args)
-    sys.stdout.flush()
-
-
 def git_resolve(url, version):
     if len(version) == 40:
         # revision.
@@ -34,6 +29,56 @@ def git_resolve(url, version):
     return stdout.split('\t', 1)[0]
 
 
+class VersionsUpdater:
+
+    UPDATERS = {
+        'git-resolve': 'update_git',
+        'pass': 'update_pass_value',
+    }
+
+    def __init__(self, versions_file, version_mapping_json):
+        self.version_mapping = json.loads(version_mapping_json)
+        self.versions_file = versions_file
+        self.config = configparser.SafeConfigParser()
+        self.config.read(self.versions_file)
+
+    def __call__(self):
+        for service, version in sorted(self.version_mapping.items()):
+            if not version:
+                # leave empty to keep current version
+                continue
+            self.update(service, version)
+
+        with open(self.versions_file, 'w') as f:
+            self.config.write(f)
+
+    def update(self, service, version):
+        update_mode = self.config[service].get('update', 'git-resolve')
+        update_mode = update_mode.split(':', 1)
+        mode = update_mode[0]
+        args = ''.join(update_mode[1:])
+
+        func = getattr(self, self.UPDATERS[mode])
+        func(service, version, args)
+
+    def update_git(self, service, version, extra_args):
+        resolved = git_resolve(self.config.get(service, 'url'), version)
+        if not resolved:
+            raise ValueError('%s: Could not resolve version %s.' %
+                             (service, version))
+        log('%s: resolved version %s to: %s', service, version, resolved)
+        self.config.set(service, 'revision', resolved)
+        self.config.set(service, 'version', version)
+
+    def update_pass_value(self, service, version, extra_args):
+        self.config[service][extra_args] = version
+
+
+def log(msg, *args):
+    print(msg % args)
+    sys.stdout.flush()
+
+
 def list_components(versions_file, verbose=False):
     config = configparser.SafeConfigParser()
     config.read(versions_file)
@@ -51,25 +96,8 @@ def list_components(versions_file, verbose=False):
 
 
 def set_versions(versions_file, version_mapping_json):
-    version_mapping = json.loads(version_mapping_json)
-
-    config = configparser.SafeConfigParser()
-    config.read(versions_file)
-
-    for service, version in sorted(version_mapping.items()):
-        if not version:
-            # leave empty to keep current version
-            continue
-        resolved = git_resolve(config.get(service, 'url'), version)
-        if not resolved:
-            raise ValueError('%s: Could not resolve version %s.' %
-                             (service, version))
-        log('%s: resolved version %s to: %s', service, version, resolved)
-        config.set(service, 'revision', resolved)
-        config.set(service, 'version', version)
-
-    with open(versions_file, 'w') as f:
-        config.write(f)
+    vu = VersionsUpdater(versions_file, version_mapping_json)
+    vu()
 
 
 def main():
