@@ -1,6 +1,5 @@
 """Helper for Jenkins pipeline deployments."""
 
-
 import configparser
 import argparse
 import json
@@ -23,13 +22,13 @@ def git_resolve(url, version):
         else:
             return version
     # Symbolic name?
-    cmd = subprocess.Popen(['git', 'ls-remote', url, version+'^{}'],
+    cmd = subprocess.Popen(['git', 'ls-remote', url, version + '^{}'],
                            stdout=subprocess.PIPE)
     stdout, stderr = cmd.communicate()
     # if its not a tag, start another more generic attempt
     if not stdout:
         cmd = subprocess.Popen(['git', 'ls-remote', url, version],
-                                stdout=subprocess.PIPE)
+                               stdout=subprocess.PIPE)
         stdout, stderr = cmd.communicate()
     stdout = stdout.decode('ascii')
     return stdout.split('\t', 1)[0]
@@ -63,8 +62,8 @@ def set_versions(versions_file, version_mapping_json):
             continue
         resolved = git_resolve(config.get(service, 'url'), version)
         if not resolved:
-            raise ValueError('%s: Could not resolve version %s.' % (
-                service, version))
+            raise ValueError('%s: Could not resolve version %s.' %
+                             (service, version))
         log('%s: resolved version %s to: %s', service, version, resolved)
         config.set(service, 'revision', resolved)
         config.set(service, 'version', version)
@@ -81,23 +80,19 @@ def main():
         'list-components',
         help='List available components where versions can be set')
     p.add_argument(
-       '-v', '--verbose',
-       action='store_true',
-       help='Return all options from versions.ini, not only component names')
-    p.add_argument(
-       'versions_file',
-       help='Name of "versions.ini"')
+        '-v',
+        '--verbose',
+        action='store_true',
+        help='Return all options from versions.ini, not only component names')
+    p.add_argument('versions_file', help='Name of "versions.ini"')
     p.set_defaults(func=list_components)
 
-    p = subparsers.add_parser(
-        'set-versions',
-        help='Update versions')
+    p = subparsers.add_parser('set-versions', help='Update versions')
     p.add_argument(
         'versions_file',
         help='Name of versions.ini. If exists it will be overwritten.')
-    p.add_argument(
-        'version_mapping_json',
-        help='JSON: mapping of service: version')
+    p.add_argument('version_mapping_json',
+                   help='JSON: mapping of service: version')
     p.set_defaults(func=set_versions)
 
     args = parser.parse_args()
