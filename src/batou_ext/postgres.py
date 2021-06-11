@@ -47,6 +47,7 @@ class DB(PostgresDataComponent):
 
     namevar = 'db'
     locale = 'en_US.UTF-8'
+    template = 'template1'
     owner = None
 
     def configure(self):
@@ -66,7 +67,7 @@ class DB(PostgresDataComponent):
     def update(self):
         self.pgcmd(
             self.expand(
-                'createdb -l {{component.locale}} -O "{{component.owner}}" '
+                'createdb -T {{component.template}} -l {{component.locale}} -O "{{component.owner}}" '
                 '"{{component.db}}"'))
 
 
