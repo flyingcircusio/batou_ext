@@ -82,7 +82,7 @@ class UserEnv(batou.component.Component):
     """Provide a NixOS user environment.
 
     Usage::
-        self += batou_ext_nix.UserEnv(
+        self += batou_ext.nix.UserEnv(
                 "django",
                 packages=[
                     "gcc",
