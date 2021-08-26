@@ -267,6 +267,12 @@ class UserInit(batou.component.Component):
     def start(self):
         self.cmd("sudo systemctl start {}".format(self.name))
 
+    def verify(self):
+        self.assert_cmd("sudo systemctl is-active {}".format(self.name))
+
+    def update(self):
+        self.start()
+
 
 @batou.component.platform("nixos", batou.lib.supervisor.RunningSupervisor)
 class FixSupervisorStartedBySystemd(batou.component.Component):
