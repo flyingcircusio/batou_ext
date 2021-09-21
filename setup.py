@@ -14,13 +14,14 @@ setup(
     name='batou_ext',
     version='0.1dev0',
     install_requires=[
-        'batou>=1.0b20',
+        'batou>=2',
         'pyaml',
         'setuptools',
         'six',
     ],
     extras_require={
         'test': [
+            "pytest",
         ],
     },
     author='Christian Theune <ct@flyingcircus.io>',
