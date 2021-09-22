@@ -40,6 +40,7 @@ class Mailhog(batou.component.Component):
     """
 
     public_name = None
+    public_smtp_name = None
     public_http = 80
     public_https = 443
     mailport = 1025
@@ -60,7 +61,10 @@ class Mailhog(batou.component.Component):
         self.ssl_address = batou.utils.Address(
             self.public_name, self.public_https
         )
-        self.address_mail = batou.utils.Address(self.host.fqdn, self.mailport)
+        if not public_smtp_name:
+            self.address_mail = batou.utils.Address(self.host.fqdn, self.mailport)
+        else:
+            self.address_mail = batou.utils.Address(self.public_smtp_name, self.mailport)
         self.address_ui = batou.utils.Address(self.host.fqdn, self.uiport)
 
         if self.http_auth_enable:
