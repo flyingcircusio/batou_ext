@@ -61,7 +61,7 @@ class Mailhog(batou.component.Component):
         self.ssl_address = batou.utils.Address(
             self.public_name, self.public_https
         )
-        if not public_smtp_name:
+        if not self.public_smtp_name:
             self.address_mail = batou.utils.Address(self.host.fqdn, self.mailport)
         else:
             self.address_mail = batou.utils.Address(self.public_smtp_name, self.mailport)
