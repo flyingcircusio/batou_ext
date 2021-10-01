@@ -13,9 +13,9 @@ source /etc/profile
 {{component.workdir}}/dehydrated \
     --config {{component.config.path}} \
     --out {{component.workdir}} \
-{% if component.letsencrypt_alternative_chain %}
-    --preferred-chain {{component.letsencrypt_alternative_chain}} \
-{% endif %}
+{%- if component.letsencrypt_alternative_chain %}
+    --preferred-chain "{{component.letsencrypt_alternative_chain}}" \
+{%- endif %}
     -c "$@"
 {% if component.extracommand %}
 {{component.extracommand}}
