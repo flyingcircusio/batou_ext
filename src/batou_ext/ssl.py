@@ -55,11 +55,12 @@ class Certificate(batou.component.Component):
 
     """
 
-    # Let's Encrypt
+    # Let's Encrypt, dehydrated v0.7.0
     dehydrated_url = (
-        "https://raw.githubusercontent.com/dehydrated-io/dehydrated"
-        "/05eda91a2fbaed1e13c733230238fc68475c535e/dehydrated")
-    dehydrated_checksum = 'md5:6c952dc63542082ecd1bf826c6c4ce9c'
+        'https://raw.githubusercontent.com/dehydrated-io/dehydrated'
+        '/082da2527cb4aaa3a4740ba03e550205b076f822/dehydrated')
+    dehydrated_checksum = (
+        'md5:95a90950d3b9c01174e4f4f98cf3bd53')
 
     extracommand = None
 
@@ -83,8 +84,11 @@ class Certificate(batou.component.Component):
     use_letsencrypt = batou.component.Attribute('literal', True)
 
     letsencrypt_ca = "https://acme-v02.api.letsencrypt.org/directory"
-    letsencrypt_challange = "http-01"
+    letsencrypt_challenge = "http-01"
     letsencrypt_hook = ""
+    # Allow selecting an alternative root chain,
+    # e.g. "ISRG Root X1" for the short chain after the X3 expiry.
+    letsencrypt_alternative_chain = None
 
     # Whether a certificate check should be deployed, too
     # You will need something like nrpehost or sensuchecks on the host
@@ -159,7 +163,7 @@ class Certificate(batou.component.Component):
                 content=self.expand("""
 WELLKNOWN={{component.wellknown}}
 CA={{component.letsencrypt_ca}}
-CHALLENGETYPE={{component.letsencrypt_challange}}
+CHALLENGETYPE={{component.letsencrypt_challenge}}
 HOOK={{component.letsencrypt_hook}}
 DOMAINS_TXT={{component.domains_txt.path}}
 """))
@@ -225,7 +229,9 @@ class ActivateLetsEncrypt(batou.component.Component):
             self.cert.assert_no_subcomponent_changes()
 
     def update(self):
-        self.cmd(self.cert.cert_sh.path)
+        # If batou thinks we need to run for a new certificate because
+        # we changed settings etc. we need to speed up certificate renewal.
+        self.cmd(self.cert.cert_sh.path + " -x")
 
     @property
     def namevar_for_breadcrumb(self):
