@@ -20,6 +20,7 @@ To make a bucket available, to e.g. the application::
 import batou.component
 import batou.utils
 import boto3
+import botocore.exceptions
 import os
 
 
@@ -90,6 +91,16 @@ class Download(batou.component.Component):
 
         self.obj = self.s3.client.Object(self.bucketname, self.key)
         self.target = self.map(self.target)
+        try:
+            # Getting the etag issues a HEAD request. This will fail if the
+            # object is not there failing early. This *may* be a bad idea
+            # if during the deployment a file is uploaded to S3 and later
+            # downloaded. But we don't have this case, yet, so keep things
+            # simple.
+            self._etag = self.obj.e_tag
+        except botocore.exceptions.ClientError as e:
+            raise ValueError(
+                f"Error getting: {self.bucketname}/{self.key}\n{e}")
 
     def verify(self):
         if not os.path.exists(self.target):
@@ -103,7 +114,7 @@ class Download(batou.component.Component):
                 raise batou.UpdateNeeded()
             with open(self.etag_file) as f:
                 current_etag = f.read()
-                if current_etag != self.obj.e_tag:
+                if current_etag != self._etag:
                     raise batou.UpdateNeeded()
 
     def update(self):
