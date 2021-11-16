@@ -24,6 +24,7 @@ class GeoIPDatabase(batou.component.Component):
     def configure(self):
 
         self.provide('geoip_database', self)
+        self.download_url = self.expand(self.download_url)
         self += batou.lib.file.File(
             'geoip-update.sh',
             source=os.path.join(os.path.dirname(__file__),
