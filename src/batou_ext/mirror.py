@@ -1,8 +1,10 @@
+import os.path
+
 import batou.component
 import batou.lib.file
-import batou_ext.ssl
+
 import batou_ext.nix
-import os.path
+import batou_ext.ssl
 
 
 @batou_ext.nix.rebuild
@@ -80,34 +82,25 @@ class Mirror(batou.component.Component):
         if not self.nginx_docroot:
             self.nginx_docroot = self.map('htdocs')
 
-        self += batou.lib.file.File(
-            self.nginx_docroot,
-            ensure='directory')
+        self += batou.lib.file.File(self.nginx_docroot, ensure='directory')
 
         self.cert = batou_ext.ssl.Certificate(
             self.public_name,
             docroot=self.nginx_docroot,
             extracommand=self.nginx_reload_command,
-            use_letsencrypt=self.use_letsencrypt
-        )
+            use_letsencrypt=self.use_letsencrypt)
         self += self.cert
 
         if self.authstring:
             self.htpasswdfile = batou.lib.file.File(
-                'htpasswd',
-                content=self.authstring)
+                'htpasswd', content=self.authstring)
             self += self.htpasswdfile
 
-        assert(self.nginx_config_path)
+        assert (self.nginx_config_path)
 
         self += batou.lib.file.File(
-            '{}/{}.conf'.format(
-                self.nginx_config_path,
-                self.public_name
-            ),
+            '{}/{}.conf'.format(self.nginx_config_path, self.public_name),
             source=os.path.join(
-                os.path.dirname(__file__),
-                'resources/mirror.conf')
-        )
+                os.path.dirname(__file__), 'resources/mirror.conf'))
 
         self += self.cert.activate_letsencrypt()

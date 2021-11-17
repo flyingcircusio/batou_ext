@@ -1,6 +1,7 @@
 import batou.component
 import batou.lib.file
 import batou.utils
+
 import batou_ext.nix
 
 
@@ -19,6 +20,5 @@ class Redis(batou.component.Component):
         self.provide("redis", self)
 
         self.address = batou.utils.Address(self.host.fqdn, self.port)
-        self += batou.lib.file.File(self.password_file,
-                                    content=self.password,
-                                    sensitive_data=True)
+        self += batou.lib.file.File(
+            self.password_file, content=self.password, sensitive_data=True)

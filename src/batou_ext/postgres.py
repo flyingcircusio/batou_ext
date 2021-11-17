@@ -1,7 +1,8 @@
+import os
+
 import batou
 import batou.component
 import batou.utils
-import os
 
 
 class PostgresServer(batou.component.Component):
@@ -67,8 +68,8 @@ class DB(PostgresDataComponent):
     def update(self):
         self.pgcmd(
             self.expand(
-                'createdb -T {{component.template}} -l {{component.locale}} -O "{{component.owner}}" '
-                '"{{component.db}}"'))
+                'createdb -T {{component.template}} -l {{component.locale}} -O'
+                ' "{{component.owner}}" "{{component.db}}"'))
 
 
 class User(PostgresDataComponent):
@@ -94,9 +95,8 @@ class User(PostgresDataComponent):
         os.environ['PGPASSWORD'] = self.password
         try:
             self.cmd(
-                self.expand(
-                    'psql -d postgres -c "SELECT true;" -U "{{component.name}}" '
-                    '-w -h localhost'))
+                self.expand('psql -d postgres -c "SELECT true;" -U'
+                            ' "{{component.name}}" -w -h localhost'))
         except batou.utils.CmdExecutionError:
             raise batou.UpdateNeeded()
         finally:
@@ -105,13 +105,13 @@ class User(PostgresDataComponent):
     def update(self):
         try:
             command = self.expand(
-                'psql -d postgres -c "CREATE USER \\\"{{component.name}}\\\" PASSWORD \'{{component.password}}\' {{component.flags}}"'
+                'psql -d postgres -c "CREATE USER \\\"{{component.name}}\\\" PASSWORD \'{{component.password}}\' {{component.flags}}"'  # noqa: E501 line too long
             )
             self.pgcmd(command)
         except batou.utils.CmdExecutionError as e:
             if "already exists" in e.stderr:
                 command = self.expand(
-                    'psql -d postgres -c "ALTER ROLE \\\"{{component.name}}\\\" WITH ENCRYPTED PASSWORD \'{{component.password}}\' "'
+                    'psql -d postgres -c "ALTER ROLE \\\"{{component.name}}\\\" WITH ENCRYPTED PASSWORD \'{{component.password}}\' "'  # noqa: E501 line too long
                 )
                 self.pgcmd(command)
             else:

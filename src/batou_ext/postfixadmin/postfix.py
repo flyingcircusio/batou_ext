@@ -1,16 +1,14 @@
-from batou.component import Component, Attribute
+import os
+import socket
+
+from batou.component import Attribute, Component
 from batou.lib.file import File
 from batou.utils import Address
-from batou_ext.keypair import KeyPair
-import socket
-import os
 
 
 def resolve_v6(address):
-    return socket.getaddrinfo(
-        address.connect.host,
-        address.connect.port,
-        socket.AF_INET6)[0][4][0]
+    return socket.getaddrinfo(address.connect.host, address.connect.port,
+                              socket.AF_INET6)[0][4][0]
 
 
 class PFAPostfix(Component):
@@ -26,8 +24,7 @@ class PFAPostfix(Component):
         self.provide('postfix', self.address)
 
         self += File(
-            '/etc/postfix/myhostname',
-            content=self.address.connect.host)
+            '/etc/postfix/myhostname', content=self.address.connect.host)
         self += File(
             '/etc/postfix/main.d/40_local.cf',
             source=self.resource('local.cf'))
@@ -45,7 +42,4 @@ class PFAPostfix(Component):
             source=self.resource('postfixadmin_virtual_mailboxes'))
 
     def resource(self, filename):
-        return os.path.join(
-            os.path.dirname(__file__),
-            'postfix',
-            filename)
+        return os.path.join(os.path.dirname(__file__), 'postfix', filename)

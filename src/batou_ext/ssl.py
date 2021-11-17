@@ -1,14 +1,15 @@
+import hashlib
+import os
+import os.path
+import tempfile
+
 import batou.component
 import batou.lib.cron
 import batou.lib.download
 import batou.lib.file
 import batou.lib.nagios
-import hashlib
-import os
-import os.path
 import pkg_resources
 import six
-import tempfile
 
 
 class Certificate(batou.component.Component):
@@ -59,8 +60,7 @@ class Certificate(batou.component.Component):
     dehydrated_url = (
         'https://raw.githubusercontent.com/dehydrated-io/dehydrated'
         '/082da2527cb4aaa3a4740ba03e550205b076f822/dehydrated')
-    dehydrated_checksum = (
-        'md5:95a90950d3b9c01174e4f4f98cf3bd53')
+    dehydrated_checksum = ('md5:95a90950d3b9c01174e4f4f98cf3bd53')
 
     extracommand = None
 
@@ -98,12 +98,13 @@ class Certificate(batou.component.Component):
 
     def configure(self):
         if not isinstance(self.alternative_names, (tuple, list)):
-            raise ValueError('"alternative_names" needs to be a tuple of string.')
+            raise ValueError(
+                '"alternative_names" needs to be a tuple of string.')
         if not self.refresh_timing:
-            h = int(hashlib.md5(
-                six.ensure_binary(self.domain, "UTF-8")).hexdigest(), 16)
-            self.refresh_timing = '{} {} * * *'.format(
-                h % 60, h % 24)
+            h = int(
+                hashlib.md5(six.ensure_binary(self.domain,
+                                              "UTF-8")).hexdigest(), 16)
+            self.refresh_timing = '{} {} * * *'.format(h % 60, h % 24)
         if self.key_content and not self.use_letsencrypt:
             self.crt_file = batou.lib.file.File(
                 os.path.join('{}/{}.crt'.format(self.workdir, self.domain)),
@@ -171,8 +172,8 @@ DOMAINS_TXT={{component.domains_txt.path}}
 
             self += batou.lib.file.File(
                 self.expand('cert-{{component.domain}}.sh'),
-                content=pkg_resources.resource_string(
-                    'batou_ext', 'resources/cert.sh'),
+                content=pkg_resources.resource_string('batou_ext',
+                                                      'resources/cert.sh'),
                 mode=0o700)
             self.cert_sh = self._
 
@@ -291,11 +292,10 @@ class CertificateCheckLocal(batou.component.Component):
             'cert_check_{}.sh'.format(self.name),
             content=pkg_resources.resource_string(
                 __name__, "resources/ssl/local_certificate_check.sh"),
-            mode=0o755
-            )
+            mode=0o755)
         self.script = self._.path
         self += batou.lib.nagios.ServiceCheck(
-            self.expand(
-                '{{component.certificate_path}} certificate valid?'),
+            self.expand('{{component.certificate_path}} certificate valid?'),
             name=self.name,
-            command=self.script,)
+            command=self.script,
+        )

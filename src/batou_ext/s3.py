@@ -17,10 +17,11 @@ To make a bucket available, to e.g. the application::
     self += batou_ext.s3.Bucket('downloads', s3=self.s3)
 
 """
+import os
+
 import batou.component
 import batou.utils
 import boto3
-import os
 
 
 class S3(batou.component.Component):

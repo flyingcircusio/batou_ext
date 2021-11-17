@@ -1,11 +1,13 @@
+import os
+
 from batou import UpdateNeeded
-from batou.component import Component, Attribute
+from batou.component import Attribute, Component
 from batou.lib.archive import Extract
 from batou.lib.download import Download
 from batou.lib.file import Directory, File, SyncDirectory
 from batou.utils import Address
+
 from batou_ext.fpm import FPM
-import os
 
 
 class Roundcube(Component):
@@ -17,7 +19,7 @@ class Roundcube(Component):
     """
 
     release = '1.1.4'
-    checksum = 'sha256:9bfe88255d4ffc288f5776de1cead78352469b1766d5ebaebe6e28043affe181'
+    checksum = 'sha256:9bfe88255d4ffc288f5776de1cead78352469b1766d5ebaebe6e28043affe181'  # noqa: E501 line too long
 
     address = Attribute(Address, '127.0.0.1:9000')
     skin = 'larry'
@@ -51,19 +53,17 @@ class Roundcube(Component):
         self += Extract(download.target, target='roundcube.orig')
         self += SyncDirectory(
             self.basedir,
-            source=self.map(
-                'roundcube.orig/roundcubemail-{}'.format(self.release)))
+            source=self.map('roundcube.orig/roundcubemail-{}'.format(
+                self.release)))
 
-        self.db_dsnw = '{}://{}:{}@{}/{}'.format(
-            self.db.dbms,
-            self.db.username,
-            self.db.password,
-            self.db.address.connect.host,
-            self.db.database)
+        self.db_dsnw = '{}://{}:{}@{}/{}'.format(self.db.dbms,
+                                                 self.db.username,
+                                                 self.db.password,
+                                                 self.db.address.connect.host,
+                                                 self.db.database)
 
         self += File(
-            self.basedir + '/config/config.inc.php',
-            source=self.config)
+            self.basedir + '/config/config.inc.php', source=self.config)
 
         self.fpm = FPM('roundcube', address=self.address)
         self += self.fpm
@@ -77,17 +77,16 @@ class RoundcubeInit(Component):
 
     def verify(self):
         os.environ['PGPASSWORD'] = self.roundcube.db.password
+        host = self.roundcube.db.address.connect.host
+        db = self.roundcube.db
         try:
+
             result = self.cmd(
-                'psql -h {} -U {} -d {} -c '
+                f'psql -h {host} -U {db.username} -d {db.database} -c '
                 '"SELECT * FROM information_schema.tables '
                 'WHERE table_schema=\'public\' '
-                'AND table_catalog=\'roundcube\';"'.format(
-                    self.roundcube.db.address.connect.host,
-                    self.roundcube.db.database,
-                    self.roundcube.db.username,
-                    self.roundcube.basedir))
-            if not 'contact' in result[0]:
+                'AND table_catalog=\'roundcube\';"')
+            if 'contact' not in result[0]:
                 raise UpdateNeeded()
         finally:
             del os.environ['PGPASSWORD']
@@ -97,8 +96,6 @@ class RoundcubeInit(Component):
         self.cmd(
             'psql -h {} -d {} -U {} -f {}/SQL/postgres.initial.sql'.format(
                 self.roundcube.db.address.connect.host,
-                self.roundcube.db.database,
-                self.roundcube.db.username,
+                self.roundcube.db.database, self.roundcube.db.username,
                 self.roundcube.basedir))
         del os.environ['PGPASSWORD']
-

@@ -2,9 +2,10 @@ from textwrap import dedent
 
 import batou.component
 import batou.lib.file
+import pkg_resources
+
 import batou_ext.nix
 import batou_ext.ssl
-import pkg_resources
 
 
 @batou_ext.nix.rebuild
@@ -30,9 +31,10 @@ class PostfixRelay(batou.component.Component):
         if self.provide_as:
             self.provide(self.provide_as, self)
         self.address = batou.utils.Address(self.host.fqdn, 25, require_v6=True)
-        self += batou.lib.file.File('/etc/local/postfix/main.cf',
-                                    content=dedent(
-                                        self.expand("""
+        self += batou.lib.file.File(
+            '/etc/local/postfix/main.cf',
+            content=dedent(
+                self.expand("""
     relayhost = [{{component.smtp_relay_host}}]:{{component.smtp_relay_port}}
     {% if component.smtp_auth %}
     smtp_sasl_auth_enable = yes
@@ -119,12 +121,10 @@ class Mailhog(batou.component.Component):
         if self.provide_as:
             self.provide(self.provide_as, self)
 
-        self.address_http = batou.utils.Address(self.public_name,
-                                                self.public_http,
-                                                require_v6=True)
-        self.address_ssl = batou.utils.Address(self.public_name,
-                                               self.public_https,
-                                               require_v6=True)
+        self.address_http = batou.utils.Address(
+            self.public_name, self.public_http, require_v6=True)
+        self.address_ssl = batou.utils.Address(
+            self.public_name, self.public_https, require_v6=True)
 
         hostname = self.public_smtp_name or self.host.fqdn
         self.address = batou.utils.Address(hostname, self.mailport)
@@ -136,9 +136,10 @@ class Mailhog(batou.component.Component):
             else:
                 self.http_auth = self.http_basic_auth
 
-        self += batou.lib.file.File("mailhog_env",
-                                    content=dedent(
-                                        self.expand("""
+        self += batou.lib.file.File(
+            "mailhog_env",
+            content=dedent(
+                self.expand("""
                 # File managed by batou. Don't edit manually
 
                 MH_HOSTNAME={{component.public_name}}
@@ -148,9 +149,10 @@ class Mailhog(batou.component.Component):
                 """)))
         self.envfile = self._
 
-        self += batou.lib.file.File("mailhog",
-                                    mode=0o755,
-                                    content=dedent(f"""\
+        self += batou.lib.file.File(
+            "mailhog",
+            mode=0o755,
+            content=dedent(f"""\
                 #!/bin/sh
                 set -e
                 NAME={self.public_name}
@@ -172,9 +174,8 @@ class Mailhog(batou.component.Component):
         # use own nginx config to integrate into frontend, if mailhog is used
         if not self.docroot:
             self.docroot = self.map("htdocs")
-        self += batou.lib.file.File(self.docroot,
-                                    ensure="directory",
-                                    leading=True)
+        self += batou.lib.file.File(
+            self.docroot, ensure="directory", leading=True)
 
         self.cert = batou_ext.ssl.Certificate(
             self.public_name,
@@ -195,6 +196,5 @@ class Mailhog(batou.component.Component):
         self += batou_ext.nix.Rebuild()
         self += self.cert.activate_letsencrypt()
 
-        self += batou.lib.service.Service("mailhog",
-                                          systemd=dict(Restart="always",
-                                                       Type="simple"))
+        self += batou.lib.service.Service(
+            "mailhog", systemd=dict(Restart="always", Type="simple"))

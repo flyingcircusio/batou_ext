@@ -39,7 +39,7 @@ class CronJob(batou.component.Component):
                 components =
                     ...
                     logrotate
-    """
+    """  # noqa: E501 line too long
 
     namevar = "tag"
 
@@ -80,10 +80,11 @@ class CronJob(batou.component.Component):
         # getting red if next runs are not successful
         self += batou.lib.file.File(self.stamp_file, content="")
 
-        self += batou.lib.file.File(self.expand("{{component.tag}}.sh"),
-                                    content=pkg_resources.resource_string(
-                                        __name__, "resources/cron-wrapper.sh"),
-                                    mode=0o755)
+        self += batou.lib.file.File(
+            self.expand("{{component.tag}}.sh"),
+            content=pkg_resources.resource_string(__name__,
+                                                  "resources/cron-wrapper.sh"),
+            mode=0o755)
         self.wrapped_command = self._.path
 
         if self.checkWarning or self.checkCritical:

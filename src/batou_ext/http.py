@@ -49,6 +49,7 @@ class HTTPBasicAuth(batou.component.Component):
         if self.env_name is None:
             raise ValueError("You need to define an environment name for "
                              "your http_baisc_auth-file")
-        self += batou.lib.file.File("htpasswd_{}".format(self.env_name),
-                                    content=self.basic_auth_string)
+        self += batou.lib.file.File(
+            "htpasswd_{}".format(self.env_name),
+            content=self.basic_auth_string)
         self.path = self._.path
