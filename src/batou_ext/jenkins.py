@@ -38,7 +38,7 @@ class VersionsUpdater:
     def __init__(self, versions_file, version_mapping_json):
         self.version_mapping = json.loads(version_mapping_json)
         self.versions_file = versions_file
-        self.config = configparser.SafeConfigParser()
+        self.config = configparser.ConfigParser()
         self.config.read(self.versions_file)
 
     def __call__(self):
