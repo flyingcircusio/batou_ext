@@ -1,16 +1,17 @@
 # coding: utf8
 
-from pprint import pprint
 import argparse
+import socket
+import sys
+import time
+import xmlrpc.client
+from pprint import pprint
+
 import batou
 import batou.component
 import batou.environment
 import batou.lib.file
 import batou.template
-import socket
-import sys
-import time
-import xmlrpc.client
 
 
 class DNSAliases(batou.component.Component):
@@ -91,8 +92,7 @@ class DNSAliases(batou.component.Component):
         self.calls.append({
             "__type__": "virtualmachine",
             "name": hostname + self.postfix,
-            "aliases_" + interface: aliases,
-        })
+            "aliases_" + interface: aliases, })
         self.aliases.extend(aliases)
 
     def _wait_for_aliases(self):
@@ -197,8 +197,7 @@ class Provision(batou.component.Component):
 
             if d.get("environment", config("vm_environment")) is None:
                 raise ValueError(
-                    "'environment' for {} must be set.".format(
-                        name))
+                    "'environment' for {} must be set.".format(name))
 
             call = dict(
                 __type__="virtualmachine",
@@ -270,8 +269,8 @@ class Provision(batou.component.Component):
             result[vm_name] = changes = {}
             new_vm = new.get(vm_name)
             if not new_vm:
-                changes["VM exists and is unknown to deployment"] = (
-                    None, None)
+                changes["VM exists and is unknown to deployment"] = (None,
+                                                                     None)
                 continue
             # starting with new because that only includes the data we
             # can set. We ignore all the other keys.
@@ -289,9 +288,9 @@ class Provision(batou.component.Component):
             if vm_name in result:
                 continue
             result[vm_name] = {"CREATE VM": (None, None)}
-            result[vm_name].update(
-                {key: (None, value)
-                 for key, value in list(new_vm.items())})
+            result[vm_name].update({
+                key: (None, value)
+                for key, value in list(new_vm.items())})
         return result
 
 
@@ -302,10 +301,8 @@ def main():
     p = subparsers.add_parser("provision", help="Apply resource settings")
     p.add_argument("env_name", help="Environment")
     p.add_argument("-n", "--dry-run", help="Dry run", action="store_true")
-    p.add_argument("-d",
-                   "--diff",
-                   help="Show changes in resources",
-                   action="store_true")
+    p.add_argument(
+        "-d", "--diff", help="Show changes in resources", action="store_true")
     p.set_defaults(func=lambda **kw: Provision(**kw).apply())
 
     args = parser.parse_args()

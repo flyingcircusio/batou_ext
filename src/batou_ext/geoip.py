@@ -1,7 +1,9 @@
+import os.path
+
 import batou.component
 import batou.lib.file
+
 import batou_ext.cron
-import os.path
 
 
 class GeoIPDatabase(batou.component.Component):
@@ -19,15 +21,16 @@ class GeoIPDatabase(batou.component.Component):
     license_key = None
     download_url = batou.component.Attribute(
         str,
-        "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City&suffix=tar.gz&license_key={{component.license_key}}")
+        "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City&suffix=tar.gz&license_key={{component.license_key}}"  # noqa: E501 line too long
+    )
 
     def configure(self):
 
         self.provide('geoip_database', self)
         self += batou.lib.file.File(
             'geoip-update.sh',
-            source=os.path.join(os.path.dirname(__file__),
-                'resources/geoip-update.sh'),
+            source=os.path.join(
+                os.path.dirname(__file__), 'resources/geoip-update.sh'),
             mode=0o744)
         self.script = self._.path
 

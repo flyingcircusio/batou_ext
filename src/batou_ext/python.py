@@ -1,5 +1,6 @@
-import batou.component
 import os.path
+
+import batou.component
 import batou.lib.python
 
 
@@ -32,9 +33,8 @@ class Pipenv(batou.component.Component):
 
     def verify(self):
         with self.chdir(self.target):
-            self.assert_file_is_current(
-                self.executable,
-                ['Pipfile', 'Pipfile.lock'])
+            self.assert_file_is_current(self.executable,
+                                        ['Pipfile', 'Pipfile.lock'])
             # Is this Python (still) functional 'enough'
             # from a setuptools/distribute perspective?
             self.assert_cmd(
@@ -43,8 +43,7 @@ class Pipenv(batou.component.Component):
     def update(self):
         with self.chdir(self.target):
             self.cmd('rm -rf .venv')
-            self.cmd('pipenv sync',
-                     env={'PIPENV_VENV_IN_PROJECT': '1'})
+            self.cmd('pipenv sync', env={'PIPENV_VENV_IN_PROJECT': '1'})
 
 
 class VirtualEnvRequirements(batou.component.Component):
@@ -88,9 +87,10 @@ class VirtualEnvRequirements(batou.component.Component):
                 self.cmd(
                     ('source {} && {} '
                      '-m pip install --upgrade -r {}').format(
-                        self.pre_run_script_path, self.venv.python, req),
+                         self.pre_run_script_path, self.venv.python, req),
                     env=self.env)
             else:
-                self.cmd('{} -m pip install --upgrade -r {}'.format(
-                    self.venv.python, req),
+                self.cmd(
+                    '{} -m pip install --upgrade -r {}'.format(
+                        self.venv.python, req),
                     env=self.env)

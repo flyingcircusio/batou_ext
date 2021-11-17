@@ -1,4 +1,5 @@
 from batou.component import Component
+
 from batou_ext.postgres import DB, User
 
 

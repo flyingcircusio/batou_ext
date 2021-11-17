@@ -22,11 +22,12 @@ Example::
 
 """
 
+import os
+import stat
+
 import batou
 import batou.component
 import batou.lib.file
-import os
-import stat
 
 
 class ErlangCookie(batou.component.Component):
@@ -101,20 +102,22 @@ class Permissions(batou.component.Component):
     def update(self):
         for vhost in self.to_delete:
             self.cmd(
-                self.expand('rabbitmqctl clear_permissions'
-                            ' -p {{vhost}} {{component.username}}',
-                            vhost=vhost))
+                self.expand(
+                    'rabbitmqctl clear_permissions'
+                    ' -p {{vhost}} {{component.username}}',
+                    vhost=vhost))
         for vhost in self.to_update:
             conf, write, read = self.permissions[vhost]
             self.cmd(
-                self.expand("rabbitmqctl set_permissions"
-                            " -p {{vhost}} {{component.username}}"
-                            " '{{conf}}' '{{write}}' '{{read}}'",
-                            vhost=vhost,
-                            conf=conf,
-                            write=write,
-                            read=read,
-                            ))
+                self.expand(
+                    "rabbitmqctl set_permissions"
+                    " -p {{vhost}} {{component.username}}"
+                    " '{{conf}}' '{{write}}' '{{read}}'",
+                    vhost=vhost,
+                    conf=conf,
+                    write=write,
+                    read=read,
+                ))
 
 
 class User(batou.component.Component):

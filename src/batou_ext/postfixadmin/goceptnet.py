@@ -1,6 +1,7 @@
+from batou.component import Component, platform
+
 from batou_ext.postfixadmin.dovecot import PFADovecot
 from batou_ext.postfixadmin.postfix import PFAPostfix
-from batou.component import Component, platform
 
 
 @platform('gocept.net', PFADovecot)

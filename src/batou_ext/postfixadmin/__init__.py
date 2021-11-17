@@ -1,13 +1,14 @@
-from batou.component import Component, Attribute
+import hashlib
+import os
+
+from batou.component import Attribute, Component
 from batou.lib.archive import Extract
 from batou.lib.download import Download
 from batou.lib.file import File, SyncDirectory
-from batou.lib.nagios import ServiceCheck
-from batou.lib.supervisor import Program
 from batou.utils import Address
+
 from batou_ext.fpm import FPM
-import hashlib
-import os
+
 
 class PFA(Component):
 
@@ -19,9 +20,7 @@ class PFA(Component):
     admin_password = None
     salt = 'ab8f1b639d31875b59fa047481c581fd'
     config = os.path.join(
-        os.path.dirname(__file__),
-        'postfixadmin',
-        'config.local.php')
+        os.path.dirname(__file__), 'postfixadmin', 'config.local.php')
 
     def configure(self):
         self.db = self.require_one('pfa::database')
@@ -41,8 +40,8 @@ class PFA(Component):
 
         self += SyncDirectory(
             self.basedir,
-            source=self.map(
-                'postfixadmin.orig/postfixadmin-{}'.format(self.release)))
+            source=self.map('postfixadmin.orig/postfixadmin-{}'.format(
+                self.release)))
 
         self += File(self.basedir + '/config.local.php', source=self.config)
 

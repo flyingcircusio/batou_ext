@@ -1,8 +1,9 @@
-import batou.component
 import copy
 import json
 import os.path
 import re
+
+import batou.component
 import yaml
 
 
@@ -131,7 +132,7 @@ class RegexPatch(batou.component.Component):
             pattern=r'^foo=\d+(\w+)',
             replacement=r'foo=27\1')
 
-    """
+    """  # noqa: W605 invalid escape sequence
 
     path = None
     namevar = 'path'
@@ -174,9 +175,8 @@ class RegexPatch(batou.component.Component):
 
     def update(self):
         if not os.path.exists(self.source):
-            raise IOError(
-                "The file to be patched does not exist:",
-                self.source)
+            raise IOError("The file to be patched does not exist:",
+                          self.source)
 
         if self._source_data is None:
             raise RuntimeError(

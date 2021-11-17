@@ -1,3 +1,11 @@
+import collections
+import hashlib
+import json
+import os
+import os.path
+import shlex
+import time
+
 import batou
 import batou.component
 import batou.lib.cron
@@ -7,14 +15,7 @@ import batou.lib.nagios
 import batou.lib.service
 import batou.lib.supervisor
 import batou.utils
-import collections
-import hashlib
-import json
-import os
-import os.path
 import pkg_resources
-import shlex
-import time
 
 
 class Package(batou.component.Component):
@@ -103,11 +104,13 @@ class UserEnv(batou.component.Component):
                 ],
                 shellInit="# additional shell init")
 
-    A list of available channels can be found at e.g. https://nixos.org/channels/
+    A list of available channels can be found at e.g.
+    https://nixos.org/channels/
     """
 
     namevar = "profile_name"
-    channel = "https://releases.nixos.org/nixos/19.03/nixos-19.03.173691.34c7eb7545d/nixexprs.tar.xz"
+    channel = ("https://releases.nixos.org/nixos/19.03/"
+               "nixos-19.03.173691.34c7eb7545d/nixexprs.tar.xz")
     shellInit = ""
     packages = ()
     let_extra = ""
@@ -115,18 +118,16 @@ class UserEnv(batou.component.Component):
     def configure(self):
         self.checksum = hashlib.sha256()
         template = pkg_resources.resource_string(
-            __name__, "resources/userenv.nix"
-        ).decode("UTF-8")
+            __name__, "resources/userenv.nix").decode("UTF-8")
         self.profile = self.expand(template).encode("UTF-8")
         self.checksum.update(self.profile)
         self.nix_env_name = self.expand(
-            "{{component.profile_name}}-1.{{component.checksum.hexdigest()}}"
-        )
-        self += batou.lib.file.File(self.profile_name + ".nix", content=self.profile)
+            "{{component.profile_name}}-1.{{component.checksum.hexdigest()}}")
+        self += batou.lib.file.File(
+            self.profile_name + ".nix", content=self.profile)
         self += Package(self.nix_env_name, file=self._.path)
         self.user_profile_path = os.path.expanduser(
-            "~/.nix-profile/etc/profile.d/{}.sh".format(self.profile_name)
-        )
+            "~/.nix-profile/etc/profile.d/{}.sh".format(self.profile_name))
         self.user_bin_path = os.path.expanduser("~/.nix-profile/bin")
 
 
@@ -200,8 +201,7 @@ class UserInit(batou.component.Component):
         # duplicates.
         service_file = "/etc/local/systemd/{}.service".format(self.name)
         old_service_file = "/etc/local/systemd/{}.service".format(
-            os.path.basename(self.executable)
-        )
+            os.path.basename(self.executable))
         if old_service_file != service_file:
             self += batou.lib.file.Purge(old_service_file)
 
@@ -211,8 +211,8 @@ class UserInit(batou.component.Component):
         # You can use
         # - bare config attribute names, those will end up in the [Service]
         #   section
-        # - <Section>_<Attribute>, those will end up in the respective [<Section>]
-        #   sections.
+        # - <Section>_<Attribute>, those will end up in the respective
+        #   [<Section>] sections.
         #
         # E.g. systemd=dict(Unit_After='afdsfdasfsda', Service_Type='Simple',
         #                  User='nobody')
@@ -226,10 +226,10 @@ class UserInit(batou.component.Component):
             Group="service",
             ExecStart=os.path.join(self.root.workdir, self.executable),
             Environment=[
-                self.expand("LOCALE_ARCHIVE={{component.env['LOCALE_ARCHIVE']}}"),
+                self.expand(
+                    "LOCALE_ARCHIVE={{component.env['LOCALE_ARCHIVE']}}"),
                 self.expand("PATH={{component.env['PATH']}}"),
-                self.expand("TZDIR={{component.env['TZDIR']}}"),
-            ],
+                self.expand("TZDIR={{component.env['TZDIR']}}"), ],
         )
 
         # Phase 1: allow overriding keys, do not append lists
@@ -254,9 +254,8 @@ class UserInit(batou.component.Component):
         self.checksum = self.parent.checksum
         self += batou.lib.file.File(
             service_file,
-            content=pkg_resources.resource_string(
-                "batou_ext", "resources/systemd.service"
-            ),
+            content=pkg_resources.resource_string("batou_ext",
+                                                  "resources/systemd.service"),
         )
         self += Rebuild()
 
@@ -299,7 +298,8 @@ class FixSupervisorStartedBySystemd(batou.component.Component):
         wait = 60
         while wait:
             out, err = "", ""
-            out, err = self.cmd("bin/supervisorctl pid", ignore_returncode=True)
+            out, err = self.cmd(
+                "bin/supervisorctl pid", ignore_returncode=True)
             if "no such file" in out:
                 break
             time.sleep(1)
@@ -363,8 +363,8 @@ class SensuChecks(batou.component.Component):
     purge_old_batou_json = batou.component.Attribute("literal", True)
 
     def configure(self):
-        self.services = self.require(batou.lib.nagios.Service.key,
-                                     host=self.host)
+        self.services = self.require(
+            batou.lib.nagios.Service.key, host=self.host)
         checks = {}
         for service in self.services:
             assert getattr(service, "name", None)
@@ -387,8 +387,8 @@ class SensuChecks(batou.component.Component):
             sensu = dict(checks=checks)
 
             self += batou.lib.file.File(
-                config_file_name, content=json.dumps(sensu, sort_keys=True,
-                                                     indent=4))
+                config_file_name,
+                content=json.dumps(sensu, sort_keys=True, indent=4))
         else:
             self += batou.lib.file.Purge(config_file_name)
 
@@ -398,14 +398,15 @@ class SensuChecks(batou.component.Component):
 
 @batou.component.platform("nixos", batou.lib.logrotate.Logrotate)
 class LogrotateIntegration(batou.component.Component):
+
     def configure(self):
         assert self.environment.service_user, (
             "Need to set service_user inside environment file.")
         user = self.environment.service_user
-        user_logrotate_conf = os.path.join("/etc/local/logrotate", user, "batou.conf")
+        user_logrotate_conf = os.path.join("/etc/local/logrotate", user,
+                                           "batou.conf")
         self += batou.lib.file.File(
-            user_logrotate_conf, content=self.parent.logrotate_conf.content
-        )
+            user_logrotate_conf, content=self.parent.logrotate_conf.content)
 
 
 class PythonWithNixPackages(batou.component.Component):
@@ -428,21 +429,25 @@ class PythonWithNixPackages(batou.component.Component):
 
     def configure(self):
         if not self.pythonPackages:
-            self.pythonPackages = "pkgs.{}Packages".format(self.python.replace(".", ""))
+            self.pythonPackages = "pkgs.{}Packages".format(
+                self.python.replace(".", ""))
 
         self += batou.lib.file.File(
             "{}.nix".format(self.python),
-            content=pkg_resources.resource_string("batou_ext", "resources/python.nix"),
+            content=pkg_resources.resource_string("batou_ext",
+                                                  "resources/python.nix"),
         )
         self += batou.lib.file.File(
             "setupEnv-{}".format(self.python),
             mode=0o755,
-            content=pkg_resources.resource_string("batou_ext", "resources/setupEnv.sh"),
+            content=pkg_resources.resource_string("batou_ext",
+                                                  "resources/setupEnv.sh"),
         )
         self.env_file = self._
         self += batou.lib.file.File(
             "{}.c".format(self.python),
-            content=pkg_resources.resource_string("batou_ext", "resources/loader.c"),
+            content=pkg_resources.resource_string("batou_ext",
+                                                  "resources/loader.c"),
         )
         self.provide(self.python, os.path.join(self.workdir, self.python))
 

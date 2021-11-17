@@ -10,14 +10,12 @@ class ACL(batou.component.Component):
     ruleset = []
 
     def update(self):
-        proc = self.cmd('setfacl --set-file=- "{}"'.format(self.path),
-                        communicate=False)
+        proc = self.cmd(
+            'setfacl --set-file=- "{}"'.format(self.path), communicate=False)
         outs, errs = proc.communicate(input='\n'.join(self.ruleset))
 
     def verify(self):
-        proc = self.cmd(
-            'getfacl -cpE {}'.format(self.path),
-            communicate=False)
+        proc = self.cmd('getfacl -cpE {}'.format(self.path), communicate=False)
         outs, errs = proc.communicate()
         if sorted(outs.strip().split('\n')) != sorted(self.ruleset):
             raise batou.UpdateNeeded

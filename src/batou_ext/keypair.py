@@ -1,7 +1,7 @@
-from batou.component import Component, Attribute
-from batou.lib.file import File
-
 import os
+
+from batou.component import Attribute, Component
+from batou.lib.file import File
 
 
 class KeyPair(Component):

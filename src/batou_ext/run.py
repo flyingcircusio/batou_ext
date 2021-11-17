@@ -21,7 +21,8 @@ class Run(batou.component.Component):
     self += batou.lib.file.File('myscript', mode=0o744)
     self += batou_ext.run.Run('myscript', file=self._)
 
-    The script is called only, if there are any changes at the parent component.
+    The script is called only, if there are any changes at the parent
+    component.
     """
     namevar = 'command'
     content = None
@@ -31,9 +32,7 @@ class Run(batou.component.Component):
 
         if not self.file and self.content:
             self += batou.lib.file.File(
-                self.command,
-                content=self.content,
-                mode=0o700)
+                self.command, content=self.content, mode=0o700)
             self.command_file = self._
         elif self.file:
             self.command_file = self.file
