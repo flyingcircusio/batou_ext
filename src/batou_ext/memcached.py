@@ -27,9 +27,9 @@ class Memcached(batou.component.Component):
 
         # Trying to set some sane defaults
         base_config = dict(
-            maxMemory='1024',
+            maxMemory=1024,
             port=self.port,
-            maxConnections='1024'
+            maxConnections=1024,
         )
 
         config = batou_ext.config.dict_merge(
