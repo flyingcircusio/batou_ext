@@ -6,6 +6,9 @@ from batou.lib.file import File
 
 class KeyPair(Component):
 
+    _required_params_ = {
+        'crt': 'certificate',
+        'key': 'key', }
     namevar = 'name'
 
     crt = None

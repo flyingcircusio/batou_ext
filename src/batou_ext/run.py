@@ -24,6 +24,8 @@ class Run(batou.component.Component):
     The script is called only, if there are any changes at the parent
     component.
     """
+    _required_params_ = {
+        'content': 'run!', }
     namevar = 'command'
     content = None
     file = None

@@ -46,6 +46,8 @@ class DB(PostgresDataComponent):
     Attention: The user will not be created automatically.
     """
 
+    _required_params_ = {
+        'owner': 'scott', }
     namevar = 'db'
     locale = 'en_US.UTF-8'
     template = 'template1'
@@ -83,6 +85,8 @@ class User(PostgresDataComponent):
             password="aligator3")
     """
 
+    _required_params_ = {
+        'password': 'tiger', }
     namevar = 'name'
     flags = 'NOCREATEDB NOCREATEROLE NOSUPERUSER'
     password: str = None
@@ -131,6 +135,8 @@ class Extension(PostgresDataComponent):
         of the database cluster.
     """
 
+    _required_params_ = {
+        'db': 'scott', }
     namevar = "extension_name"
     db = None
 

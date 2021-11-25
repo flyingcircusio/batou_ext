@@ -55,6 +55,8 @@ class Certificate(batou.component.Component):
     ... and add the crontab component to the nginx host in your environment.
 
     """
+    _required_params_ = {
+        'wellknown': 'hello', }
 
     # Let's Encrypt, dehydrated v0.7.0
     dehydrated_url = (
@@ -276,6 +278,8 @@ class CertificateCheckLocal(batou.component.Component):
         critical_days=10)
 
     """
+    _required_params_ = {
+        'name': 'cert', }
     namevar = 'certificate_path'
     name = None
     warning_days = 25

@@ -10,6 +10,8 @@ class Redis(batou.component.Component):
     """Component to define Redis password and address
     """
 
+    _required_params_ = {
+        'password': 'tiger', }
     password = None
 
     password_file = "/etc/local/redis/password"

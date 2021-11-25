@@ -115,7 +115,7 @@ class CustomizeYaml(batou.component.Component):
 
 
 class RegexPatch(batou.component.Component):
-    """Patch existing file with a regexp.
+    r"""Patch existing file with a regexp.
 
     Usage::
 
@@ -132,8 +132,10 @@ class RegexPatch(batou.component.Component):
             pattern=r'^foo=\d+(\w+)',
             replacement=r'foo=27\1')
 
-    """  # noqa: W605 invalid escape sequence
+    """
 
+    _required_params_ = {
+        'pattern': 'pattern', }
     path = None
     namevar = 'path'
 
@@ -204,6 +206,7 @@ class MultiRegexPatch(batou.component.Component):
     """
 
     namevar = 'path'
+    patterns = ()
 
     def configure(self):
         for pattern, replacement in self.patterns:

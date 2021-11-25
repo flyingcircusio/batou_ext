@@ -417,6 +417,7 @@ class PythonWithNixPackages(batou.component.Component):
 
     """
 
+    _required_params_ = {'python': 'python3.5'}
     # python interpreter, "python3.5"
     python = None
 

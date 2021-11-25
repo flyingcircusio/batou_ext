@@ -30,6 +30,7 @@ class HTTPBasicAuth(batou.component.Component):
 
     """
 
+    _required_params_ = {'env_name': 'test', 'basic_auth_string': 'secret'}
     env_name = None
     fcio_auth = batou.component.Attribute("literal", False)
     username = None

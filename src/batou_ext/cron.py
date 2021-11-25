@@ -41,6 +41,7 @@ class CronJob(batou.component.Component):
                     logrotate
     """  # noqa: E501 line too long
 
+    _required_params_ = {'timing': '*/4 * * * * '}
     namevar = "tag"
 
     command = None
