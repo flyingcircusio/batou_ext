@@ -18,6 +18,7 @@ To make a bucket available, to e.g. the application::
 
 """
 import os
+from unittest.mock import Mock
 
 import batou.component
 import batou.utils
@@ -28,6 +29,10 @@ import botocore.exceptions
 class S3(batou.component.Component):
     """Configuration for an S3 connection and its credentials."""
 
+    _required_params_ = {
+        'access_key_id': 'value',
+        'secret_access_key': 'value',
+        'endpoint_url': 'value', }
     endpoint_url = batou.component.Attribute(str)
     access_key_id = batou.component.Attribute(str)
     secret_access_key = batou.component.Attribute(str)
@@ -48,7 +53,8 @@ class Bucket(batou.component.Component):
         self += batou_ext.s3.Bucket('downloads', s3=self.s3)
 
     """
-
+    _required_params_ = {
+        's3': Mock(), }
     namevar = "bucketname"
     s3 = batou.component.Attribute()
 
@@ -73,7 +79,10 @@ class Download(batou.component.Component):
                                         s3,
                                         bucketname="mybucket")
     """
-
+    _required_params_ = {
+        'bucketname': 'bucket',
+        'target': 'target',
+        's3': Mock(), }
     namevar = 'key'
     s3 = batou.component.Attribute(str)
     key = batou.component.Attribute(str)

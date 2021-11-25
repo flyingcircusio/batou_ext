@@ -17,9 +17,14 @@ class PostfixRelay(batou.component.Component):
 
     """
 
-    smtp_relay_host = batou.component.Attribute(str, default='')
-    smtp_relay_port = batou.component.Attribute(int, default=587)
-    smtp_tls = batou.component.Attribute("literal", default=True)
+    _required_params_ = {
+        "smtp_relay_host": "smtp",
+        "smtp_user": "scott",
+        "smtp_password": "tiger",
+    }
+    smtp_relay_host = batou.component.Attribute(str)
+    smtp_relay_port = batou.component.Attribute(int, 587)
+    smtp_tls = batou.component.Attribute("literal", "True")
 
     smtp_auth = batou.component.Attribute("literal", default=True)
     smtp_user = batou.component.Attribute(str)
@@ -30,11 +35,12 @@ class PostfixRelay(batou.component.Component):
     def configure(self):
         if self.provide_as:
             self.provide(self.provide_as, self)
-        self.address = batou.utils.Address(self.host.fqdn, 25, require_v6=True)
+        self.address = batou.utils.Address(self.host.fqdn, 25)
         self += batou.lib.file.File(
-            '/etc/local/postfix/main.cf',
+            "/etc/local/postfix/main.cf",
             content=dedent(
-                self.expand("""
+                self.expand(
+                    """
     relayhost = [{{component.smtp_relay_host}}]:{{component.smtp_relay_port}}
     {% if component.smtp_auth %}
     smtp_sasl_auth_enable = yes
@@ -42,28 +48,35 @@ class PostfixRelay(batou.component.Component):
     smtp_sasl_security_options = noanonymous
     {% endif %}
     {% if component.smtp_tls %}smtp_use_tls = yes{% endif %}
-    """)))
+    """
+                )
+            ),
+        )
 
         if self.smtp_auth:
             self += batou.lib.file.File(
-                '/etc/local/postfix/sasl_passwd',
-                content=(f"[{self.smtp_relay_host}]:{self.smtp_relay_port}"
-                         f" {self.smtp_user}:{self.smtp_password}"),
-                sensitive_data=True)
+                "/etc/local/postfix/sasl_passwd",
+                content=(
+                    f"[{self.smtp_relay_host}]:{self.smtp_relay_port}"
+                    f" {self.smtp_user}:{self.smtp_password}"
+                ),
+                sensitive_data=True,
+            )
         else:
-            self += batou.lib.file.Purge('/etc/local/postfix/sasl_passwd')
-            self += batou.lib.file.Purge('/etc/local/postfix/sasl_passwd.db')
+            self += batou.lib.file.Purge("/etc/local/postfix/sasl_passwd")
+            self += batou.lib.file.Purge("/etc/local/postfix/sasl_passwd.db")
 
     def verify(self):
         if self.smtp_auth:
             self.assert_file_is_current(
-                '/etc/local/postfix/sasl_passwd.db',
-                requirements=['/etc/local/postfix/sasl_passwd'])
+                "/etc/local/postfix/sasl_passwd.db",
+                requirements=["/etc/local/postfix/sasl_passwd"],
+            )
 
     def update(self):
         if self.smtp_auth:
-            with self.chdir('/etc/local/postfix'):
-                self.cmd('postmap sasl_passwd')
+            with self.chdir("/etc/local/postfix"):
+                self.cmd("postmap sasl_passwd")
 
 
 @batou_ext.nix.rebuild
@@ -100,6 +113,10 @@ class Mailhog(batou.component.Component):
     rather than just pulling it from environment.
     """
 
+    _required_params_ = {
+        "public_name": "example.com",
+        "public_smtp_name": "mail.flyingcircus.io",
+    }
     public_name = None
     public_smtp_name = None
     public_http = 80
@@ -117,7 +134,7 @@ class Mailhog(batou.component.Component):
 
     # Either memory or maildir
     # mongodb is not yet supported
-    storage_engine = batou.component.Attribute(str, default='memory')
+    storage_engine = batou.component.Attribute(str, default="memory")
 
     provide_as = None  # (optional) str to self.provide()
 
@@ -126,9 +143,11 @@ class Mailhog(batou.component.Component):
             self.provide(self.provide_as, self)
 
         self.address_http = batou.utils.Address(
-            self.public_name, self.public_http, require_v6=True)
+            self.public_name, self.public_http
+        )
         self.address_ssl = batou.utils.Address(
-            self.public_name, self.public_https, require_v6=True)
+            self.public_name, self.public_https
+        )
 
         hostname = self.public_smtp_name or self.host.fqdn
         self.address = batou.utils.Address(hostname, self.mailport)
@@ -143,7 +162,8 @@ class Mailhog(batou.component.Component):
         self += batou.lib.file.File(
             "mailhog_env",
             content=dedent(
-                self.expand("""
+                self.expand(
+                    """
                 # File managed by batou. Don't edit manually
 
                 MH_HOSTNAME={{component.public_name}}
@@ -151,13 +171,17 @@ class Mailhog(batou.component.Component):
                 MH_API_BIND_ADDR={{component.address_ui.listen}}
                 MH_UI_BIND_ADDR={{component.address_ui.listen}}
                 MH_STORAGE={{component.storage_engine}}
-                """)))
+                """
+                )
+            ),
+        )
         self.envfile = self._
 
         self += batou.lib.file.File(
             "mailhog",
             mode=0o755,
-            content=dedent(f"""\
+            content=dedent(
+                f"""\
                 #!/bin/sh
                 set -e
                 NAME={self.public_name}
@@ -174,13 +198,16 @@ class Mailhog(batou.component.Component):
                     --env-file={self.envfile.path} \\
                     --mount source=mailhog-vol,dst=/var/lib/mailhog \\
                 mailhog/mailhog
-                """))
+                """
+            ),
+        )
 
         # use own nginx config to integrate into frontend, if mailhog is used
         if not self.docroot:
             self.docroot = self.map("htdocs")
         self += batou.lib.file.File(
-            self.docroot, ensure="directory", leading=True)
+            self.docroot, ensure="directory", leading=True
+        )
 
         self.cert = batou_ext.ssl.Certificate(
             self.public_name,
@@ -195,11 +222,13 @@ class Mailhog(batou.component.Component):
         self += batou.lib.file.File(
             "/etc/local/nginx/mailhog.conf",
             content=pkg_resources.resource_string(
-                __name__, "resources/mailhog/mailhog.conf"),
+                __name__, "resources/mailhog/mailhog.conf"
+            ),
         )
 
         self += batou_ext.nix.Rebuild()
         self += self.cert.activate_letsencrypt()
 
         self += batou.lib.service.Service(
-            "mailhog", systemd=dict(Restart="always", Type="simple"))
+            "mailhog", systemd=dict(Restart="always", Type="simple")
+        )

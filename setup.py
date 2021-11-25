@@ -15,13 +15,16 @@ setup(
     name='batou_ext',
     version='2.3.dev0',
     install_requires=[
-        'batou>=2',
+        'batou>=2, <2.3',
         'pyaml',
         'setuptools',
         'six', ],
     extras_require={
         'test': [
-            "pytest", ], },
+            "boto3",
+            "passlib",
+            "pytest",
+            "pytest-mock", ], },
     author='Christian Theune <ct@flyingcircus.io>',
     author_email='ct@flyingcircus.io',
     license='BSD (2-clause)',

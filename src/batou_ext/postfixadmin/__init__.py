@@ -7,11 +7,14 @@ from batou.lib.download import Download
 from batou.lib.file import File, SyncDirectory
 from batou.utils import Address
 
-from batou_ext.fpm import FPM
+from batou_ext.php import FPM
 
 
 class PFA(Component):
 
+    _required_params_ = {
+        "admin_password": "tiger",
+    }
     release = "2.92"
     checksum = "sha1:21481f6eb8f10ba05fc6fcd1fe0fd468062956f2"
 
@@ -50,14 +53,15 @@ class PFA(Component):
 
         self += File(self.basedir + "/config.local.php", source=self.config)
 
-        self.fpm = FPM("postfixadmin", adress=self.address)
+        self.fpm = FPM("postfixadmin")
         self += self.fpm
 
     @property
     def admin_password_encrypted(self):
         # password generation ported from postfixadmin/setup.php
-
         encrypt = hashlib.sha1()
-        encrypt.update("{}:{}".format(self.salt, self.admin_password))
+        encrypt.update(
+            "{}:{}".format(self.salt, self.admin_password).encode("utf-8")
+        )
 
         return "{}:{}".format(self.salt, encrypt.hexdigest())

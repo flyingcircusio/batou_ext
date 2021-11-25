@@ -53,6 +53,7 @@ class DNSAliases(batou.component.Component):
 
     """
 
+    _required_params_ = {'project': 'demo'}
     postfix = ""
     project = None
     api_key = None

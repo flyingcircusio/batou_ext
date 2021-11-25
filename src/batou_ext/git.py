@@ -42,6 +42,10 @@ class GitCheckout(batou.component.Component):
     The option sync_parent_folder is allowing you to sync into a different
     folder than the current one.
     """
+    _required_params_ = {
+        'git_clone_url': 'https://example.com/repos',
+        'git_revision': 'commit-hash',
+        'git_target': '.', }
     git_host = None
     git_clone_url = None
     git_revision = None
@@ -171,6 +175,7 @@ class SymlinkAndCleanup(batou.component.Component):
 class Commit(batou.component.Component):
     """Commit a file."""
 
+    _required_params_ = {'message': 'text'}
     namevar = 'filename'
     message = None
     workingdir = '.'

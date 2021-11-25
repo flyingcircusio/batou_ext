@@ -7,7 +7,7 @@ from batou.lib.download import Download
 from batou.lib.file import Directory, File, SyncDirectory
 from batou.utils import Address
 
-from batou_ext.fpm import FPM
+from batou_ext.php import FPM
 
 
 class Roundcube(Component):
@@ -72,7 +72,7 @@ class Roundcube(Component):
             self.basedir + "/config/config.inc.php", source=self.config
         )
 
-        self.fpm = FPM("roundcube", address=self.address)
+        self.fpm = FPM("roundcube")
         self += self.fpm
 
         self += RoundcubeInit(self)

@@ -123,6 +123,8 @@ class Permissions(batou.component.Component):
 class User(batou.component.Component):
     """Create rabbitmq user."""
 
+    _required_params_ = {
+        'tags': (), }
     namevar = 'username'
     username = None
     password = None

@@ -5,6 +5,8 @@ from batou_ext.postgres import DB, User
 
 class RoundcubeDatabase(Component):
 
+    _required_params_ = {
+        'password': 'tiger', }
     username = 'roundcube'
     password = None
     database = 'roundcube'
