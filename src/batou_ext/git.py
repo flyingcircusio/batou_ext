@@ -1,11 +1,13 @@
-import batou.component
-import batou.lib.file
-import batou.lib.git
-import batou_ext.ssh
 import glob
 import os
 import shutil
 import urllib.parse
+
+import batou.component
+import batou.lib.file
+import batou.lib.git
+
+import batou_ext.ssh
 
 
 class GitCheckout(batou.component.Component):
@@ -58,7 +60,8 @@ class GitCheckout(batou.component.Component):
 
         if self.scan_host:
             if not self.git_host:
-                self.git_host = urllib.parse.urlparse(self.git_clone_url).hostname
+                self.git_host = urllib.parse.urlparse(
+                    self.git_clone_url).hostname
             if not self.git_port:
                 self.git_port = (
                     urllib.parse.urlparse(self.git_clone_url).port or 22)
@@ -79,19 +82,15 @@ class GitCheckout(batou.component.Component):
         # add custom files
         if self.sync_parent_folder:
             self.prepared_path = self.map('{}/prepared-{}'.format(
-                self.sync_parent_folder,
-                self.git_revision))
+                self.sync_parent_folder, self.git_revision))
         else:
             self.prepared_path = self.map('prepared-{}'.format(
                 self.git_revision))
-        self += batou.lib.file.Directory(
-            self.prepared_path,
-            leading=True)
+        self += batou.lib.file.Directory(self.prepared_path, leading=True)
         self += batou.lib.file.Directory(
             self.prepared_path,
             source=self.git_target,
-            exclude=(('.git',) + self.exclude)
-        )
+            exclude=(('.git', ) + self.exclude))
 
     def symlink_and_cleanup(self):
         return SymlinkAndCleanup(self.prepared_path)
@@ -114,9 +113,9 @@ class SymlinkAndCleanup(batou.component.Component):
             return None
 
     @staticmethod
-    def remove(l, el):
+    def remove(links, el):
         try:
-            l.remove(el)
+            links.remove(el)
         except ValueError:
             pass
 
@@ -188,8 +187,7 @@ class Commit(batou.component.Component):
         with self.chdir(self.workingdir):
             self.cmd("git config user.email '{{component.author_email}}'")
             self.cmd("git config user.name '{{component.author_name}}'")
-            self.cmd(
-                "git add {{component.filename}}")
+            self.cmd("git add {{component.filename}}")
             self.cmd(
                 "git commit -m '{{component.message}}' {{component.filename}}")
 

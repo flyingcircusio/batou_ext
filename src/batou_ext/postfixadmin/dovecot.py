@@ -1,6 +1,7 @@
+import os
+
 from batou.component import Component
 from batou.lib.file import File
-import os
 
 
 class PFADovecot(Component):

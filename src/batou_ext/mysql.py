@@ -26,8 +26,7 @@ class MySQLGeneric(batou.component.Component):
         self.provide('mysql', self)
 
         self += batou.lib.mysql.Database(
-            self.database,
-            admin_password=self.admin_password)
+            self.database, admin_password=self.admin_password)
         self += batou.lib.mysql.User(
             self.username,
             password=self.password,
