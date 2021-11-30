@@ -360,7 +360,7 @@ class SensuChecks(batou.component.Component):
 
     """
 
-    purge_old_batou_json = batou.component.Attribute("literal", True)
+    purge_old_batou_json = batou.component.Attribute("literal", default=True)
 
     def configure(self):
         self.services = self.require(

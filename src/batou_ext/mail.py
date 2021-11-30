@@ -17,11 +17,11 @@ class PostfixRelay(batou.component.Component):
 
     """
 
-    smtp_relay_host = batou.component.Attribute(str)
-    smtp_relay_port = batou.component.Attribute(int, 587)
-    smtp_tls = batou.component.Attribute("literal", "True")
+    smtp_relay_host = batou.component.Attribute(str, default='')
+    smtp_relay_port = batou.component.Attribute(int, default=587)
+    smtp_tls = batou.component.Attribute("literal", default=True)
 
-    smtp_auth = batou.component.Attribute("literal", "True")
+    smtp_auth = batou.component.Attribute("literal", default=True)
     smtp_user = batou.component.Attribute(str)
     smtp_password = batou.component.Attribute(str)
 
@@ -109,10 +109,10 @@ class Mailhog(batou.component.Component):
 
     key_content = None
     crt_content = None
-    letsencrypt = batou.component.Attribute("literal", True)
+    letsencrypt = batou.component.Attribute("literal", default=True)
     docroot = None
 
-    http_auth_enable = batou.component.Attribute("literal", False)
+    http_auth_enable = batou.component.Attribute("literal", default=False)
     http_basic_auth = None
 
     provide_as = None  # (optional) str to self.provide()

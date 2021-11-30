@@ -31,11 +31,11 @@ class HTTPBasicAuth(batou.component.Component):
     """
 
     env_name = None
-    fcio_auth = batou.component.Attribute("literal", False)
+    fcio_auth = batou.component.Attribute("literal", default=False)
     username = None
     password = None
     basic_auth_string = None
-    providing = batou.component.Attribute("literal", True)
+    providing = batou.component.Attribute("literal", default=True)
 
     def configure(self):
         if self.providing:

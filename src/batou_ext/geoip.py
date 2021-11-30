@@ -18,20 +18,27 @@ class GeoIPDatabase(batou.component.Component):
 
     Needs curl and gunzip inside $PATH
     """
+
     license_key = None
     download_url = batou.component.Attribute(
         str,
-        "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City&suffix=tar.gz&license_key={{component.license_key}}"  # noqa: E501 line too long
+        batou.component.ConfigString(
+            "https://download.maxmind.com/app/geoip_download?"
+            "edition_id=GeoLite2-City&suffix=tar.gz&"
+            "license_key={{component.license_key}}"
+        ),
     )
 
     def configure(self):
 
-        self.provide('geoip_database', self)
+        self.provide("geoip_database", self)
         self += batou.lib.file.File(
-            'geoip-update.sh',
+            "geoip-update.sh",
             source=os.path.join(
-                os.path.dirname(__file__), 'resources/geoip-update.sh'),
-            mode=0o744)
+                os.path.dirname(__file__), "resources/geoip-update.sh"
+            ),
+            mode=0o744,
+        )
         self.script = self._.path
 
         self += batou_ext.cron.CronJob(
@@ -44,7 +51,8 @@ class GeoIPDatabase(batou.component.Component):
         )
 
         self.database_file = self.expand(
-            '{{component.workdir}}/GeoLite2-City.mmdb')
+            "{{component.workdir}}/GeoLite2-City.mmdb"
+        )
 
     def verify(self):
         self.assert_no_changes()

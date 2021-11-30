@@ -20,7 +20,7 @@ class MySQLGeneric(batou.component.Component):
     admin_password = None
 
     # Used for GRANT-string
-    allow_from_hostname = batou.component.Attribute(str, 'localhost')
+    allow_from_hostname = batou.component.Attribute(str, default='localhost')
 
     def configure(self):
         self.provide('mysql', self)
