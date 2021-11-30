@@ -11,8 +11,8 @@ class KeyPair(Component):
     crt = None
     key = None
 
-    base_path = Attribute(str, '')
-    provide_itself = Attribute(bool, True)
+    base_path = Attribute(str, default_conf_string='')
+    provide_itself = Attribute(bool, default=True)
 
     def configure(self):
         self.crt_file = File(

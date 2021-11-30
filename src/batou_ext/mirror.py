@@ -39,27 +39,27 @@ class Mirror(batou.component.Component):
 
     public_name = None
     base = batou.component.Attribute(
-        str, '{protocol}://{credentials}@{public_name}')
-    protocol = batou.component.Attribute(str, 'https')
+        str, default='{protocol}://{credentials}@{public_name}')
+    protocol = batou.component.Attribute(str, default='https')
 
     # Whether Nginx-configuration should be provided
-    nginx_enable = batou.component.Attribute('literal', False)
+    nginx_enable = batou.component.Attribute('literal', default=False)
     nginx_config_path = None
     nginx_docroot = None
 
     # Define non-default reload command for Nginx used e.g. on renewal
     # of SSL-certificate if possible
     nginx_reload_command = batou.component.Attribute(
-        str, 'sudo systemctl reload nginx')
+        str, default='sudo systemctl reload nginx')
 
-    provide_itself = batou.component.Attribute('literal', True)
+    provide_itself = batou.component.Attribute('literal', default=True)
 
     credentials = None
     authstring = None
 
     # Whether we shall run let's encrypt for Nginx configuration
     # If set to 'False', a self-signed certificate will be deployed instead
-    use_letsencrypt = batou.component.Attribute('literal', True)
+    use_letsencrypt = batou.component.Attribute('literal', default=True)
 
     def configure(self):
 

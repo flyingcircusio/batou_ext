@@ -58,7 +58,7 @@ class DNSAliases(batou.component.Component):
     api_key = None
 
     # How long to wait for aliases (seconds). 0: do not wait
-    wait_for_aliases = batou.component.Attribute(int, 0)
+    wait_for_aliases = batou.component.Attribute(int, default=0)
 
     # class variable:
     calls = []

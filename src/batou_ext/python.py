@@ -56,8 +56,9 @@ class VirtualEnvRequirements(batou.component.Component):
             requirements_path='/path/to/my/requirements.txt')
     """
 
-    version = batou.component.Attribute(str, '2.7')
-    requirements_path = batou.component.Attribute(str, 'requirements.txt')
+    version = batou.component.Attribute(str, default='2.7')
+    requirements_path = batou.component.Attribute(
+        str, default_conf_string='requirements.txt')
 
     # Shell script to be sourced before creating VirtualEnv and pip
     pre_run_script_path = None
