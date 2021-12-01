@@ -21,7 +21,7 @@ class Roundcube(Component):
     release = '1.1.4'
     checksum = 'sha256:9bfe88255d4ffc288f5776de1cead78352469b1766d5ebaebe6e28043affe181'  # noqa: E501 line too long
 
-    address = Attribute(Address, '127.0.0.1:9000')
+    address = Attribute(Address, default_conf_string='127.0.0.1:9000')
     skin = 'larry'
     support_url = 'http://localhost'
 

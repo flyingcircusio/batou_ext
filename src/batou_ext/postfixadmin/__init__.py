@@ -17,7 +17,7 @@ class PFA(Component):
     release = '2.92'
     checksum = 'sha1:21481f6eb8f10ba05fc6fcd1fe0fd468062956f2'
 
-    address = Attribute(Address, '127.0.0.1:9001')
+    address = Attribute(Address, default_conf_string='127.0.0.1:9001')
 
     admin_password = None
     salt = 'ab8f1b639d31875b59fa047481c581fd'

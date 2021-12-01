@@ -13,7 +13,7 @@ def resolve_v6(address):
 
 class PFAPostfix(Component):
 
-    address = Attribute(Address, 'localhost:25')
+    address = Attribute(Address, default_conf_string='localhost:25')
 
     def configure(self):
         self.address.listen.host_v6 = resolve_v6(self.address)

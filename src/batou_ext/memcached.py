@@ -18,7 +18,7 @@ class Memcached(batou.component.Component):
         port=11211,
         custom_config=dict(foo='baa', zzz=11))
     """
-    port = batou.component.Attribute(int, 11211)
+    port = batou.component.Attribute(int, default=11211)
 
     # A additional dict
     custom_config = {}

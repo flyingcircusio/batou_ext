@@ -16,7 +16,7 @@ class PostgresServer(batou.component.Component):
 
 class PostgresDataComponent(batou.component.Component):
 
-    command_prefix = batou.component.Attribute(str, "sudo -u postgres")
+    command_prefix = batou.component.Attribute(str, default="sudo -u postgres")
 
     def configure(self):
         try:

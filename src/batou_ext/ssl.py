@@ -83,7 +83,7 @@ class Certificate(batou.component.Component):
     # OSCP stapling
     trusted_crt_content = None
 
-    use_letsencrypt = batou.component.Attribute('literal', True)
+    use_letsencrypt = batou.component.Attribute('literal', default=True)
 
     letsencrypt_ca = "https://acme-v02.api.letsencrypt.org/directory"
     letsencrypt_challenge = "http-01"
@@ -94,7 +94,7 @@ class Certificate(batou.component.Component):
 
     # Whether a certificate check should be deployed, too
     # You will need something like nrpehost or sensuchecks on the host
-    enable_check = batou.component.Attribute('literal', True)
+    enable_check = batou.component.Attribute('literal', default=True)
 
     _may_need_to_generate_certificates = False
 
@@ -248,7 +248,7 @@ class CertificateCheck(batou.component.Component):
     critical_days = 14
 
     # If HTTPS is not running on 443
-    port = batou.component.Attribute(int, 443)
+    port = batou.component.Attribute(int, default=443)
 
     def configure(self):
         self += batou.lib.nagios.ServiceCheck(
