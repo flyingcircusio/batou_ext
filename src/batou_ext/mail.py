@@ -34,7 +34,7 @@ class PostfixRelay(batou.component.Component):
     def configure(self):
         if self.provide_as:
             self.provide(self.provide_as, self)
-        self.address = batou.utils.Address(self.host.fqdn, 25)
+        self.address = batou.utils.Address(self.host.fqdn, 25, require_v6=True)
         self += batou.lib.file.File(
             '/etc/local/postfix/main.cf',
             content=dedent(
@@ -128,10 +128,10 @@ class Mailhog(batou.component.Component):
         if self.provide_as:
             self.provide(self.provide_as, self)
 
-        self.address_http = batou.utils.Address(self.public_name,
-                                                self.public_http)
-        self.address_ssl = batou.utils.Address(self.public_name,
-                                               self.public_https)
+        self.address_http = batou.utils.Address(
+            self.public_name, self.public_http, require_v6=True)
+        self.address_ssl = batou.utils.Address(
+            self.public_name, self.public_https, require_v6=True)
 
         hostname = self.public_smtp_name or self.host.fqdn
         self.address = batou.utils.Address(hostname, self.mailport)
