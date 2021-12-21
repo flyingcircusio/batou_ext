@@ -15,7 +15,7 @@ setup(
     name='batou_ext',
     version='2.3.dev0',
     install_requires=[
-        'batou >= 2.3b4.dev0',
+        'batou >= 2.3b3',
         'pyaml',
         'setuptools',
         'six', ],
