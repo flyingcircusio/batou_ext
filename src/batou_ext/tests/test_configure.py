@@ -9,7 +9,7 @@ import batou_ext
 
 
 def find_components_in(path, parents=()) -> List[object]:
-    """Find the classes deriving from batou.component.Component in a module.
+    """Find classes deriving from `batou.component.Component` in given path.
 
     Return a list containing the classes.
     """
@@ -36,7 +36,7 @@ def find_components_in(path, parents=()) -> List[object]:
             if not issubclass(obj, Component):
                 continue
             if obj.__module__.startswith('batou.lib.'):
-                # Omit from imports of classes from batou.lib.*
+                # Omit from-imports of classes from batou.lib.*
                 continue
             classes.append(obj)
 
@@ -95,9 +95,9 @@ class MockRoundcubeProvider(Component):
 
 
 def test_prepare(root, mocker, component):
-    """Assert that the `prepare` method of most components can be called.
+    """Assert that the `prepare` method of batou_ext components can be called.
 
-    prepare itself calls the `configure` method.
+    The `prepare` method itself calls the `configure` method.
     """
     mocker.patch('socket.gethostbyname', return_value='localhost')
     args = ('namevar', ) if component.namevar else ()
