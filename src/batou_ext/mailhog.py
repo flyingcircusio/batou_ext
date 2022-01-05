@@ -54,6 +54,10 @@ class Mailhog(batou.component.Component):
     http_auth_enable = batou.component.Attribute("literal", False)
     http_basic_auth = None
 
+    # Either memory or maildir
+    # mongodb is not yet supported here
+    storage_engine = batou.component.Attribute(str, default='memory')
+
     def configure(self):
         # self.provide('mail', self)
 
@@ -83,6 +87,7 @@ MH_HOSTNAME={{component.public_name}}
 MH_SMTP_BIND_ADDR={{component.address_mail.listen}}
 MH_API_BIND_ADDR={{component.address_ui.listen}}
 MH_UI_BIND_ADDR={{component.address_ui.listen}}
+MH_STORAGE={{component.storage_engine}}
 """
             ),
         )
