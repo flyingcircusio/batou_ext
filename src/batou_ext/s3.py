@@ -68,7 +68,7 @@ class Download(batou.component.Component):
 
     Usage::
 
-        self += batou_ext.s3.S3Download("my/file/from/bucket"
+        self += batou_ext.s3.Download("my/file/from/bucket"
                                         s3,
                                         bucketname="mybucket")
     """
