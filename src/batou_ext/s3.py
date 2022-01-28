@@ -4,8 +4,8 @@ Example for downloading a file::
 
 
     self += batou_ext.s3.S3(endpoint_url="https://my.s3.endpoint",
-                            access_token="1234567890ABCDEF",
-                            secret="very_secure!1!")
+                            access_key_id="1234567890ABCDEF",
+                            secret_access_key="very_secure!1!")
     self.s3 = self._
     self += batou_ext.s3.Download("my/file/from/bucket",
                                     bucketname="mybucket",
