@@ -44,7 +44,7 @@ class Bucket(batou.component.Component):
 
     Usage::
 
-        self += batou_ext.s3.S3Bucket('downloads', s3=self.s3)
+        self += batou_ext.s3.Bucket('downloads', s3=self.s3)
 
     """
 
