@@ -252,6 +252,7 @@ class Provision(batou.component.Component):
                 __type__="serviceuser",
                 uid=self.environment_.service_user,
                 resource_group=rg_name,
+                description='Deployment service user',
             )
             calls = [serviceuser] + vms
             if self.dry_run:
