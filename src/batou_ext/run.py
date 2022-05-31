@@ -41,6 +41,8 @@ class Run(batou.component.Component):
 
     def verify(self):
         self.parent.assert_no_changes()
+        self.assert_file_is_current(f'{self.command_file.path}_stamp', requirements=[f'{self.command_file.path}',])
 
     def update(self):
         self.cmd(self.command_file.path)
+        self.touch(f'{self.command_file.path}_stamp')
