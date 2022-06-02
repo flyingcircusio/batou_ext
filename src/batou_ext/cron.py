@@ -161,13 +161,15 @@ class SystemdTimer(batou.component.Component):
                 };
 
                 systemd.services."{{component.tag}}" = {
+                  description = "{{component.description}}";
+                  unitConfig = {
+                    JobTimeoutAction = "exit";
+                    JobRunningTimeoutSec = "{{component.timeout}}";
+                  };
                   serviceConfig = {
-                    Description = "{{component.description}}";
                     Type = "oneshot";
                     User = "{{component.environment.service_user}}";
                     ExecStart = "{{component.wrapped_command}}";
-                    JobTimeoutAction = "exit";
-                    JobRunningTimeoutSec = "{{component.timeout}}";
                   };
                 };
               }
