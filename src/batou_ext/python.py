@@ -66,6 +66,9 @@ class VirtualEnvRequirements(batou.component.Component):
     # Passing environmental variables to batou's cmd
     env = None
 
+    # May pass pre-fabricated virtualenv
+    venv = None
+
     def configure(self):
 
         if isinstance(self.requirements_path, str):
@@ -75,7 +78,8 @@ class VirtualEnvRequirements(batou.component.Component):
         else:
             raise RuntimeError('Needs to be either string or list')
 
-        self.venv = batou.lib.python.VirtualEnv(self.version)
+        if self.venv is None:
+            self.venv = batou.lib.python.VirtualEnv(self.version)
         self += self.venv
 
     def verify(self):
