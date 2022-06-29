@@ -5,7 +5,7 @@ import pkg_resources
 
 class JournalBeatTransport(batou.component.Component):
 
-    """ A shortcut for sending logmessages via journalbeat to a centralied loghost.
+    """ A shortcut for sending logmessages via journalbeat to a centralised loghost.
     """
 
     nix_file_path = batou.component.Attribute(str, default="/etc/local/nixos/journalbeat.nix")
