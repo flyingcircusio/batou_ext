@@ -22,6 +22,7 @@ import os
 import batou.component
 import batou.utils
 import boto3
+import botocore.exceptions
 
 
 class S3(batou.component.Component):
@@ -104,7 +105,13 @@ class Download(batou.component.Component):
                 raise batou.UpdateNeeded()
             with open(self.etag_file) as f:
                 current_etag = f.read()
-                if current_etag != self.obj.e_tag:
+                try:
+                    remote_etag = self.obj.e_tag
+                except botocore.exceptions.ClientError:
+                    # This usually means a 404. We'll pass the error to update
+                    # So the output actually becomes useful.
+                    raise batou.UpdateNeeded()
+                if current_etag != remote_etag:
                     raise batou.UpdateNeeded()
 
     def update(self):
