@@ -1,5 +1,6 @@
 import glob
 import os
+import os.path
 import shutil
 import urllib.parse
 
@@ -215,3 +216,41 @@ class Push(batou.component.Component):
         with self.chdir(self.workingdir):
             stdout, stderr = self.cmd('LANG=C git status')
         return 'Your branch is ahead of' in stdout
+
+
+class StopDeployOnLocalGitChange(batou.component.Component):
+    """
+    Helping to perform a git checkout to a target, that is not clean.
+
+    batou.lib.git.Clone() might overwrite local changes inside target directory -- whereas you want to stop the process instead.
+
+    Usage:
+    The component can be used before perfoming the actual git clone:
+
+        from batou.lib.git impot Clone
+        from batou_ext.git import StopDeployOnLocalGitChange
+
+        …
+        target = "/my/target/path"
+        self += StopDeployOnLocalGitChange(target)
+        self += Clone(
+            self.git_url,
+            revision="01234567abcd",
+            target=target)
+    """
+
+    namevar = "target"
+    target = None
+
+    def verify(self):
+        if not os.path.exists(self.target):
+            return
+        if not os.path.exists(os.path.join(self.target, ".git")):
+            return
+        with self.chdir(self.target):
+            stdout, stderr = self.cmd("git status --porcelain")
+        changes = bool(stdout.strip())
+        if changes:
+            raise RuntimeError(f"Deployment aborted:\n{stdout}\n{stderr}")
+
+
