@@ -64,11 +64,12 @@ class NixOSModule(Component):
         self += NixFile(f"{self.name}.nix")
 
         if self.context is None:
-            self.context = getattr(self.parent, "nixos_context", None)
-
-        if self.context is None:
-            self.context = NixOSModuleContext(source_component=self.parent)
-            self += self.context
+            if hasattr(self.parent, "nixos_context"):
+                self.context = self.parent.nixos_context
+            else:
+                self.context = NixOSModuleContext(source_component=self.parent)
+                self.parent.nixos_context = self.context
+                self.parent += self.context
 
         self += NixFile(
             self.path / f"batou_{self.name}.nix",
