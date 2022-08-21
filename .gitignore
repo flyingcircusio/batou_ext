@@ -1,10 +1,6 @@
-syntax: glob
-
 *.pyc
 *.egg-info
-/bin
 /lib
-/include
+/include/
 /pyvenv.cfg
-
-!/bin/update_batouext
+/.tox/

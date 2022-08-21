@@ -17,6 +17,10 @@ class PostfixRelay(batou.component.Component):
 
     """
 
+    _required_params_ = {
+        'smtp_relay_host': 'smtp',
+        'smtp_user': 'scott',
+        'smtp_password': 'tiger', }
     smtp_relay_host = batou.component.Attribute(str, default='')
     smtp_relay_port = batou.component.Attribute(int, default=587)
     smtp_tls = batou.component.Attribute("literal", default=True)
@@ -100,6 +104,9 @@ class Mailhog(batou.component.Component):
     rather than just pulling it from environment.
     """
 
+    _required_params_ = {
+        'public_name': 'example.com',
+        'public_smtp_name': 'mail.flyingcircus.io', }
     public_name = None
     public_smtp_name = None
     public_http = 80

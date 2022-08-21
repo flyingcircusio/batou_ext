@@ -21,8 +21,9 @@ class GeoIPDatabase(batou.component.Component):
     license_key = None
     download_url = batou.component.Attribute(
         str,
-        default_conf_string="https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City&suffix=tar.gz&license_key={{component.license_key}}"  # noqa: E501 line too long
-    )
+        default_conf_string="https://download.maxmind.com/app/geoip_download"
+        "?edition_id=GeoLite2-City&suffix=tar.gz"
+        "&license_key={{component.license_key}}")
 
     def configure(self):
 
