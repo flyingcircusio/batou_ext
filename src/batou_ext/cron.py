@@ -1,4 +1,5 @@
 from textwrap import dedent
+
 import batou.component
 import batou.lib.nagios
 import pkg_resources
@@ -42,7 +43,7 @@ class CronJob(batou.component.Component):
                     logrotate
     """  # noqa: E501 line too long
 
-    _required_params_ = {'timing': '*/4 * * * * '}
+    _required_params_ = {"timing": "*/4 * * * * "}
     namevar = "tag"
 
     command = None
@@ -86,7 +87,8 @@ class CronJob(batou.component.Component):
             self.expand("{{component.tag}}.sh"),
             content=pkg_resources.resource_string(__name__,
                                                   "resources/cron-wrapper.sh"),
-            mode=0o755)
+            mode=0o755,
+        )
         self.wrapped_command = self._.path
 
         if self.checkWarning or self.checkCritical:
@@ -102,7 +104,8 @@ class CronJob(batou.component.Component):
                 self.expand("Cronjob {{component.tag}} finished?"),
                 command="check_file_age",
                 args=" ".join(cmd),
-                name=self.expand("cronjob_{{component.tag}}"))
+                name=self.expand("cronjob_{{component.tag}}"),
+            )
 
 
 class SystemdTimer(batou.component.Component):
@@ -122,8 +125,9 @@ class SystemdTimer(batou.component.Component):
 
     """
 
-    namevar = "tag"
+    _required_params_ = {"command": "/bin/true", "onCalendar": "*/4 * * * * "}
 
+    namevar = "tag"
     command = batou.component.Attribute(str)
     onCalendar = batou.component.Attribute(str)
     timeout = "1h"
@@ -145,7 +149,8 @@ class SystemdTimer(batou.component.Component):
                 source /etc/profile
                 set -exo pipefail
 
-            """) + self.command)
+            """) + self.command,
+        )
         self.wrapped_command = self._.path
 
         self += batou.lib.file.File(
@@ -171,16 +176,19 @@ class SystemdTimer(batou.component.Component):
                   };
                 };
               }
-        """))
+        """),
+        )
 
         self += batou.lib.file.File(
             self.expand("check_systemd_unit.py"),
             content=pkg_resources.resource_string(
                 __name__, "resources/check_systemd_unit.py"),
-            mode=0o755)
+            mode=0o755,
+        )
         self.check_command = self._.path
         self += batou.lib.nagios.Service(
             f"Timer/Unit {self.tag} ok?",
             command=self.check_command,
             args=self.tag,
-            name=f"timer_{self.tag}")
+            name=f"timer_{self.tag}",
+        )

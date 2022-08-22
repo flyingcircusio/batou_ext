@@ -1,7 +1,28 @@
+import copy
 import os.path
 import re
 
 import batou.component
+
+
+def dict_merge(a, b):
+    """recursively merges dict's. not just simple a['key'] = b['key'], if
+    both a and b have a key who's value is a dict then dict_merge is called
+    on both values and the result stored in the returned dictionary.
+    https://www.xormedia.com/recursively-merge-dictionaries-in-python/
+    """
+    if not isinstance(b, dict):
+        return b
+    result = copy.deepcopy(a)
+    for k, v in b.items():
+        if k in result and isinstance(result[k], dict):
+            result[k] = dict_merge(result[k], v)
+        elif k in result and isinstance(result[k], list):
+            result[k] = result[k][:]
+            result[k].extend(v)
+        else:
+            result[k] = copy.deepcopy(v)
+    return result
 
 
 class RegexPatch(batou.component.Component):
@@ -25,9 +46,9 @@ class RegexPatch(batou.component.Component):
     """
 
     _required_params_ = {
-        'pattern': 'pattern', }
+        "pattern": "pattern", }
     path = None
-    namevar = 'path'
+    namevar = "path"
 
     source = None
     pattern = None
@@ -50,13 +71,13 @@ class RegexPatch(batou.component.Component):
         if not os.path.exists(self.source):
             # During predict, the file might not exist.
             raise batou.UpdateNeeded()
-        with open(self.source, 'r') as f:
+        with open(self.source, "r") as f:
             self._source_data = f.read()
 
         if not os.path.exists(self.path):
             # During predict, the file might not exist.
             raise batou.UpdateNeeded()
-        with open(self.path, 'r') as f:
+        with open(self.path, "r") as f:
             self._target_data = f.read()
 
         m = self.pattern.search(self._source_data)
@@ -73,9 +94,10 @@ class RegexPatch(batou.component.Component):
         if self._source_data is None:
             raise RuntimeError(
                 "The file to be patched seems to have no valid content:",
-                self.source)
+                self.source,
+            )
 
-        with open(self.path, 'w') as f:
+        with open(self.path, "w") as f:
             f.write(self._patch())
 
 
@@ -95,7 +117,7 @@ class MultiRegexPatch(batou.component.Component):
 
     """
 
-    namevar = 'path'
+    namevar = "path"
     patterns = ()
 
     def configure(self):
@@ -103,4 +125,5 @@ class MultiRegexPatch(batou.component.Component):
             self += RegexPatch(
                 self.path,
                 pattern=pattern,
-                replacement=self.parent.expand(replacement))
+                replacement=self.parent.expand(replacement),
+            )

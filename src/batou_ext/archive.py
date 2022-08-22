@@ -1,5 +1,6 @@
-import batou.lib.archive
 import os.path
+
+import batou.lib.archive
 
 
 class SingleUntar(batou.lib.archive.Untar):
@@ -12,11 +13,14 @@ class SingleUntar(batou.lib.archive.Untar):
 
     """
 
+    _required_params_ = {"target": "."}
+
     def configure(self):
         super().configure()
         self._finish_marker = os.path.join(
             os.path.dirname(self.target),
-            f".{os.path.basename(self.target)}.finished-extract")
+            f".{os.path.basename(self.target)}.finished-extract",
+        )
 
     def verify(self):
         assert os.path.exists(self.archive)

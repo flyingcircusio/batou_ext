@@ -53,7 +53,7 @@ class DNSAliases(batou.component.Component):
 
     """
 
-    _required_params_ = {'project': 'demo'}
+    _required_params_ = {"project": "demo"}
     postfix = ""
     project = None
     api_key = None
@@ -74,7 +74,7 @@ class DNSAliases(batou.component.Component):
     def _compute_calls(self):
         assert self.project
         self.aliases = []
-        for host in list(self.environment_.hosts.values()):
+        for host in list(self.environment.hosts.values()):
             self._add_calls(host.name, "srv", host.data.get("alias-srv"))
             self._add_calls(host.name, "fe", host.data.get("alias-fe"))
         self.calls.sort(key=lambda c: c["name"])
@@ -176,7 +176,7 @@ class Provision(batou.component.Component):
         return api
 
     def get_currently_provisioned_vms(self):
-        return self.api.query('virtualmachine')
+        return self.api.query("virtualmachine")
 
     def apply(self):
         self.environment_ = self.load_env()
@@ -253,7 +253,7 @@ class Provision(batou.component.Component):
                 __type__="serviceuser",
                 uid=self.environment_.service_user,
                 resource_group=rg_name,
-                description='Deployment service user',
+                description="Deployment service user",
             )
             calls = [serviceuser] + vms
             if self.dry_run:
@@ -264,8 +264,8 @@ class Provision(batou.component.Component):
     def get_diff(self, old, new):
         result = {}
 
-        old = {vm['name']: vm for vm in old}
-        new = {vm['name']: vm for vm in new}
+        old = {vm["name"]: vm for vm in old}
+        new = {vm["name"]: vm for vm in new}
 
         for vm_name, old_vm in list(old.items()):
             result[vm_name] = changes = {}
@@ -278,10 +278,10 @@ class Provision(batou.component.Component):
             # can set. We ignore all the other keys.
             for key, new_value in list(new_vm.items()):
                 old_value = old_vm.get(key)
-                if key == 'classes':
+                if key == "classes":
                     # Roles need special treatment, generic is always included
                     try:
-                        old_value.remove('role::generic')
+                        old_value.remove("role::generic")
                     except ValueError:
                         pass
                 if old_value != new_value:
