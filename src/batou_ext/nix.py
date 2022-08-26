@@ -154,7 +154,7 @@ class Rebuild(batou.component.Component):
             self.parent.assert_no_subcomponent_changes()
 
     def update(self):
-        self.cmd("sudo fc-manage --build")
+        self.cmd("sudo fc-manage switch")
 
 
 def rebuild(cls):
