@@ -217,6 +217,9 @@ class UserInit(batou.component.Component):
         # E.g. systemd=dict(Unit_After='afdsfdasfsda', Service_Type='Simple',
         #                  User='nobody')
         config = {}
+        config["Unit"] = {
+            'X-Restart-Triggers': self.parent.checksum
+        }
         config["Service"] = dict(
             Type="forking",
             LimitNOFILE="64000",
