@@ -1,6 +1,4 @@
 # Managed by Batou.
-# Checksum: {{component.checksum}}
-
 {% for section in component.config|sort -%}
 [{{section}}]
 {% for key, value in component.config[section]|sort -%}
