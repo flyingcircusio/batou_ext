@@ -17,6 +17,9 @@ class Redis(batou.component.Component):
     password_file = "/etc/local/redis/password"
     port = 6379
 
+    # Number of database you are connecting
+    db = batou.component.Attribute(int, default=0)
+
     def configure(self):
         assert self.password
         self.provide("redis", self)
