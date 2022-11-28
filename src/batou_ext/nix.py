@@ -225,6 +225,7 @@ class UserInit(batou.component.Component):
             User=self.environment.service_user,
             Group="service",
             ExecStart=os.path.join(self.root.workdir, self.executable),
+            Restart="always",
             Environment=[
                 self.expand("LOCALE_ARCHIVE={{component.env['LOCALE_ARCHIVE']}}"),
                 self.expand("PATH={{component.env['PATH']}}"),
