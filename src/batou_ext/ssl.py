@@ -61,6 +61,8 @@ class Certificate(batou.component.Component):
         '/082da2527cb4aaa3a4740ba03e550205b076f822/dehydrated')
     dehydrated_checksum = (
         'md5:95a90950d3b9c01174e4f4f98cf3bd53')
+    dehydrated_publickey_algo = batou.component.Attribute(
+        str, default='secp384r1')
 
     extracommand = None
 
@@ -166,6 +168,7 @@ CA={{component.letsencrypt_ca}}
 CHALLENGETYPE={{component.letsencrypt_challenge}}
 HOOK={{component.letsencrypt_hook}}
 DOMAINS_TXT={{component.domains_txt.path}}
+KEY_ALGO={{component.dehydrated_publickey_algo}}
 """))
             self.config = self._
 
