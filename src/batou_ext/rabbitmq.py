@@ -18,7 +18,7 @@ Example::
             self += User(
                 self.username, password=self.password, tags=['management'])
             self += Permissions(
-                self.username, permissions={self.vhost: ('.*', '.*', '.*')}
+                self.username, permissions={self.vhost: ('.*', '.*', '.*')})
 
 """
 
