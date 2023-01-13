@@ -1,8 +1,7 @@
+# This file is managed by batou. Don't edit manually.
 { ... }:
 {
-  environment.etc."modsecurity_{{component.ruleset_name}}.conf".text = ''
-       # This file is managed by batou. Don't edit manually.
-
+  environment.etc."modsecurity/{{component.ruleset_name}}_main.conf".text = ''
        {%- if component.block %}
        # This setting will BLOCK the triggering requests and also LOG them
        SecRuleEngine On
@@ -20,17 +19,16 @@
        SecAuditLogRelevantStatus "^(?:5|4(?!04))"
        SecAuditLogParts ABIJDEFHZ
        SecAuditLogType Serial
-       SecAuditLog /var/log/nginx/modsec_audit.log
+       SecAuditLog /var/log/nginx/modsec_{{component.ruleset_name}}_audit.log
        SecArgumentSeparator &
        SecCookieFormat 0
-       SecUnicodeMapFile /etc/local/nginx/modsecurity/unicode.mapping 20127
+       SecUnicodeMapFile {{component.unicode_map_file}} 20127
        SecStatusEngine On
-    '';
 
-{%- if component.enable_owasp %}
-    environment.etc."crs-setup_{{component.ruleset_name}}.conf".text = ''
-       # File managed by batou. Don't edit manually
+       {%- if component.enable_crs %}
 
+       # CRS specific configuration
+       include {{component.checkout_target}}/rules/*.conf
        {%- if component.block %}
        SecDefaultAction "phase:1,log,auditlog,deny,status:401"
        SecDefaultAction "phase:2,log,auditlog,deny,status:401"
@@ -48,26 +46,10 @@
          pass,\
          t:none,\
          setvar:tx.paranoia_level={{component.paranoia_level}}"
-       SecAction
-        "id:900990,\
-         phase:1,\
-         nolog,\
-         pass,\
-         t:none,\
-         setvar:tx.crs_setup_version=320"
-    '';
-{%- endif %}
 
-    environment.etc."modsecurity_includes_{{component.ruleset_name}}.conf".text = ''
-        # This file is managed by batou. Don't edit manually.
+       {%- endif %}
 
-        include /etc/modsecurity_{{component.ruleset_name}}.conf
-        {%- if component.enable_owasp %}
-        include /etc/crs-setup_{{component.ruleset_name}}.conf
-        include {{component.checkout_target}}/rules/*.conf
-        {%- endif %}
-        {% for i in component.includes %}
-        include {{ i }}
-        {% endfor %}
+       # Includes directory for new rules
+       include {{component.includes_directory}}/*.conf
     '';
 }

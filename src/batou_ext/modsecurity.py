@@ -1,3 +1,4 @@
+from textwrap import dedent
 import batou.component
 import batou.lib.file
 import batou_ext.nix
@@ -7,99 +8,128 @@ import os
 @batou_ext.nix.rebuild
 class ModSecurity(batou.component.Component):
     '''
-    Manages one or more mod_security rule sets for nginx, including the "OWASP Core Rule Set".
+    Manages one or more ModSecurity rule sets for nginx, including the OWASP
+    Core Rule Set (CRS).
 
-    Without any parameters this creates a basic default rules file on the lowest paranoia
-    level and logs events but does not block anything.
+    Without any parameters this creates a basic default rules file on the lowest
+    paranoia level and logs events but does not block anything.
 
-    Specific rule files need to be enabled through your project's nginx configuration,
-    typically by enabling mod_security and choosing the profile:
+    Specific rule files need to be enabled through your project's Nginx configuration,
+    typically by enabling ModSecurity and choosing the profile:
 
          server {
              modsecurity on;
-             modsecurity_rules_file /etc/modsecurity_includes_default.conf
+             modsecurity_rules_file /etc/modsecurity/default_main.conf
          }
 
 
-    ## Default usage:
+    ## Default usage
 
-         self += Modsecurity()
+         self += ModSecurity()
 
-    This uses the default behaviour:
+    This has the default behaviour:
 
-    - Modsecurity does not block any request, it just logs
-    - The Paranoia Level is at 1 which is the lowest setting
+    - ModSecurity does not block any request, it just logs
+    - The configuration file that has to be reverenced in the Nginx configuration
+      is writen to `/etc/modsecurity/default_main.conf`
+    - CRS is used
+    - Its Paranoia Level is set to 1
 
 
     ## Customize attributes
 
     You may change these by giving other attribute values.
 
-          self += Modsecurity(block=True, paranoia_level=20)
+          self += ModSecurity(block=True, paranoia_level=20)
+
 
     ## Adding new rules
 
-    At this Paranoia Level it may be necessary to change some configuration
-    to negate false positives. You may add new configuration files, which will be placed
-    at the bottom of the includes file. This is done with `includes`, which expects a list
-    of strings with the path to the file, or if just one file is added, only a string.
+    At this Paranoia Level it may be necessary to change the configuration
+    to negate false positives. You may add new configuration files, which will be
+    loaded after everything else. This is done by placing the files into the
+    includes directory. By default this is `/etc/local/nginx/modsecurity/default_includes/`.
 
-          self += Modsecurity(
-              block=True,
-              paranoia_level=20,
-              includes=['path/to/file1', 'path/to/file2']
-          )
 
     ## Multiple instances
 
-    It is completly possible to use multiple different rulesets on the same server.
+    It is possible to use multiple different rulesets on the same server.
     This is done with the `ruleset_name` attribute. If no value is given it uses `default`.
 
-          self.modsecurity_frontend_1 = Modsecurity(
+          self.frontend1 = ModSecurity(
               ruleset_name='frontend1',
               paranoia_level=20,
-              includes='frontend1_exceptions'
           )
+          self += self.frontend1
 
-          self.modsecurity_frontend_2 = Modsecurity(
+          self.frontend2 = ModSecurity(
               ruleset_name='frontend2',
               block=True,
-              includes=['frontend2_exceptions', 'frontend2_additions']
           )
+          self += self.frontend2
 
-    You can get he includes path for each instance of ModSecurity
-    from its `include_path` attribute.
+
+    ## Endpoints
+
+          self.example = ModSecurity()
+          self += self.example
+
+    ### main_path
+
+    Location of configuration file that has to be referenced by Nginx
+
+          x = self.example.main_path
+
+    ### includes_directory
+
+    Location of the directory in which all *.conf files are included
+
+          x = self.example.includes_directory
     '''
 
     block = False
     paranoia_level = 1
     ruleset_name = 'default'
-    include_path = f'/etc/modsecurity_includes_{ruleset_name}.conf'
-    enable_owasp = True
+
+    main_path = f'/etc/modsecurity/{ruleset_name}_main.conf'
+    # These are the locations, if the Flying Circus Webgateway role is used.
+    # If ModSecurity is installed otherwise the locations may differ.
+    includes_directory = f'/etc/local/nginx/modsecurity/{ruleset_name}_includes'
+    unicode_map_file = '/etc/local/nginx/modsecurity/unicode.mapping'
+
+    enable_crs = True
     # current on branch v3.3/master
-    owasp_revision = '18703f1bc47e9c4ec4096853d5fb4e2a204a07a2'
-    includes = None
+    crs_revision = '18703f1bc47e9c4ec4096853d5fb4e2a204a07a2'
 
     def configure(self):
 
-        if isinstance(self.includes, str):
-            self.includes = [self.includes]
-        elif self.includes is None:
-            self.includes = list()
-
-        if self.enable_owasp:
-            self.checkout_target = self.map(f'owasp-checkouts/{self.ruleset_name}')
+        if self.enable_crs:
+            self.checkout_target = self.map(f'crs-checkouts/{self.ruleset_name}')
             self += batou.lib.file.Directory(self.checkout_target, leading=True)
             self.checkout = batou_ext.git.GitCheckout(
                 git_clone_url='https://github.com/coreruleset/coreruleset.git',
-                git_revision=self.owasp_revision,
+                git_revision=self.crs_revision,
                 git_target=self.checkout_target,
                )
             self += self.checkout
             self += self.checkout.symlink_and_cleanup()
 
-        self += batou.lib.file.File(f'/etc/local/nixos/modsecurity-{self.ruleset_name}-configuration.nix',
-                                   source=self.resource('modsecurity-configuration.nix'))
+        self += batou.lib.file.Directory(self.includes_directory, leading=True)
+        self += batou.lib.file.File(f'{self.includes_directory}/crs-version.conf',
+                                    content = '''
+            # This file is managed by batou. Don't edit manually.
+
+            # This action is used by CRS to check if config is loaded succesfully
+            SecAction
+             "id:900990,\
+              phase:1,\
+              nolog,\
+              pass,\
+              t:none,\
+              setvar:tx.crs_setup_version=320"
+                                    ''')
+        self += batou.lib.file.File(f'/etc/local/nixos/modsecurity-{self.ruleset_name}.nix',
+                                   source=self.resource('modsecurity.nix'))
 
     def resource(self, filename):
         return os.path.join(os.path.dirname(__file__), 'resources', filename)
