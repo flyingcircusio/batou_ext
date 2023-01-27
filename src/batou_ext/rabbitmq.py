@@ -40,12 +40,15 @@ class ErlangCookie(batou.component.Component):
         self += batou.lib.file.Presence(self.path)
 
     def verify(self):
-        with open(self.path, 'r') as target:
-            current = target.read()
-            if current != self.cookie:
+        try:
+            with open(self.path, 'r') as target:
+                current = target.read()
+                if current != self.cookie:
+                    raise batou.UpdateNeeded()
+            current = os.stat(self.path).st_mode
+            if stat.S_IMODE(current) != 0o400:
                 raise batou.UpdateNeeded()
-        current = os.stat(self.path).st_mode
-        if stat.S_IMODE(current) != 0o400:
+        except FileNotFoundError:
             raise batou.UpdateNeeded()
 
     def update(self):
