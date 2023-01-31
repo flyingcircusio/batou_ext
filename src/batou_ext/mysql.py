@@ -12,7 +12,8 @@ class MySQLGeneric(batou.component.Component):
         username='myuser',
         password='mypasswod',
         admin_password='myadminpassword',
-        allow_from_host_name='127.0.0.1')
+        allow_from_host_name='127.0.0.1',
+        provide_as='myapplicationdatabase')
     """
     _required_params_ = {
         'username': 'scott', }
@@ -21,11 +22,13 @@ class MySQLGeneric(batou.component.Component):
     password = None
     admin_password = None
 
+    provide_as = batou.component.Attribute(str, default="mysql")
+
     # Used for GRANT-string
     allow_from_hostname = batou.component.Attribute(str, default='localhost')
 
     def configure(self):
-        self.provide('mysql', self)
+        self.provide(self.provide_as, self)
 
         self += batou.lib.mysql.Database(
             self.database, admin_password=self.admin_password)
