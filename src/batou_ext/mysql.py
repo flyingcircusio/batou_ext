@@ -24,11 +24,15 @@ class MySQLGeneric(batou.component.Component):
 
     provide_as = batou.component.Attribute(str, default="mysql")
 
+    port = batou.component.Attribute(int, default=3306)
+
     # Used for GRANT-string
     allow_from_hostname = batou.component.Attribute(str, default='localhost')
 
     def configure(self):
         self.provide(self.provide_as, self)
+
+        self.address = batou.utils.Address(self.host.fqdn, self.port)
 
         self += batou.lib.mysql.Database(
             self.database, admin_password=self.admin_password)
