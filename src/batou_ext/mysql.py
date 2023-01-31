@@ -12,7 +12,7 @@ class MySQLGeneric(batou.component.Component):
         username='myuser',
         password='mypasswod',
         admin_password='myadminpassword',
-        allow_from_host_name='127.0.0.1',
+        allow_from_hostname='127.0.0.1',
         provide_as='myapplicationdatabase')
     """
     _required_params_ = {
