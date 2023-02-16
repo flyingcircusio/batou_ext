@@ -102,6 +102,7 @@ class UserEnv(batou.component.Component):
                     "yarn",
                     "zip",
                 ],
+                channel="<nixos-channel-base-url-to-be-put-in>/nixexprs.tar.xz"
                 shellInit="# additional shell init")
 
     A list of available channels can be found at e.g.
@@ -109,8 +110,7 @@ class UserEnv(batou.component.Component):
     """
 
     namevar = "profile_name"
-    channel = ("https://releases.nixos.org/nixos/19.03/"
-               "nixos-19.03.173691.34c7eb7545d/nixexprs.tar.xz")
+    channel = batou.component.Attribute(str)
     shellInit = ""
     packages = ()
     let_extra = ""
