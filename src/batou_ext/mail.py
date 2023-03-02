@@ -5,7 +5,6 @@ import batou.lib.file
 import pkg_resources
 
 import batou_ext.nix
-import batou_ext.ssl
 
 
 @batou_ext.nix.rebuild
@@ -208,27 +207,14 @@ class Mailhog(batou.component.Component):
         self += batou.lib.file.File(
             self.docroot, ensure="directory", leading=True
         )
-
-        self.cert = batou_ext.ssl.Certificate(
-            self.public_name,
-            docroot=self.docroot,
-            key_content=self.key_content,
-            crt_content=self.crt_content,
-            use_letsencrypt=self.letsencrypt,
-            extracommand="sudo systemctl reload nginx",
-        )
-        self += self.cert
-
         self += batou.lib.file.File(
-            "/etc/local/nginx/mailhog.conf",
+            "/etc/local/nixos/mailhog.nix",
             content=pkg_resources.resource_string(
-                __name__, "resources/mailhog/mailhog.conf"
+                __name__, "resources/mailhog/mailhog.nix"
             ),
         )
 
-        self += batou_ext.nix.Rebuild()
-        self += self.cert.activate_letsencrypt()
-
+        self += batou.lib.file.Purge("/etc/local/nginx/mailhog.conf")
         self += batou.lib.service.Service(
             "mailhog", systemd=dict(Restart="always", Type="simple")
         )
