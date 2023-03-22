@@ -62,7 +62,8 @@ class Certificate(batou.component.Component):
     dehydrated_url = (
         'https://raw.githubusercontent.com/dehydrated-io/dehydrated'
         '/082da2527cb4aaa3a4740ba03e550205b076f822/dehydrated')
-    dehydrated_checksum = ('md5:95a90950d3b9c01174e4f4f98cf3bd53')
+    dehydrated_checksum = (
+        'md5:95a90950d3b9c01174e4f4f98cf3bd53')
     dehydrated_publickey_algo = batou.component.Attribute(
         str, default='secp384r1')
 
