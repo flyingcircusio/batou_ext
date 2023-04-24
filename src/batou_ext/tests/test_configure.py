@@ -142,5 +142,10 @@ def test_prepare(root, mocker, component):
     elif component_name in {
             "batou_ext.fcio.DNSAliases", }:
         instance._call = lambda: None
+    elif component_name in {
+            "batou_ext.journalbeat.JournalBeatTransport", }:
+        instance.transport_name = "my_transport_name"
+        instance.graylog_host = "my_graylog_host"
+        instance.graylog_port = "my_graylog_port"
 
     instance.prepare(root)
