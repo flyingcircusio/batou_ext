@@ -84,8 +84,6 @@ class Mailhog(batou.component.Component):
     """Set up a local testing mail server with mailog.
 
     This component provides a local dev mail setup.
-    You need to activate docker role, nginx and a frontend IP for the UI
-    to be accessible.
 
     Usage:
     Just add mailhog to the enivronment and set `public_name`.
@@ -117,18 +115,12 @@ class Mailhog(batou.component.Component):
         "public_name": "example.com",
         "public_smtp_name": "mail.flyingcircus.io",
     }
-    public_name = None
-    public_smtp_name = None
-    public_http = 80
-    public_https = 443
-    mailport = 1025
-    uiport = 8025
-
-    key_content = None
-    crt_content = None
-    letsencrypt = batou.component.Attribute("literal", default=True)
-    docroot = None
-
+    public_name = batou.component.Attribute(str)
+    public_smtp_name = batou.component.Attribute(str)
+    mailport = batou.component.Attribute(int, 1025)
+    uiport = batou.component.Attribute(int, 8025)
+    apiport = batou.component.Attribute(int, 8025)
+    purge_old_mailhog_configs = batou.component.Attribute("literal", default=True)
     http_auth_enable = batou.component.Attribute("literal", default=False)
     http_basic_auth = None
 
@@ -142,16 +134,15 @@ class Mailhog(batou.component.Component):
         if self.provide_as:
             self.provide(self.provide_as, self)
 
-        self.address_http = batou.utils.Address(
-            self.public_name, self.public_http, require_v6=True
-        )
-        self.address_ssl = batou.utils.Address(
-            self.public_name, self.public_https, require_v6=True
-        )
+        # Migration from old nginx.conf
+        if self.purge_old_mailhog_configs:
+            self += batou.lib.file.Purge("mailhog")
+            self += batou.lib.file.Purge("mailhog_env")
+            self += batou.lib.file.Purge("/etc/local/nginx/mailhog.conf")
+            self += batou.lib.file.Purge("htdocs")
 
-        hostname = self.public_smtp_name or self.host.fqdn
-        self.address = batou.utils.Address(hostname, self.mailport)
-        self.address_ui = batou.utils.Address(self.host.fqdn, self.uiport)
+        self.address = batou.utils.Address(self.public_name, self.mailport)
+        self.address_ui = batou.utils.Address(self.public_smtp_name, self.uiport)
 
         if self.http_auth_enable:
             if self.http_basic_auth is None:
@@ -160,75 +151,8 @@ class Mailhog(batou.component.Component):
                 self.http_auth = self.http_basic_auth
 
         self += batou.lib.file.File(
-            "mailhog_env",
-            content=dedent(
-                self.expand(
-                    """
-                # File managed by batou. Don't edit manually
-
-                MH_HOSTNAME={{component.public_name}}
-                MH_SMTP_BIND_ADDR={{component.address.listen}}
-                MH_API_BIND_ADDR={{component.address_ui.listen}}
-                MH_UI_BIND_ADDR={{component.address_ui.listen}}
-                MH_STORAGE={{component.storage_engine}}
-                """
-                )
-            ),
-        )
-        self.envfile = self._
-
-        self += batou.lib.file.File(
-            "mailhog",
-            mode=0o755,
-            content=dedent(
-                f"""\
-                #!/bin/sh
-                set -e
-                NAME={self.public_name}
-
-                # Not sure we really want this. Only used within dev.
-                docker pull mailhog/mailhog
-
-                docker stop $NAME || true
-                docker rm $NAME || true
-
-                docker run \\
-                    --network host \\
-                    --name="$NAME" \\
-                    --env-file={self.envfile.path} \\
-                    --mount source=mailhog-vol,dst=/var/lib/mailhog \\
-                mailhog/mailhog
-                """
-            ),
-        )
-
-        # use own nginx config to integrate into frontend, if mailhog is used
-        if not self.docroot:
-            self.docroot = self.map("htdocs")
-        self += batou.lib.file.File(
-            self.docroot, ensure="directory", leading=True
-        )
-
-        self.cert = batou_ext.ssl.Certificate(
-            self.public_name,
-            docroot=self.docroot,
-            key_content=self.key_content,
-            crt_content=self.crt_content,
-            use_letsencrypt=self.letsencrypt,
-            extracommand="sudo systemctl reload nginx",
-        )
-        self += self.cert
-
-        self += batou.lib.file.File(
-            "/etc/local/nginx/mailhog.conf",
+            "/etc/local/nixos/mailhog.nix",
             content=pkg_resources.resource_string(
-                __name__, "resources/mailhog/mailhog.conf"
+                __name__, "resources/mailhog/mailhog.nix"
             ),
-        )
-
-        self += batou_ext.nix.Rebuild()
-        self += self.cert.activate_letsencrypt()
-
-        self += batou.lib.service.Service(
-            "mailhog", systemd=dict(Restart="always", Type="simple")
         )
