@@ -30,7 +30,7 @@ class HTTPBasicAuth(batou.component.Component):
 
     """
 
-    _required_params_ = {'env_name': 'test', 'basic_auth_string': 'secret'}
+    _required_params_ = {"env_name": "test", "basic_auth_string": "secret"}
     env_name = None
     fcio_auth = batou.component.Attribute("literal", default=False)
     username = None
@@ -48,9 +48,11 @@ class HTTPBasicAuth(batou.component.Component):
 
     def _deploy_customer_http_auth_file(self):
         if self.env_name is None:
-            raise ValueError("You need to define an environment name for "
-                             "your http_baisc_auth-file")
+            raise ValueError(
+                "You need to define an environment name for "
+                "your http_baisc_auth-file"
+            )
         self += batou.lib.file.File(
-            "htpasswd_{}".format(self.env_name),
-            content=self.basic_auth_string)
+            "htpasswd_{}".format(self.env_name), content=self.basic_auth_string
+        )
         self.path = self._.path

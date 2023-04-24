@@ -30,9 +30,10 @@ class S3(batou.component.Component):
     """Configuration for an S3 connection and its credentials."""
 
     _required_params_ = {
-        'access_key_id': 'value',
-        'secret_access_key': 'value',
-        'endpoint_url': 'value', }
+        "access_key_id": "value",
+        "secret_access_key": "value",
+        "endpoint_url": "value",
+    }
     endpoint_url = batou.component.Attribute(str)
     access_key_id = batou.component.Attribute(str)
     secret_access_key = batou.component.Attribute(str)
@@ -42,7 +43,8 @@ class S3(batou.component.Component):
             "s3",
             aws_access_key_id=self.access_key_id,
             aws_secret_access_key=self.secret_access_key,
-            endpoint_url=self.endpoint_url)
+            endpoint_url=self.endpoint_url,
+        )
 
 
 class Bucket(batou.component.Component):
@@ -53,8 +55,10 @@ class Bucket(batou.component.Component):
         self += batou_ext.s3.Bucket('downloads', s3=self.s3)
 
     """
+
     _required_params_ = {
-        's3': Mock(), }
+        "s3": Mock(),
+    }
     namevar = "bucketname"
     s3 = batou.component.Attribute()
 
@@ -79,11 +83,13 @@ class Download(batou.component.Component):
                                         s3,
                                         bucketname="mybucket")
     """
+
     _required_params_ = {
-        'bucketname': 'bucket',
-        'target': 'target',
-        's3': Mock(), }
-    namevar = 'key'
+        "bucketname": "bucket",
+        "target": "target",
+        "s3": Mock(),
+    }
+    namevar = "key"
     s3 = batou.component.Attribute(str)
     key = batou.component.Attribute(str)
     bucketname = batou.component.Attribute(str)
@@ -106,8 +112,9 @@ class Download(batou.component.Component):
         if not os.path.exists(self.target):
             raise batou.UpdateNeeded()
         if self.checksum:
-            if self.checksum != batou.utils.hash(self.target,
-                                                 self.checksum_function):
+            if self.checksum != batou.utils.hash(
+                self.target, self.checksum_function
+            ):
                 raise batou.UpdateNeeded()
         else:
             if not os.path.exists(self.etag_file):
@@ -126,9 +133,12 @@ class Download(batou.component.Component):
     def update(self):
         self.obj.download_file(self.target)
         if self.checksum:
-            target_checksum = batou.utils.hash(self.target,
-                                               self.checksum_function)
-            assert (self.checksum == target_checksum), """\
+            target_checksum = batou.utils.hash(
+                self.target, self.checksum_function
+            )
+            assert (
+                self.checksum == target_checksum
+            ), """\
 Checksum mismatch!
 expected: %s
 got: %s""" % (

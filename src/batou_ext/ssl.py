@@ -55,21 +55,24 @@ class Certificate(batou.component.Component):
     ... and add the crontab component to the nginx host in your environment.
 
     """
+
     _required_params_ = {
-        'wellknown': 'hello', }
+        "wellknown": "hello",
+    }
 
     # Let's Encrypt, dehydrated v0.7.0
     dehydrated_url = (
-        'https://raw.githubusercontent.com/dehydrated-io/dehydrated'
-        '/082da2527cb4aaa3a4740ba03e550205b076f822/dehydrated')
-    dehydrated_checksum = (
-        'md5:95a90950d3b9c01174e4f4f98cf3bd53')
+        "https://raw.githubusercontent.com/dehydrated-io/dehydrated"
+        "/082da2527cb4aaa3a4740ba03e550205b076f822/dehydrated"
+    )
+    dehydrated_checksum = "md5:95a90950d3b9c01174e4f4f98cf3bd53"
     dehydrated_publickey_algo = batou.component.Attribute(
-        str, default='secp384r1')
+        str, default="secp384r1"
+    )
 
     extracommand = None
 
-    namevar = 'domain'
+    namevar = "domain"
     domain = None
     alternative_names = ()
 
@@ -86,7 +89,7 @@ class Certificate(batou.component.Component):
     # OSCP stapling
     trusted_crt_content = None
 
-    use_letsencrypt = batou.component.Attribute('literal', default=True)
+    use_letsencrypt = batou.component.Attribute("literal", default=True)
 
     letsencrypt_ca = "https://acme-v02.api.letsencrypt.org/directory"
     letsencrypt_challenge = "http-01"
@@ -97,36 +100,43 @@ class Certificate(batou.component.Component):
 
     # Whether a certificate check should be deployed, too
     # You will need something like nrpehost or sensuchecks on the host
-    enable_check = batou.component.Attribute('literal', default=True)
+    enable_check = batou.component.Attribute("literal", default=True)
 
     _may_need_to_generate_certificates = False
 
     def configure(self):
         if not isinstance(self.alternative_names, (tuple, list)):
             raise ValueError(
-                '"alternative_names" needs to be a tuple of string.')
+                '"alternative_names" needs to be a tuple of string.'
+            )
         if not self.refresh_timing:
             h = int(
-                hashlib.md5(six.ensure_binary(self.domain,
-                                              "UTF-8")).hexdigest(), 16)
-            self.refresh_timing = '{} {} * * *'.format(h % 60, h % 24)
+                hashlib.md5(
+                    six.ensure_binary(self.domain, "UTF-8")
+                ).hexdigest(),
+                16,
+            )
+            self.refresh_timing = "{} {} * * *".format(h % 60, h % 24)
         if self.key_content and not self.use_letsencrypt:
             self.crt_file = batou.lib.file.File(
-                os.path.join('{}/{}.crt'.format(self.workdir, self.domain)),
-                content=self.crt_content)
+                os.path.join("{}/{}.crt".format(self.workdir, self.domain)),
+                content=self.crt_content,
+            )
             self += self.crt_file
             self.key_file = batou.lib.file.File(
-                os.path.join('{}/{}.key'.format(self.workdir, self.domain)),
+                os.path.join("{}/{}.key".format(self.workdir, self.domain)),
                 content=self.key_content,
                 mode=0o600,
-                sensitive_data=True)
+                sensitive_data=True,
+            )
             self += self.key_file
 
             if self.trusted_crt_content:
                 self.trusted_file = batou.lib.file.File(
-                    '{}/{}.trust.crt'.format(self.workdir, self.domain),
+                    "{}/{}.trust.crt".format(self.workdir, self.domain),
                     content=self.trusted_crt_content,
-                    mode=0o600)
+                    mode=0o600,
+                )
                 self += self.trusted_file
                 self.trusted = self.trusted_file.path
 
@@ -136,8 +146,8 @@ class Certificate(batou.component.Component):
         else:
             self._may_need_to_generate_certificates = True
             self.key_dir = os.path.join(self.workdir, self.domain)
-            self.key = os.path.join(self.key_dir, 'privkey.pem')
-            self.fullchain = os.path.join(self.key_dir, 'fullchain.pem')
+            self.key = os.path.join(self.key_dir, "privkey.pem")
+            self.fullchain = os.path.join(self.key_dir, "fullchain.pem")
 
         if self.use_letsencrypt:
             # Okay, let's encrypt it is. There are two situations:
@@ -148,45 +158,56 @@ class Certificate(batou.component.Component):
             self += batou.lib.download.Download(
                 self.dehydrated_url,
                 checksum=self.dehydrated_checksum,
-                target='dehydrated')
-            self += batou.lib.file.Mode('dehydrated', mode=0o755)
+                target="dehydrated",
+            )
+            self += batou.lib.file.Mode("dehydrated", mode=0o755)
 
             if not self.wellknown and self.docroot:
-                self.wellknown = '{}/.well-known/acme-challenge'.format(
-                    self.docroot)
+                self.wellknown = "{}/.well-known/acme-challenge".format(
+                    self.docroot
+                )
             self += batou.lib.file.File(
-                self.wellknown, ensure='directory', leading=True)
+                self.wellknown, ensure="directory", leading=True
+            )
 
             self += batou.lib.file.File(
-                self.expand('domains-{{component.domain}}.txt'),
+                self.expand("domains-{{component.domain}}.txt"),
                 content=self.expand(
-                    '{{component.domain}} {{alternative}}',
-                    alternative=' '.join(self.alternative_names)))
+                    "{{component.domain}} {{alternative}}",
+                    alternative=" ".join(self.alternative_names),
+                ),
+            )
             self.domains_txt = self._
 
             self += batou.lib.file.File(
-                'cert-{}.conf'.format(self.domain),
-                content=self.expand("""
+                "cert-{}.conf".format(self.domain),
+                content=self.expand(
+                    """
 WELLKNOWN={{component.wellknown}}
 CA={{component.letsencrypt_ca}}
 CHALLENGETYPE={{component.letsencrypt_challenge}}
 HOOK={{component.letsencrypt_hook}}
 DOMAINS_TXT={{component.domains_txt.path}}
 KEY_ALGO={{component.dehydrated_publickey_algo}}
-"""))
+"""
+                ),
+            )
             self.config = self._
 
             self += batou.lib.file.File(
-                self.expand('cert-{{component.domain}}.sh'),
-                content=pkg_resources.resource_string('batou_ext',
-                                                      'resources/cert.sh'),
-                mode=0o700)
+                self.expand("cert-{{component.domain}}.sh"),
+                content=pkg_resources.resource_string(
+                    "batou_ext", "resources/cert.sh"
+                ),
+                mode=0o700,
+            )
             self.cert_sh = self._
 
             self += batou.lib.cron.CronJob(
                 self.cert_sh.path,
                 timing=self.refresh_timing,
-                logger='cert-update')
+                logger="cert-update",
+            )
 
         if self.enable_check:
             self += CertificateCheck(self.domain)
@@ -209,20 +230,24 @@ KEY_ALGO={{component.dehydrated_publickey_algo}}
         if not os.path.isdir(self.key_dir):
             os.makedirs(self.key_dir)
         self.csr_file = tempfile.NamedTemporaryFile()
-        self.cmd('openssl genrsa -out {{component.key}} 2048')
-        self.cmd("""\
+        self.cmd("openssl genrsa -out {{component.key}} 2048")
+        self.cmd(
+            """\
 openssl req -new \
     -key {{component.key}} \
     -out {{component.csr_file.name}} \
     -batch \
     -subj "/CN={{component.domain}}/emailAddress=admin@{{component.domain}}/C=DE"
-""")  # noqa
-        self.cmd("""
+"""
+        )  # noqa
+        self.cmd(
+            """
 openssl x509 -req -days 3650 \
     -in {{component.csr_file.name}} \
     -signkey {{component.key}} \
     -out {{component.fullchain}}
-""")
+"""
+        )
         self.csr_file.close()
         del self.csr_file
 
@@ -247,7 +272,7 @@ class ActivateLetsEncrypt(batou.component.Component):
 
 class CertificateCheck(batou.component.Component):
 
-    namevar = 'public_name'
+    namevar = "public_name"
     warning_days = 25
     critical_days = 14
 
@@ -256,15 +281,16 @@ class CertificateCheck(batou.component.Component):
 
     def configure(self):
         self += batou.lib.nagios.ServiceCheck(
-            self.expand(
-                'https://{{component.public_name}} certificate valid?'),
-            name=self.expand('ssl_cert_{{component.public_name}}'),
-            command='check_http',
+            self.expand("https://{{component.public_name}} certificate valid?"),
+            name=self.expand("ssl_cert_{{component.public_name}}"),
+            command="check_http",
             args=self.expand(
-                '-H {{component.public_name}} '
-                '-p {{component.port}} '
-                '-S --sni '
-                '-C {{component.warning_days}},{{component.critical_days}}'))
+                "-H {{component.public_name}} "
+                "-p {{component.port}} "
+                "-S --sni "
+                "-C {{component.warning_days}},{{component.critical_days}}"
+            ),
+        )
 
 
 class CertificateCheckLocal(batou.component.Component):
@@ -282,9 +308,11 @@ class CertificateCheckLocal(batou.component.Component):
         critical_days=10)
 
     """
+
     _required_params_ = {
-        'name': 'cert', }
-    namevar = 'certificate_path'
+        "name": "cert",
+    }
+    namevar = "certificate_path"
     name = None
     warning_days = 25
     critical_days = 14
@@ -297,13 +325,15 @@ class CertificateCheckLocal(batou.component.Component):
             raise ValueError("Required name is missing from certificate check")
 
         self += batou.lib.file.File(
-            'cert_check_{}.sh'.format(self.name),
+            "cert_check_{}.sh".format(self.name),
             content=pkg_resources.resource_string(
-                __name__, "resources/ssl/local_certificate_check.sh"),
-            mode=0o755)
+                __name__, "resources/ssl/local_certificate_check.sh"
+            ),
+            mode=0o755,
+        )
         self.script = self._.path
         self += batou.lib.nagios.ServiceCheck(
-            self.expand('{{component.certificate_path}} certificate valid?'),
+            self.expand("{{component.certificate_path}} certificate valid?"),
             name=self.name,
             command=self.script,
         )

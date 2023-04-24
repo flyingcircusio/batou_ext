@@ -46,7 +46,8 @@ class RegexPatch(batou.component.Component):
     """
 
     _required_params_ = {
-        "pattern": "pattern", }
+        "pattern": "pattern",
+    }
     path = None
     namevar = "path"
 
@@ -82,14 +83,14 @@ class RegexPatch(batou.component.Component):
 
         m = self.pattern.search(self._source_data)
         assert m, "Could not configure, no match for pattern: {}".format(
-            self.pattern.pattern)
+            self.pattern.pattern
+        )
         if self._target_data != self._patch():
             raise batou.UpdateNeeded()
 
     def update(self):
         if not os.path.exists(self.source):
-            raise IOError("The file to be patched does not exist:",
-                          self.source)
+            raise IOError("The file to be patched does not exist:", self.source)
 
         if self._source_data is None:
             raise RuntimeError(

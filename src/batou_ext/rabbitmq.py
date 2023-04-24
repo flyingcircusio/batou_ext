@@ -32,7 +32,7 @@ import batou.lib.file
 
 class ErlangCookie(batou.component.Component):
 
-    path = '~/.erlang.cookie'
+    path = "~/.erlang.cookie"
     cookie = None
 
     def configure(self):
@@ -41,7 +41,7 @@ class ErlangCookie(batou.component.Component):
 
     def verify(self):
         try:
-            with open(self.path, 'r') as target:
+            with open(self.path, "r") as target:
                 current = target.read()
                 if current != self.cookie:
                     raise batou.UpdateNeeded()
@@ -53,35 +53,36 @@ class ErlangCookie(batou.component.Component):
 
     def update(self):
         os.chmod(self.path, 0o600)
-        with open(self.path, 'w') as target:
+        with open(self.path, "w") as target:
             target.write(self.cookie)
         os.chmod(self.path, 0o400)
 
 
 class VHost(batou.component.Component):
 
-    namevar = 'name'
+    namevar = "name"
     name = None
 
     def verify(self):
-        stdout, stderr = self.cmd('rabbitmqctl -q list_vhosts')
+        stdout, stderr = self.cmd("rabbitmqctl -q list_vhosts")
         vhosts = stdout.splitlines()
         if self.name not in vhosts:
             raise batou.UpdateNeeded()
 
     def update(self):
-        self.cmd('rabbitmqctl add_vhost {{component.name}}')
+        self.cmd("rabbitmqctl add_vhost {{component.name}}")
 
 
 class Permissions(batou.component.Component):
 
-    namevar = 'username'
+    namevar = "username"
     username = None
     permissions = None
 
     def verify(self):
         stdout, stderr = self.cmd(
-            'rabbitmqctl -q list_user_permissions {{component.username}}')
+            "rabbitmqctl -q list_user_permissions {{component.username}}"
+        )
         lines = stdout.splitlines()
         to_validate = self.permissions.copy()
         self.to_update = []
@@ -92,7 +93,7 @@ class Permissions(batou.component.Component):
                 # moved to `-s` in recent rabbit mq versions. Alas old
                 # versions don't support `-s`. So filter manually.
                 continue
-            vhost, conf, write, read = line.split('\t', 3)
+            vhost, conf, write, read = line.split("\t", 3)
             perms = to_validate.pop(vhost, None)
             if perms is None:
                 self.to_delete.append(vhost)
@@ -106,9 +107,11 @@ class Permissions(batou.component.Component):
         for vhost in self.to_delete:
             self.cmd(
                 self.expand(
-                    'rabbitmqctl clear_permissions'
-                    ' -p {{vhost}} {{component.username}}',
-                    vhost=vhost))
+                    "rabbitmqctl clear_permissions"
+                    " -p {{vhost}} {{component.username}}",
+                    vhost=vhost,
+                )
+            )
         for vhost in self.to_update:
             conf, write, read = self.permissions[vhost]
             self.cmd(
@@ -120,33 +123,35 @@ class Permissions(batou.component.Component):
                     conf=conf,
                     write=write,
                     read=read,
-                ))
+                )
+            )
 
 
 class User(batou.component.Component):
     """Create rabbitmq user."""
 
     _required_params_ = {
-        'tags': (), }
-    namevar = 'username'
+        "tags": (),
+    }
+    namevar = "username"
     username = None
     password = None
     tags = None
 
     def configure(self):
         self.tags = sorted(self.tags)
-        self.tags_str = ' '.join(self.tags)
+        self.tags_str = " ".join(self.tags)
 
     def verify(self):
-        stdout, stderr = self.cmd('rabbitmqctl -q list_users')
+        stdout, stderr = self.cmd("rabbitmqctl -q list_users")
         users = stdout.splitlines()
         self.create = True
         self.set_tags = True
         for line in users:
             if not line or line.startswith("user\t"):
                 continue
-            user, tags = line.split('\t', 1)
-            tags = sorted(tags[1:-1].split(', '))
+            user, tags = line.split("\t", 1)
+            tags = sorted(tags[1:-1].split(", "))
             if user == self.username:
                 self.create = False
                 if tags == self.tags:
@@ -157,27 +162,31 @@ class User(batou.component.Component):
 
     def update(self):
         if self.create:
-            self.cmd("rabbitmqctl add_user"
-                     " '{{component.username}}' '{{component.password}}'")
+            self.cmd(
+                "rabbitmqctl add_user"
+                " '{{component.username}}' '{{component.password}}'"
+            )
         if self.set_tags:
-            self.cmd('rabbitmqctl set_user_tags'
-                     ' {{component.username}} {{component.tags_str}}')
+            self.cmd(
+                "rabbitmqctl set_user_tags"
+                " {{component.username}} {{component.tags_str}}"
+            )
 
 
 class PurgeUser(batou.component.Component):
 
-    namevar = 'username'
+    namevar = "username"
     username = None
 
     def verify(self):
-        stdout, stderr = self.cmd('rabbitmqctl -q list_users')
+        stdout, stderr = self.cmd("rabbitmqctl -q list_users")
         users = stdout.splitlines()
         for line in users:
             if not line or line.startswith("user\t"):
                 continue
-            user, tags = line.split('\t', 1)
+            user, tags = line.split("\t", 1)
             if user == self.username:
                 raise batou.UpdateNeeded()
 
     def update(self):
-        self.cmd('rabbitmqctl delete_user {{component.username}}')
+        self.cmd("rabbitmqctl delete_user {{component.username}}")

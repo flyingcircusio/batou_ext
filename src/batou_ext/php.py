@@ -37,22 +37,24 @@ class Ini(batou.component.Component):
 
     def configure(self):
         self._extensions_dir = os.path.expanduser(
-            "~/.nix-profile/lib/php/extensions/")
+            "~/.nix-profile/lib/php/extensions/"
+        )
 
         if self.logs is None:
             self.logs = self.map("logs")
-        self += batou.lib.file.File(
-            self.logs, leading=True, ensure="directory")
+        self += batou.lib.file.File(self.logs, leading=True, ensure="directory")
         self.error_log = os.path.join(self.logs, "php-error.log")
         self += batou.lib.logrotate.RotatedLogfile(
             self.error_log,
-            postrotate='kill -USR1 $(cat {}/php-fpm.pid)'.format(self.workdir))
+            postrotate="kill -USR1 $(cat {}/php-fpm.pid)".format(self.workdir),
+        )
 
         # Providing a php.ini
         self += batou.lib.file.File(
             "php.ini",
-            content=pkg_resources.resource_string(__name__,
-                                                  "resources/php/php.ini"),
+            content=pkg_resources.resource_string(
+                __name__, "resources/php/php.ini"
+            ),
         )
         self.php_ini = self._
 
@@ -78,7 +80,7 @@ class FPM(batou.component.Component):
     port = 9001
 
     env = {}  # Additional environmental values for FPM
-    keep_env = batou.component.Attribute('literal', default=False)
+    keep_env = batou.component.Attribute("literal", default=False)
 
     dependency_strings = ()
 
@@ -95,12 +97,12 @@ class FPM(batou.component.Component):
         # Logging
         if self.logs is None:
             self.logs = self.map("logs")
-        self += batou.lib.file.File(
-            self.logs, leading=True, ensure="directory")
+        self += batou.lib.file.File(self.logs, leading=True, ensure="directory")
         self.slow_log = os.path.join(self.logs, "slow.log")
         self += batou.lib.logrotate.RotatedLogfile(
             self.slow_log,
-            postrotate='kill -USR1 $(cat {}/php-fpm.pid)'.format(self.workdir))
+            postrotate="kill -USR1 $(cat {}/php-fpm.pid)".format(self.workdir),
+        )
 
         # fpm.ini
 
@@ -111,7 +113,8 @@ class FPM(batou.component.Component):
         self += batou.lib.file.File(
             "php-fpm.conf",
             content=pkg_resources.resource_string(
-                __name__, "resources/php/php-fpm.conf"),
+                __name__, "resources/php/php-fpm.conf"
+            ),
         )
         self._checksum.update(self._.content)
         self.php_fpm_ini = self._.path
@@ -124,8 +127,9 @@ class FPM(batou.component.Component):
         self += batou.lib.file.File(
             self.name,
             mode=0o755,
-            content=pkg_resources.resource_string(__name__,
-                                                  "resources/php/php-fpm.sh"),
+            content=pkg_resources.resource_string(
+                __name__, "resources/php/php-fpm.sh"
+            ),
         )
         self._checksum.update(self._.content)
 

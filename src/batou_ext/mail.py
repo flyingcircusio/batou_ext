@@ -120,7 +120,9 @@ class Mailhog(batou.component.Component):
     mailport = batou.component.Attribute(int, 1025)
     uiport = batou.component.Attribute(int, 8025)
     apiport = batou.component.Attribute(int, 8025)
-    purge_old_mailhog_configs = batou.component.Attribute("literal", default=True)
+    purge_old_mailhog_configs = batou.component.Attribute(
+        "literal", default=True
+    )
     http_auth_enable = batou.component.Attribute("literal", default=False)
     http_basic_auth = None
 
@@ -142,7 +144,9 @@ class Mailhog(batou.component.Component):
             self += batou.lib.file.Purge("htdocs")
 
         self.address = batou.utils.Address(self.public_name, self.mailport)
-        self.address_ui = batou.utils.Address(self.public_smtp_name, self.uiport)
+        self.address_ui = batou.utils.Address(
+            self.public_smtp_name, self.uiport
+        )
 
         if self.http_auth_enable:
             if self.http_basic_auth is None:

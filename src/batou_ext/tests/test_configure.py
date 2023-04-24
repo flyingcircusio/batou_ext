@@ -26,8 +26,8 @@ def find_components_in(path, parents=()) -> List[object]:
         module = importlib.import_module(".".join(dotted_path))
         if ispkg:
             classes.extend(
-                find_components_in(
-                    module.__path__, parents=parents + (name, )))
+                find_components_in(module.__path__, parents=parents + (name,))
+            )
 
         for name in dir(module):
             obj = getattr(module, name)
@@ -47,12 +47,11 @@ def pytest_generate_tests(metafunc):
     """Generate a test for each component."""
     classes = find_components_in(batou_ext.__path__)
     idlist = [dotted_name(x) for x in classes]
-    argvalues = [(x, ) for x in classes]
+    argvalues = [(x,) for x in classes]
 
-    metafunc.parametrize(("component", ),
-                         argvalues,
-                         ids=idlist,
-                         scope="function")
+    metafunc.parametrize(
+        ("component",), argvalues, ids=idlist, scope="function"
+    )
 
 
 def dotted_name(cls):
@@ -100,50 +99,58 @@ def test_prepare(root, mocker, component):
     The `prepare` method itself calls the `configure` method.
     """
     mocker.patch("socket.gethostbyname", return_value="localhost")
-    args = ("namevar", ) if component.namevar else ()
+    args = ("namevar",) if component.namevar else ()
     required = getattr(component, "_required_params_", None)
     kw = required if required else {}
     instance = component(*args, **kw)
     component_name = dotted_name(component)
     if component_name in {
-            # expecting parent component to have a `crontab` attribute:
-            "batou_ext.nix.InstallCrontab", }:
+        # expecting parent component to have a `crontab` attribute:
+        "batou_ext.nix.InstallCrontab",
+    }:
         root.crontab = "crontab"
     elif component_name in {
-            # expecting a service user to be set and a `logrotate_conf`:
-            "batou_ext.nix.LogrotateIntegration", }:
+        # expecting a service user to be set and a `logrotate_conf`:
+        "batou_ext.nix.LogrotateIntegration",
+    }:
         root.environment.service_user = "service"
         root.logrotate_conf = Mock()
         root.logrotate_conf.content = "logrotate_conf content"
     elif component_name in {
-            # expecting `executable`, `systemd`, and `checksum` attributes on
-            # parent:
-            "batou_ext.nix.UserInit", }:
+        # expecting `executable`, `systemd`, and `checksum` attributes on
+        # parent:
+        "batou_ext.nix.UserInit",
+    }:
         root.executable = "my_script"
         root.systemd = {}
         root.checksum = 42
     elif component_name in {
-            # expecting that some objects can be required:
-            "batou_ext.postfixadmin.dovecot.PFADovecot",
-            "batou_ext.postfixadmin.postfix.PFAPostfix",
-            "batou_ext.postfixadmin.postgres.PFADatabase",
-            "batou_ext.postfixadmin.PFA", }:
+        # expecting that some objects can be required:
+        "batou_ext.postfixadmin.dovecot.PFADovecot",
+        "batou_ext.postfixadmin.postfix.PFAPostfix",
+        "batou_ext.postfixadmin.postgres.PFADatabase",
+        "batou_ext.postfixadmin.PFA",
+    }:
         MockPostfixProvider().prepare(root)
     elif component_name in {
-            # expecting that some objects can be required:
-            "batou_ext.roundcube.postgres.RoundcubeDatabase",
-            "batou_ext.roundcube.Roundcube", }:
+        # expecting that some objects can be required:
+        "batou_ext.roundcube.postgres.RoundcubeDatabase",
+        "batou_ext.roundcube.Roundcube",
+    }:
         MockRoundcubeProvider().prepare(root)
     elif component_name in {
-            # expecting to be able to connect to Amazon S3 with actual
-            # credentials:
-            "batou_ext.s3.S3", }:
+        # expecting to be able to connect to Amazon S3 with actual
+        # credentials:
+        "batou_ext.s3.S3",
+    }:
         mocker.patch("boto3.resource")
     elif component_name in {
-            "batou_ext.fcio.DNSAliases", }:
+        "batou_ext.fcio.DNSAliases",
+    }:
         instance._call = lambda: None
     elif component_name in {
-            "batou_ext.journalbeat.JournalBeatTransport", }:
+        "batou_ext.journalbeat.JournalBeatTransport",
+    }:
         instance.transport_name = "my_transport_name"
         instance.graylog_host = "my_graylog_host"
         instance.graylog_port = "my_graylog_port"
