@@ -18,15 +18,16 @@ Example::
             self += User(
                 self.username, password=self.password, tags=['management'])
             self += Permissions(
-                self.username, permissions={self.vhost: ('.*', '.*', '.*')}
+                self.username, permissions={self.vhost: ('.*', '.*', '.*')})
 
 """
+
+import os
+import stat
 
 import batou
 import batou.component
 import batou.lib.file
-import os
-import stat
 
 
 class ErlangCookie(batou.component.Component):
@@ -39,12 +40,15 @@ class ErlangCookie(batou.component.Component):
         self += batou.lib.file.Presence(self.path)
 
     def verify(self):
-        with open(self.path, 'r') as target:
-            current = target.read()
-            if current != self.cookie:
+        try:
+            with open(self.path, 'r') as target:
+                current = target.read()
+                if current != self.cookie:
+                    raise batou.UpdateNeeded()
+            current = os.stat(self.path).st_mode
+            if stat.S_IMODE(current) != 0o400:
                 raise batou.UpdateNeeded()
-        current = os.stat(self.path).st_mode
-        if stat.S_IMODE(current) != 0o400:
+        except FileNotFoundError:
             raise batou.UpdateNeeded()
 
     def update(self):
@@ -101,25 +105,29 @@ class Permissions(batou.component.Component):
     def update(self):
         for vhost in self.to_delete:
             self.cmd(
-                self.expand('rabbitmqctl clear_permissions'
-                            ' -p {{vhost}} {{component.username}}',
-                            vhost=vhost))
+                self.expand(
+                    'rabbitmqctl clear_permissions'
+                    ' -p {{vhost}} {{component.username}}',
+                    vhost=vhost))
         for vhost in self.to_update:
             conf, write, read = self.permissions[vhost]
             self.cmd(
-                self.expand("rabbitmqctl set_permissions"
-                            " -p {{vhost}} {{component.username}}"
-                            " '{{conf}}' '{{write}}' '{{read}}'",
-                            vhost=vhost,
-                            conf=conf,
-                            write=write,
-                            read=read,
-                            ))
+                self.expand(
+                    "rabbitmqctl set_permissions"
+                    " -p {{vhost}} {{component.username}}"
+                    " '{{conf}}' '{{write}}' '{{read}}'",
+                    vhost=vhost,
+                    conf=conf,
+                    write=write,
+                    read=read,
+                ))
 
 
 class User(batou.component.Component):
     """Create rabbitmq user."""
 
+    _required_params_ = {
+        'tags': (), }
     namevar = 'username'
     username = None
     password = None

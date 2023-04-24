@@ -4,8 +4,8 @@ Example for downloading a file::
 
 
     self += batou_ext.s3.S3(endpoint_url="https://my.s3.endpoint",
-                            access_token="1234567890ABCDEF",
-                            secret="very_secure!1!")
+                            access_key_id="1234567890ABCDEF",
+                            secret_access_key="very_secure!1!")
     self.s3 = self._
     self += batou_ext.s3.Download("my/file/from/bucket",
                                     bucketname="mybucket",
@@ -17,15 +17,22 @@ To make a bucket available, to e.g. the application::
     self += batou_ext.s3.Bucket('downloads', s3=self.s3)
 
 """
+import os
+from unittest.mock import Mock
+
 import batou.component
 import batou.utils
 import boto3
-import os
+import botocore.exceptions
 
 
 class S3(batou.component.Component):
     """Configuration for an S3 connection and its credentials."""
 
+    _required_params_ = {
+        'access_key_id': 'value',
+        'secret_access_key': 'value',
+        'endpoint_url': 'value', }
     endpoint_url = batou.component.Attribute(str)
     access_key_id = batou.component.Attribute(str)
     secret_access_key = batou.component.Attribute(str)
@@ -43,10 +50,11 @@ class Bucket(batou.component.Component):
 
     Usage::
 
-        self += batou_ext.s3.S3Bucket('downloads', s3=self.s3)
+        self += batou_ext.s3.Bucket('downloads', s3=self.s3)
 
     """
-
+    _required_params_ = {
+        's3': Mock(), }
     namevar = "bucketname"
     s3 = batou.component.Attribute()
 
@@ -67,11 +75,14 @@ class Download(batou.component.Component):
 
     Usage::
 
-        self += batou_ext.s3.S3Download("my/file/from/bucket"
+        self += batou_ext.s3.Download("my/file/from/bucket"
                                         s3,
                                         bucketname="mybucket")
     """
-
+    _required_params_ = {
+        'bucketname': 'bucket',
+        'target': 'target',
+        's3': Mock(), }
     namevar = 'key'
     s3 = batou.component.Attribute(str)
     key = batou.component.Attribute(str)
@@ -103,7 +114,13 @@ class Download(batou.component.Component):
                 raise batou.UpdateNeeded()
             with open(self.etag_file) as f:
                 current_etag = f.read()
-                if current_etag != self.obj.e_tag:
+                try:
+                    remote_etag = self.obj.e_tag
+                except botocore.exceptions.ClientError:
+                    # This usually means a 404. We'll pass the error to update
+                    # So the output actually becomes useful.
+                    raise batou.UpdateNeeded()
+                if current_etag != remote_etag:
                     raise batou.UpdateNeeded()
 
     def update(self):

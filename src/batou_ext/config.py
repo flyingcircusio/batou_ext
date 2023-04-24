@@ -1,18 +1,15 @@
-import batou.component
 import copy
-import json
 import os.path
 import re
-import yaml
+
+import batou.component
 
 
 def dict_merge(a, b):
     """recursively merges dict's. not just simple a['key'] = b['key'], if
     both a and b have a key who's value is a dict then dict_merge is called
     on both values and the result stored in the returned dictionary.
-
     https://www.xormedia.com/recursively-merge-dictionaries-in-python/
-
     """
     if not isinstance(b, dict):
         return b
@@ -28,93 +25,8 @@ def dict_merge(a, b):
     return result
 
 
-class CustomizeJson(batou.component.Component):
-    """Customize an existing JSON configuration.
-
-    The given configuration will be merged with the source configuration.
-
-    Usage::
-
-        self += batou_ext.config.CustomizeJson(
-            'target/config.json',
-            source='source/config.json',
-            config=dict(
-                a=37,
-                b=dict(c='foo')))
-
-    """
-
-    namevar = 'target'
-    source = None
-    config = None
-
-    def configure(self):
-        pass
-
-    def _generate(self):
-        with open(self.source, encoding='utf8') as f:
-            data = json.load(f)
-        return dict_merge(data, self.config)
-
-    def verify(self):
-        self._config = self._generate()
-        try:
-            with open(self.target, encoding='utf8') as f:
-                current_data = json.load(f)
-        except (IOError, ValueError):
-            raise batou.UpdateNeeded
-        if current_data != self._config:
-            raise batou.UpdateNeeded
-
-    def update(self):
-        with open(self.target, 'w', encoding='utf8') as f:
-            json.dump(self._config, f)
-
-
-class CustomizeYaml(batou.component.Component):
-    """Customize an existing YAML configuration.
-
-    The given configuration will be merged with the source configuration.
-
-    Usage::
-
-        self += batou_ext.config.CustomizeYaml(
-            'target/config.yml',
-            source='source/config.yml',
-            config=dict(
-                a=37,
-                b=dict(c='foo')))
-
-    """
-    namevar = 'target'
-    source = None
-    config = None
-
-    def _generate(self):
-        if self.source:
-            with open(self.source) as f:
-                data = yaml.load(f)
-        else:
-            data = {}
-        return dict_merge(data, self.config)
-
-    def verify(self):
-        self._config = self._generate()
-        try:
-            with open(self.target) as f:
-                current_data = yaml.load(f)
-        except (IOError, ValueError):
-            raise batou.UpdateNeeded
-        if current_data != self._config:
-            raise batou.UpdateNeeded
-
-    def update(self):
-        with open(self.target, 'wb') as f:
-            yaml.safe_dump(self._config, f, default_flow_style=False)
-
-
 class RegexPatch(batou.component.Component):
-    """Patch existing file with a regexp.
+    r"""Patch existing file with a regexp.
 
     Usage::
 
@@ -133,8 +45,10 @@ class RegexPatch(batou.component.Component):
 
     """
 
+    _required_params_ = {
+        "pattern": "pattern", }
     path = None
-    namevar = 'path'
+    namevar = "path"
 
     source = None
     pattern = None
@@ -157,13 +71,13 @@ class RegexPatch(batou.component.Component):
         if not os.path.exists(self.source):
             # During predict, the file might not exist.
             raise batou.UpdateNeeded()
-        with open(self.source, 'r') as f:
+        with open(self.source, "r") as f:
             self._source_data = f.read()
 
         if not os.path.exists(self.path):
             # During predict, the file might not exist.
             raise batou.UpdateNeeded()
-        with open(self.path, 'r') as f:
+        with open(self.path, "r") as f:
             self._target_data = f.read()
 
         m = self.pattern.search(self._source_data)
@@ -174,16 +88,16 @@ class RegexPatch(batou.component.Component):
 
     def update(self):
         if not os.path.exists(self.source):
-            raise IOError(
-                "The file to be patched does not exist:",
-                self.source)
+            raise IOError("The file to be patched does not exist:",
+                          self.source)
 
         if self._source_data is None:
             raise RuntimeError(
                 "The file to be patched seems to have no valid content:",
-                self.source)
+                self.source,
+            )
 
-        with open(self.path, 'w') as f:
+        with open(self.path, "w") as f:
             f.write(self._patch())
 
 
@@ -203,11 +117,13 @@ class MultiRegexPatch(batou.component.Component):
 
     """
 
-    namevar = 'path'
+    namevar = "path"
+    patterns = ()
 
     def configure(self):
         for pattern, replacement in self.patterns:
             self += RegexPatch(
                 self.path,
                 pattern=pattern,
-                replacement=self.parent.expand(replacement))
+                replacement=self.parent.expand(replacement),
+            )

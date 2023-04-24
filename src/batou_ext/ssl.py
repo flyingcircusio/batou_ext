@@ -1,14 +1,15 @@
+import hashlib
+import os
+import os.path
+import tempfile
+
 import batou.component
 import batou.lib.cron
 import batou.lib.download
 import batou.lib.file
 import batou.lib.nagios
-import hashlib
-import os
-import os.path
 import pkg_resources
 import six
-import tempfile
 
 
 class Certificate(batou.component.Component):
@@ -54,6 +55,8 @@ class Certificate(batou.component.Component):
     ... and add the crontab component to the nginx host in your environment.
 
     """
+    _required_params_ = {
+        'wellknown': 'hello', }
 
     # Let's Encrypt, dehydrated v0.7.0
     dehydrated_url = (
@@ -83,7 +86,7 @@ class Certificate(batou.component.Component):
     # OSCP stapling
     trusted_crt_content = None
 
-    use_letsencrypt = batou.component.Attribute('literal', True)
+    use_letsencrypt = batou.component.Attribute('literal', default=True)
 
     letsencrypt_ca = "https://acme-v02.api.letsencrypt.org/directory"
     letsencrypt_challenge = "http-01"
@@ -94,18 +97,19 @@ class Certificate(batou.component.Component):
 
     # Whether a certificate check should be deployed, too
     # You will need something like nrpehost or sensuchecks on the host
-    enable_check = batou.component.Attribute('literal', True)
+    enable_check = batou.component.Attribute('literal', default=True)
 
     _may_need_to_generate_certificates = False
 
     def configure(self):
         if not isinstance(self.alternative_names, (tuple, list)):
-            raise ValueError('"alternative_names" needs to be a tuple of string.')
+            raise ValueError(
+                '"alternative_names" needs to be a tuple of string.')
         if not self.refresh_timing:
-            h = int(hashlib.md5(
-                six.ensure_binary(self.domain, "UTF-8")).hexdigest(), 16)
-            self.refresh_timing = '{} {} * * *'.format(
-                h % 60, h % 24)
+            h = int(
+                hashlib.md5(six.ensure_binary(self.domain,
+                                              "UTF-8")).hexdigest(), 16)
+            self.refresh_timing = '{} {} * * *'.format(h % 60, h % 24)
         if self.key_content and not self.use_letsencrypt:
             self.crt_file = batou.lib.file.File(
                 os.path.join('{}/{}.crt'.format(self.workdir, self.domain)),
@@ -174,8 +178,8 @@ KEY_ALGO={{component.dehydrated_publickey_algo}}
 
             self += batou.lib.file.File(
                 self.expand('cert-{{component.domain}}.sh'),
-                content=pkg_resources.resource_string(
-                    'batou_ext', 'resources/cert.sh'),
+                content=pkg_resources.resource_string('batou_ext',
+                                                      'resources/cert.sh'),
                 mode=0o700)
             self.cert_sh = self._
 
@@ -248,7 +252,7 @@ class CertificateCheck(batou.component.Component):
     critical_days = 14
 
     # If HTTPS is not running on 443
-    port = batou.component.Attribute(int, 443)
+    port = batou.component.Attribute(int, default=443)
 
     def configure(self):
         self += batou.lib.nagios.ServiceCheck(
@@ -278,6 +282,8 @@ class CertificateCheckLocal(batou.component.Component):
         critical_days=10)
 
     """
+    _required_params_ = {
+        'name': 'cert', }
     namevar = 'certificate_path'
     name = None
     warning_days = 25
@@ -294,11 +300,10 @@ class CertificateCheckLocal(batou.component.Component):
             'cert_check_{}.sh'.format(self.name),
             content=pkg_resources.resource_string(
                 __name__, "resources/ssl/local_certificate_check.sh"),
-            mode=0o755
-            )
+            mode=0o755)
         self.script = self._.path
         self += batou.lib.nagios.ServiceCheck(
-            self.expand(
-                '{{component.certificate_path}} certificate valid?'),
+            self.expand('{{component.certificate_path}} certificate valid?'),
             name=self.name,
-            command=self.script,)
+            command=self.script,
+        )

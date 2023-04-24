@@ -1,7 +1,7 @@
 """Helper for Jenkins pipeline deployments."""
 
-import configparser
 import argparse
+import configparser
 import json
 import subprocess
 import sys
@@ -33,13 +33,12 @@ class VersionsUpdater:
 
     UPDATERS = {
         'git-resolve': 'update_git',
-        'pass': 'update_pass_value',
-    }
+        'pass': 'update_pass_value', }
 
     def __init__(self, versions_file, version_mapping_json):
         self.version_mapping = json.loads(version_mapping_json)
         self.versions_file = versions_file
-        self.config = configparser.SafeConfigParser()
+        self.config = configparser.ConfigParser()
         self.config.read(self.versions_file)
 
     def __call__(self):
@@ -119,8 +118,8 @@ def main():
     p.add_argument(
         'versions_file',
         help='Name of versions.ini. If exists it will be overwritten.')
-    p.add_argument('version_mapping_json',
-                   help='JSON: mapping of service: version')
+    p.add_argument(
+        'version_mapping_json', help='JSON: mapping of service: version')
     p.set_defaults(func=set_versions)
 
     args = parser.parse_args()

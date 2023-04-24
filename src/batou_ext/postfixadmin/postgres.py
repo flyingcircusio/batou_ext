@@ -1,9 +1,12 @@
 from batou.component import Component
+
 from batou_ext.postgres import DB, User
 
 
 class PFADatabase(Component):
 
+    _required_params_ = {
+        'password': 'tiger', }
     username = 'postfix'
     password = None
     database = 'postfix'

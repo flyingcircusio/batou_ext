@@ -1,11 +1,14 @@
+import glob
+import os
+import os.path
+import shutil
+import urllib.parse
+
 import batou.component
 import batou.lib.file
 import batou.lib.git
+
 import batou_ext.ssh
-import glob
-import os
-import shutil
-import urllib.parse
 
 
 class GitCheckout(batou.component.Component):
@@ -39,6 +42,10 @@ class GitCheckout(batou.component.Component):
     The option sync_parent_folder is allowing you to sync into a different
     folder than the current one.
     """
+    _required_params_ = {
+        'git_clone_url': 'https://example.com/repos',
+        'git_revision': 'commit-hash',
+        'git_target': '.', }
     git_host = None
     git_clone_url = None
     git_revision = None
@@ -58,7 +65,8 @@ class GitCheckout(batou.component.Component):
 
         if self.scan_host:
             if not self.git_host:
-                self.git_host = urllib.parse.urlparse(self.git_clone_url).hostname
+                self.git_host = urllib.parse.urlparse(
+                    self.git_clone_url).hostname
             if not self.git_port:
                 self.git_port = (
                     urllib.parse.urlparse(self.git_clone_url).port or 22)
@@ -79,19 +87,15 @@ class GitCheckout(batou.component.Component):
         # add custom files
         if self.sync_parent_folder:
             self.prepared_path = self.map('{}/prepared-{}'.format(
-                self.sync_parent_folder,
-                self.git_revision))
+                self.sync_parent_folder, self.git_revision))
         else:
             self.prepared_path = self.map('prepared-{}'.format(
                 self.git_revision))
-        self += batou.lib.file.Directory(
-            self.prepared_path,
-            leading=True)
+        self += batou.lib.file.Directory(self.prepared_path, leading=True)
         self += batou.lib.file.Directory(
             self.prepared_path,
             source=self.git_target,
-            exclude=(('.git',) + self.exclude)
-        )
+            exclude=(('.git', ) + self.exclude))
 
     def symlink_and_cleanup(self):
         return SymlinkAndCleanup(self.prepared_path)
@@ -114,9 +118,9 @@ class SymlinkAndCleanup(batou.component.Component):
             return None
 
     @staticmethod
-    def remove(l, el):
+    def remove(links, el):
         try:
-            l.remove(el)
+            links.remove(el)
         except ValueError:
             pass
 
@@ -171,6 +175,7 @@ class SymlinkAndCleanup(batou.component.Component):
 class Commit(batou.component.Component):
     """Commit a file."""
 
+    _required_params_ = {'message': 'text'}
     namevar = 'filename'
     message = None
     workingdir = '.'
@@ -188,8 +193,7 @@ class Commit(batou.component.Component):
         with self.chdir(self.workingdir):
             self.cmd("git config user.email '{{component.author_email}}'")
             self.cmd("git config user.name '{{component.author_name}}'")
-            self.cmd(
-                "git add {{component.filename}}")
+            self.cmd("git add {{component.filename}}")
             self.cmd(
                 "git commit -m '{{component.message}}' {{component.filename}}")
 
@@ -217,3 +221,41 @@ class Push(batou.component.Component):
         with self.chdir(self.workingdir):
             stdout, stderr = self.cmd('LANG=C git status')
         return 'Your branch is ahead of' in stdout
+
+
+class StopDeployOnLocalGitChange(batou.component.Component):
+    """
+    Helping to perform a git checkout to a target, that is not clean.
+
+    batou.lib.git.Clone() might overwrite local changes inside target directory -- whereas you want to stop the process instead.
+
+    Usage:
+    The component can be used before perfoming the actual git clone:
+
+        from batou.lib.git impot Clone
+        from batou_ext.git import StopDeployOnLocalGitChange
+
+        …
+        target = "/my/target/path"
+        self += StopDeployOnLocalGitChange(target)
+        self += Clone(
+            self.git_url,
+            revision="01234567abcd",
+            target=target)
+    """
+
+    namevar = "target"
+    target = None
+
+    def verify(self):
+        if not os.path.exists(self.target):
+            return
+        if not os.path.exists(os.path.join(self.target, ".git")):
+            return
+        with self.chdir(self.target):
+            stdout, stderr = self.cmd("git status --porcelain")
+        changes = bool(stdout.strip())
+        if changes:
+            raise RuntimeError(f"Deployment aborted:\n{stdout}\n{stderr}")
+
+

@@ -15,4 +15,3 @@ unset TMP
 unset TMPDIR
 
 exec -a $starter {{component.python}} "$@"
-

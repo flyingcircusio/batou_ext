@@ -1,23 +1,38 @@
+import difflib
+
 import batou
-import batou.component
-import batou.lib.file
+from batou.component import Attribute, Component
 
 
-class ACL(batou.component.Component):
-    path = ''
-    # A list of rules for setfacl. Each rule e.g. user::rwx needs to be
-    # one element of the list.
-    ruleset = []
+class ACL(Component):
+    """Replace a file's ACL."""
+
+    path = ""
+    namevar = "path"
+
+    # The complete new ACL. See `getfacl <filename>` for the format.
+    ruleset = Attribute(list)  # of str
 
     def update(self):
-        proc = self.cmd('setfacl --set-file=- "{}"'.format(self.path),
-                        communicate=False)
-        outs, errs = proc.communicate(input='\n'.join(self.ruleset))
+        rules = "\n".join(self.ruleset).encode("UTF-8")
+        proc = self.cmd(
+            f"setfacl --set-file=- '{self.path}'",
+            communicate=False,
+        )
+        outs, errs = proc.communicate(input=rules)
+        if proc.returncode > 0:
+            raise ValueError(f"setfacl error: {errs}")
 
     def verify(self):
-        proc = self.cmd(
-            'getfacl -cpE {}'.format(self.path),
-            communicate=False)
+        proc = self.cmd(f"getfacl -cpE '{self.path}'", communicate=False)
         outs, errs = proc.communicate()
-        if sorted(outs.strip().split('\n')) != sorted(self.ruleset):
+        outs = outs.decode("UTF-8", errors="replace").strip()
+        current_rules = sorted(outs.strip().split("\n"))
+        if current_rules != sorted(self.ruleset):
+            d = difflib.Differ()
+            l1 = "\n".join(current_rules).splitlines()
+            l2 = "\n".join(sorted(self.ruleset)).splitlines()
+            result = d.compare(l1, l2)
+            self.log("Updating ACL, diff:\n" + "\n".join(result))
+
             raise batou.UpdateNeeded
