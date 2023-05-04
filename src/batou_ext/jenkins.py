@@ -32,7 +32,6 @@ def git_resolve(url, version):
 
 
 class VersionsUpdater:
-
     UPDATERS = {
         "git-resolve": "update_git",
         "pass": "update_pass_value",
@@ -53,6 +52,8 @@ class VersionsUpdater:
 
         with open(self.versions_file, "w") as f:
             self.config.write(f)
+            # Remove the trailing newline, which pre-commit doesn't like:
+            f.truncate(f.tell() - 1)
 
     def update(self, service, version):
         update_mode = self.config[service].get("update", "git-resolve")
