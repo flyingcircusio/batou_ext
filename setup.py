@@ -27,6 +27,9 @@ setup(
             "pytest",
             "pytest-mock",
         ],
+        "version-select": [
+            "InquirerPy",
+        ],
     },
     author="Christian Theune <ct@flyingcircus.io>",
     author_email="ct@flyingcircus.io",
@@ -64,6 +67,7 @@ Programming Language :: Python :: 3 :: Only
         console_scripts=[
             "jenkins = batou_ext.jenkins:main",
             "fcio = batou_ext.fcio:main",
+            "versions = batou_ext.versions:main",
         ]
     ),
     zip_safe=False,
