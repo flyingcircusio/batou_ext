@@ -54,5 +54,6 @@ class Run(batou.component.Component):
         )
 
     def update(self):
+        self.touch(self.command_file.path)
         self.cmd(self.command_file.path)
         self.touch(f"{self.command_file.path}_stamp")
