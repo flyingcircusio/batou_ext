@@ -615,15 +615,21 @@ def component_to_nix(component: Component):
 
         if name.startswith("_"):
             pass
+        elif value is component:
+            pass
         elif inspect.ismethod(value) or inspect.isgenerator(value):
             pass
         elif name in ("sub_components", "changed"):
             pass
-        elif isinstance(value, RootComponent):
-            if value.component is not component:
-                attrs[name] = component_to_nix(value.component)
-        elif value is component:
+        elif isinstance(value, NixOSModuleContext):
             pass
+        elif isinstance(value, RootComponent):
+            if value.component is not component and component.parent is not \
+                    value.component:
+                attrs[name] = component_to_nix(value.component)
+        elif isinstance(value, Component):
+            if value is not component.parent:
+                attrs[name] = component_to_nix(value)
         elif isinstance(value, NixOSModuleContext):
             pass
         else:
