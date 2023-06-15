@@ -55,6 +55,7 @@ class GitCheckout(batou.component.Component):
     git_port = None
     exclude = ()
     sync_parent_folder = None
+    cleanup_checkout = batou.component.Attribute("literal", True)
 
     # Automatically scan the remote ssh hostkey (once)
     scan_host = True
@@ -86,6 +87,7 @@ class GitCheckout(batou.component.Component):
             self.git_clone_url,
             revision=self.git_revision,
             target=self.git_target,
+            clobber=self.cleanup_checkout
         )
 
         # Actually sync into a working copy where parent-component can
