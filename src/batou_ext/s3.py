@@ -25,6 +25,8 @@ import batou.utils
 import boto3
 import botocore.exceptions
 
+from batou_ext.file import SymlinkAndCleanup
+
 
 class S3(batou.component.Component):
     """Configuration for an S3 connection and its credentials."""
