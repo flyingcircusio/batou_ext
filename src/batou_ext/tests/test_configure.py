@@ -124,6 +124,8 @@ def test_prepare(root, mocker, component):
         root.executable = "my_script"
         root.systemd = {}
         root.checksum = 42
+    elif component_name in {"batou_ext.nix.UserEnv"}:
+        instance.channel = "test-channel"
     elif component_name in {
         # expecting that some objects can be required:
         "batou_ext.postfixadmin.dovecot.PFADovecot",

@@ -38,7 +38,6 @@ def test_set_versions_git_mode(tmpdir):
         [prog2]
         url = http://prog2
         update = git-resolve
-
     """
         )
         == ini.read_text(encoding="UTF-8")
@@ -57,7 +56,7 @@ def test_simple_value_update_mode(tmpdir):
                           [prog2]
                           url = http://prog2
                           update = pass:url
-                            """
+            """
         ),
         encoding="UTF-8",
     )
@@ -74,7 +73,6 @@ def test_simple_value_update_mode(tmpdir):
       [prog2]
       url = http://foobar
       update = pass:url
-
     """
         )
         == ini.read_text(encoding="UTF-8")

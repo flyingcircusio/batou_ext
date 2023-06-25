@@ -7,4 +7,4 @@ class Mailhog(Mailhog):
     def configure(self):
         super().configure()
         self.address_mail = self.address
-        self.address = self.address_http
+        self.address = self.address_ui
