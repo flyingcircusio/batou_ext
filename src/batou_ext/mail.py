@@ -140,6 +140,7 @@ class Mailhog(batou.component.Component):
         if self.purge_old_mailhog_configs:
             self += batou.lib.file.Purge("mailhog")
             self += batou.lib.file.Purge("mailhog_env")
+            self += batou.lib.file.Purge("/etc/local/systemd/mailhog.service")
             self += batou.lib.file.Purge("/etc/local/nginx/mailhog.conf")
             self += batou.lib.file.Purge("htdocs")
 
