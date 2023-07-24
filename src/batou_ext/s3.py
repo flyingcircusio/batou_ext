@@ -29,7 +29,13 @@ from batou_ext.file import SymlinkAndCleanup
 
 
 class S3(batou.component.Component):
-    """Configuration for an S3 connection and its credentials."""
+    """Configuration for an S3 connection and its credentials.
+
+    Keyword arguments:
+    access_key_id     -- The S3 access key ID
+    secret_access_key -- The S3 secret access key
+    endpoint_url      -- The S3 enpoint's URL
+    """
 
     _required_params_ = {
         "access_key_id": "value",
