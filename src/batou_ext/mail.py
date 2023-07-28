@@ -144,10 +144,8 @@ class Mailhog(batou.component.Component):
             self += batou.lib.file.Purge("/etc/local/nginx/mailhog.conf")
             self += batou.lib.file.Purge("htdocs")
 
-        self.address = batou.utils.Address(self.public_name, self.mailport)
-        self.address_ui = batou.utils.Address(
-            self.public_smtp_name, self.uiport
-        )
+        self.address = batou.utils.Address(self.public_smtp_name, self.mailport)
+        self.address_ui = batou.utils.Address(self.public_name, self.uiport)
 
         if self.http_auth_enable:
             if self.http_basic_auth is None:
