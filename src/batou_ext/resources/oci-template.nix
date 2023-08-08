@@ -17,8 +17,12 @@
   virtualisation.oci-containers = {
     backend = "docker";
     containers."{{component.container_name}}" = {
-      # {% if component.entrypoint != None %}
+      # {% if component.entrypoint %}
       entrypoint = "{{component.entrypoint}}";
+      # {% endif %}
+
+      # {% if component.docker_cmd %}
+      cmd = [ {% for cmd in component._docker_cmd_list %} "{{cmd}}" {% endfor %} ];
       # {% endif %}
 
       # {% if component.registry_address %}

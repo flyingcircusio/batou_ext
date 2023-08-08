@@ -1,6 +1,7 @@
 import hashlib
 import os
 import re
+import shlex
 from typing import Optional
 
 import pkg_resources
@@ -31,6 +32,7 @@ class Container(Component):
 
     # specific options
     entrypoint: Optional[str] = None
+    docker_cmd: Optional[str] = None
     envfile: Optional[str] = None
     mounts: dict = {}
     ports: dict = {}
@@ -66,6 +68,9 @@ class Container(Component):
             # spec version overrides the argument provided or default version
             if spec_tag:
                 self.version = spec_tag
+            else:
+                # append version to image string when passed seperately
+                self.image = f"{self.image}:{self.version}"
         else:
             raise RuntimeError(
                 f"could not match the docker spec against the provided container image string: '{self.image}'"
@@ -86,6 +91,9 @@ class Container(Component):
 {% endfor %}""",
             )
             self.envfile = self._
+
+        if self.docker_cmd:
+            self._docker_cmd_list = shlex.split(self.docker_cmd)
 
         self += File(
             f"/etc/local/nixos/docker_{self.container_name}.nix",
