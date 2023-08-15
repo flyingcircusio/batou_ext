@@ -104,12 +104,24 @@ class Container(Component):
         )
 
     def verify(self):
+        logintxt, _ = self.cmd(
+            self.expand(
+                "docker login -u {{component.registry_user}} -p {{component.registry_password}} {{component.registry_address}}"
+            )
+        )
+
         local_digest, stderr = self.cmd(
             "docker image inspect {{component.image}} | jq -r 'first | .RepoDigests | first | split(\"@\") | last' || echo image not available locally"
         )
         remote_digest, stderr = self.cmd(
             "docker manifest inspect {{component.image}} -v | jq -r 'if type ==\"array\" then (. | first) else . end | .Descriptor.digest'"
         )
+
+        # `docker manifest inspect` silently raises an error, returns code 0 when unathorized
+        if stderr == "unauthorized":
+            raise RuntimeError(
+                "Wrong credentials for remote container registry"
+            )
 
         if local_digest != remote_digest:
             raise UpdateNeeded()
