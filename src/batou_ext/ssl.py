@@ -102,6 +102,8 @@ class Certificate(batou.component.Component):
     # You will need something like nrpehost or sensuchecks on the host
     enable_check = batou.component.Attribute("literal", default=True)
 
+    granted_user = batou.component.Attribute(str, default="nginx")
+
     _may_need_to_generate_certificates = False
 
     def configure(self):
@@ -248,6 +250,8 @@ openssl x509 -req -days 3650 \
     -out {{component.fullchain}}
 """
         )
+        self.cert_dir = os.path.join(self.workdir, self.domain)
+        self.cmd(f"setfacl -Rm u:{self.granted_user}:rX {self.cert_dir}")
         self.csr_file.close()
         del self.csr_file
 
