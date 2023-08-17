@@ -128,13 +128,19 @@ class SystemdTimer(batou.component.Component):
 
     """
 
-    _required_params_ = {"command": "/bin/true", "onCalendar": "*/4 * * * * "}
+    _required_params_ = {"command": "/bin/true", "onCalendar": "02:00:00"}
 
     namevar = "tag"
     command = batou.component.Attribute(str)
     onCalendar = batou.component.Attribute(str)
     timeout = "1h"
     description = None
+    run_as = batou.component.Attribute(
+        str,
+        default=batou.component.ConfigString(
+            "{{component.environment.service_user}}"
+        ),
+    )
 
     def configure(self):
         if self.description is None:
@@ -177,7 +183,7 @@ class SystemdTimer(batou.component.Component):
                   description = "{{component.description}}";
                   serviceConfig = {
                     Type = "oneshot";
-                    User = "{{component.environment.service_user}}";
+                    User = "{{component.run_as}}";
                     ExecStart = "{{component.wrapped_command}}";
                     TimeoutStartSec = "{{component.timeout}}";
                   };
