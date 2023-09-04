@@ -19,6 +19,39 @@ class Container(Component):
     A OCI Container component.
     With this component you can dynamically schedule docker containers to be run on the target host
 
+    Note: Docker image specifiers do not follow a properly resolvable pattern.
+        Therefore, container registries have to be specified seperately if you need to log in before.
+        If you do not provide a container registry, docker will use the default one for authentication.
+        You can choose to also append the image attribute with the registry but this module will do so
+        automatically.
+
+        ```
+        # the following two call are identical:
+        self += batou_ext.oci.Container(
+            image="foo",
+            registry_address="test.registry",
+            registry_user="foo",
+            registry_password="bar")
+
+        self += batou_ext.oci.Container(
+            image="test.registry/foo",
+            registry_address="test.registry",
+            registry_user="foo",
+            registry_password="bar")
+
+        # However, this will fail since docker will try to log into the default container registry
+        # with the provided credentials and then pull the image from the registry specified in the image string
+        self += batou_ext.oci.Container(
+            image="test.registry/foo",
+            registry_user="foo",
+            registry_password="bar")
+
+
+        # if you don't need to authenticate, not explicitly specifying the registry is fine of course
+        # and it will pull the image from the correct registry
+        self += batou_ext.oci.Container(image="test.registry/foo")
+        ```
+
     Example:
     ```
     self += batou_ext.oci.Container(image = "mysql", version = "8.0")
@@ -43,38 +76,29 @@ class Container(Component):
     registry_user = Attribute(Optional[str], None)
     registry_password = Attribute(Optional[str], None)
 
-    # internal use
-    _specifier_pattern = r"^(?:(?P<registry>[^\/]+)\/)?(?P<container>[^:]+)(?::(?P<tag>[^\/]+))?$"
     _required_params_ = {
         "image": "mysql",
     }
 
     def configure(self):
-        match = re.match(self._specifier_pattern, self.image)
-
-        if match:
-            spec_registry = match.group("registry")
-            spec_containername = match.group("container")
-            spec_tag = match.group("tag")
-
-            # the image-provided registry addresss overrides the default one
-            if spec_registry:
-                self.registry_address = spec_registry
-
-            # the container_name argument overrides the image-provided container specifier
-            if not self.container_name:
-                self.container_name = spec_containername.replace("/", "_")
-
-            # spec version overrides the argument provided or default version
-            if spec_tag:
-                self.version = spec_tag
-            else:
-                # append version to image string when passed seperately
-                self.image = f"{self.image}:{self.version}"
-        else:
-            raise RuntimeError(
-                f"could not match the docker spec against the provided container image string: '{self.image}'"
+        if (
+            self.registry_user or self.registry_password
+        ) and not self.registry_address:
+            batou.output.warn(
+                "WARN: you might want to specify the registry explicitly unless you really intend to log into the default docker registry"
             )
+
+        parts = self.image.split(":")
+
+        if len(parts) > 1:
+            self.version = parts[1]
+        else:
+            self.image = f"{self.image}:{self.version}"
+
+        if self.registry_address and not self.image.startswith(
+            self.registry_address
+        ):
+            self.image = f"{self.registry_address}{'/' if not self.registry_address.endswith('/') else ''}{self.image}"
 
         if self.registry_password:
             self += File(
@@ -104,11 +128,19 @@ class Container(Component):
         )
 
     def verify(self):
-        logintxt, _ = self.cmd(
-            self.expand(
-                "docker login -u {{component.registry_user}} -p {{component.registry_password}} {{component.registry_address}}"
+        if self.registry_address:
+            logintxt, _ = self.cmd(
+                self.expand(
+                    """
+                    docker login \\
+                        {%- if component.registry_user and component.registry_password %}
+                        -u {{component.registry_user}} \\
+                        -p {{component.registry_password}} \\
+                        {%- endif %}
+                        {{component.registry_address}}
+                """
+                )
             )
-        )
 
         local_digest, stderr = self.cmd(
             "docker image inspect {{component.image}} | jq -r 'first | .RepoDigests | first | split(\"@\") | last' || echo image not available locally"
