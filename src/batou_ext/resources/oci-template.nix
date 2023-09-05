@@ -25,16 +25,16 @@
       cmd = [ {% for cmd in component._docker_cmd_list %} "{{cmd}}" {% endfor %} ];
       # {% endif %}
 
-      # {% if component.registry_address %}
       login = {
+        # {% if component.registry_address %}
         registry = "{{component.registry_address}}";
+        # {% endif %}
 
         # {% if component.registry_user and component.registry_password %}
         username = "{{component.registry_user}}";
         passwordFile = "{{component.password_file.path}}";
         # {% endif %}
       };
-      # {% endif %}
 
       extraOptions = [ "--pull=always" ];
 
