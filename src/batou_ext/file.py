@@ -19,12 +19,16 @@ class SymlinkAndCleanup(batou.component.Component):
 
     namevar = "current"
     pattern = None
+    _current_link = None
+    _last_link = None
+
     prefix = None
 
-    _current_link = f"{prefix}-current" if prefix else "current"
-    _last_link = f"{prefix}-last" if prefix else "last"
-
     def configure(self):
+        self._current_link = (
+            f"{self.prefix}-current" if self.prefix else "current"
+        )
+        self._last_link = f"{self.prefix}-last" if self.prefix else "last"
         self.dir = os.path.dirname(self.current)
         self.current = os.path.basename(self.current)
 
