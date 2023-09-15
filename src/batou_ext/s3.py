@@ -74,8 +74,12 @@ class Bucket(batou.component.Component):
         self.bucket = self.s3.client.Bucket(self.bucketname)
 
     def verify(self):
-        if not self.bucket.creation_date:
-            raise batou.UpdateNeeded()
+        try:
+            if not self.bucket.creation_date:
+                raise batou.UpdateNeeded()
+        except botocore.exceptions.ClientError as error:
+            self.log(f"Error while checking for bucket {self.bucketname}")
+            raise error
 
     def update(self):
         self.bucket.create()
