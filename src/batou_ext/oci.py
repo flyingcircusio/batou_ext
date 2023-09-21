@@ -88,11 +88,7 @@ class Container(Component):
                 "WARN: you might want to specify the registry explicitly unless you really intend to log into the default docker registry"
             )
 
-        parts = self.image.split(":")
-
-        if len(parts) > 1:
-            self.version = parts[1]
-        else:
+        if self.version:
             self.image = f"{self.image}:{self.version}"
 
         if self.registry_address and not self.image.startswith(
