@@ -153,3 +153,6 @@ class Container(Component):
 
         if local_digest != remote_digest:
             raise UpdateNeeded()
+
+    def update(self):
+        self.cmd(f"sudo systemctl restart docker-{self.container_name}")
