@@ -1,7 +1,12 @@
+import collections
+import hashlib
 import inspect
+import json
+import os
 import os.path
-
-from batou.component import Component, RootComponent
+import shlex
+import subprocess
+import time
 from pathlib import Path
 
 import batou
@@ -13,31 +18,25 @@ import batou.lib.nagios
 import batou.lib.service
 import batou.lib.supervisor
 import batou.utils
-import collections
-import hashlib
-import json
-import os
 import pkg_resources
-import shlex
-import subprocess
-import time
 from batou import (
+    IPAddressConfigurationError,
     ReportingException,
     UpdateNeeded,
     output,
-    IPAddressConfigurationError,
 )
+from batou.component import Component, RootComponent
 from batou.environment import Environment
 from batou.host import Host
 from batou.lib.file import (
-    ManagedContentBase,
     File,
-    Presence,
+    Group,
+    ManagedContentBase,
     Mode,
     Owner,
-    Group,
+    Presence,
 )
-from batou.utils import NetLoc, Address
+from batou.utils import Address, NetLoc
 
 
 class Package(batou.component.Component):
@@ -89,7 +88,6 @@ class Package(batou.component.Component):
 
 
 class PurgePackage(batou.component.Component):
-
     namevar = "package"
 
     def verify(self):
@@ -524,7 +522,10 @@ def mapping_to_nix(obj):
 
 
 def str_to_nix(value):
-    value = value.replace("${", "\\${")
+    # https://nixos.org/manual/nix/stable/language/values.html#type-string
+    value = (
+        value.replace("\\", "\\\\").replace("${", "\\${").replace('"', '\\"')
+    )
     return f'"{value}"'
 
 
@@ -612,7 +613,6 @@ def component_to_nix(component: Component):
     attrs = {}
 
     for name, value in inspect.getmembers(component):
-
         if name.startswith("_"):
             pass
         elif value is component:
@@ -624,8 +624,10 @@ def component_to_nix(component: Component):
         elif isinstance(value, NixOSModuleContext):
             pass
         elif isinstance(value, RootComponent):
-            if value.component is not component and component.parent is not \
-                    value.component:
+            if (
+                value.component is not component
+                and component.parent is not value.component
+            ):
                 attrs[name] = component_to_nix(value.component)
         elif isinstance(value, Component):
             if value is not component.parent:
@@ -656,7 +658,6 @@ class NixSyntaxCheckFailed(ReportingException):
 
 
 class NixContent(ManagedContentBase):
-
     format_nix_code = False
     check_nix_syntax = True
 
@@ -664,7 +665,6 @@ class NixContent(ManagedContentBase):
         pass
 
     def verify(self, predicting=False):
-
         update_needed = False
 
         if self.format_nix_code:
@@ -687,7 +687,6 @@ class NixContent(ManagedContentBase):
             update_needed = True
 
         if self.check_nix_syntax:
-
             try:
                 subprocess.run(
                     ["nix-instantiate", "--parse", "-"],
@@ -709,7 +708,6 @@ class NixContent(ManagedContentBase):
 
 
 class NixFile(File):
-
     format_nix_code = False
 
     def configure(self):
@@ -750,7 +748,6 @@ class NixFile(File):
                     )
                 )
         if self.content or self.source:
-
             content = NixContent(
                 self.path,
                 source=self.source,
