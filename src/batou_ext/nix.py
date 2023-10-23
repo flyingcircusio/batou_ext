@@ -102,7 +102,6 @@ class UserEnv(batou.component.Component):
                     "yarn",
                     "zip",
                 ],
-                channel="<nixos-channel-base-url-to-be-put-in>/nixexprs.tar.xz"
                 shellInit="# additional shell init")
 
     A list of available channels can be found at e.g.
@@ -110,29 +109,29 @@ class UserEnv(batou.component.Component):
     """
 
     namevar = "profile_name"
-    channel = batou.component.Attribute(str)
     shellInit = ""
     packages = ()
     let_extra = ""
+    channel = None
 
     def configure(self):
-        self.checksum = hashlib.sha256()
+        if self.channel:
+            batou.output.step(
+                "WARNING",
+                "using `channel` with UserEnv is deprecated, please remove it from your deployment code.",
+                yellow=True,
+            )
+
         template = pkg_resources.resource_string(
             __name__, "resources/userenv.nix"
         ).decode("UTF-8")
         self.profile = self.expand(template).encode("UTF-8")
-        self.checksum.update(self.profile)
-        self.nix_env_name = self.expand(
-            "{{component.profile_name}}-1.{{component.checksum.hexdigest()}}"
-        )
+
         self += batou.lib.file.File(
-            self.profile_name + ".nix", content=self.profile
+            f"/etc/local/nixos/profile-{self.profile_name}.nix",
+            content=self.profile,
         )
-        self += Package(self.nix_env_name, file=self._.path)
-        self.user_profile_path = os.path.expanduser(
-            "~/.nix-profile/etc/profile.d/{}.sh".format(self.profile_name)
-        )
-        self.user_bin_path = os.path.expanduser("~/.nix-profile/bin")
+        self.user_profile_path = "/etc/profile"
 
 
 class Rebuild(batou.component.Component):
