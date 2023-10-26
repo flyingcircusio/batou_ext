@@ -31,19 +31,15 @@ setup(
             "InquirerPy",
         ],
     },
-    author="Christian Theune <ct@flyingcircus.io>",
-    author_email="ct@flyingcircus.io",
+    author="Flying Circus <support@flyingcircus.io>",
+    author_email="support@flyingcircus.io",
     license="BSD (2-clause)",
-    url="https://plan.flyingcircus.io/projects/batou/",
+    url="https://github.com/flyingcircusio/batou_ext",
     keywords="deployment",
     classifiers="""\
 License :: OSI Approved :: BSD License
 Programming Language :: Python
 Programming Language :: Python :: 3
-Programming Language :: Python :: 3.6
-Programming Language :: Python :: 3.7
-Programming Language :: Python :: 3.8
-Programming Language :: Python :: 3.9
 Programming Language :: Python :: 3 :: Only
 """[
         :-1
@@ -55,8 +51,7 @@ Programming Language :: Python :: 3 :: Only
         open(project_path(name)).read()
         for name in (
             "README.md",
-            "CHANGES.txt",
-            "HACKING.txt",
+            "CHANGES.md",
         )
     ),
     packages=find_packages("src"),
