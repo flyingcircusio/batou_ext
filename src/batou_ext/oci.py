@@ -111,6 +111,8 @@ class Container(Component):
 {% endfor %}""",
             )
             self.envfile = self._
+        else:
+            self += envfile
 
         if self.docker_cmd:
             self._docker_cmd_list = shlex.split(self.docker_cmd)
