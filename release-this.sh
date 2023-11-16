@@ -29,7 +29,7 @@ python3 -m venv .
 bin/pip install zest.releaser scriv
 
 bin/scriv collect
-sed  -i .orig '/- Nothing changed yet./ { N; d; } ' CHANGES.txt
+sed  -i .orig '/- Nothing changed yet./ { N; d; } ' CHANGES.md
 git add -A .
 git status
 PAGER= git diff --cached
