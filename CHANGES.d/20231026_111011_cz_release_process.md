@@ -1,0 +1,1 @@
+- Add release process with changelog (FC-33250).
