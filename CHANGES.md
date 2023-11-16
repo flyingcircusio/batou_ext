@@ -2,7 +2,7 @@
 ## 2.4.1 (unreleased)
 
 
-- Nothing changed yet.
+* Add `*.md` to the release, so it can actually be used.
 
 
 ## 2.4.0 (2023-11-16)
