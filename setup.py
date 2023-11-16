@@ -54,6 +54,7 @@ Programming Language :: Python :: 3 :: Only
             "CHANGES.md",
         )
     ),
+    long_description_content_type="text/markdown",
     packages=find_packages("src"),
     package_dir={"": "src"},
     include_package_data=True,
