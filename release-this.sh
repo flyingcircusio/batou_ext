@@ -27,6 +27,7 @@ cd $(dirname $0)
 chmod u+w bin/*ctivate*
 python3 -m venv .
 bin/pip install zest.releaser scriv
+bin/pip install -e .
 
 bin/scriv collect
 sed  -i .orig '/- Nothing changed yet./ { N; d; } ' CHANGES.md
