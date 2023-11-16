@@ -24,7 +24,7 @@ if [ -n "$changes" ]; then
 fi
 
 cd $(dirname $0)
-chmod u+w bin/*ctivate*
+chmod u+w bin/*ctivate* || true
 python3 -m venv .
 bin/pip install zest.releaser scriv
 bin/pip install -e .
