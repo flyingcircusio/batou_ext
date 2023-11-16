@@ -1,4 +1,4 @@
 
 ### 0.1 (unreleased)
 
-- Nothing changed yet.
+- Add release process with changelog (FC-33250).
