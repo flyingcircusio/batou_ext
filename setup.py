@@ -13,7 +13,7 @@ def project_path(*names):
 
 setup(
     name="batou_ext",
-    version="2.3.dev0",
+    version="2.4.0",
     install_requires=[
         "batou >= 2.3b4",
         "pyaml",
