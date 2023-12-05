@@ -126,6 +126,9 @@ class Mailhog(batou.component.Component):
     http_auth_enable = batou.component.Attribute("literal", default=False)
     http_basic_auth = None
 
+    systemd_namespace = batou.component.Attribute(str, default="")
+    disable_stdout = batou.component.Attribute("literal", default=False)
+
     # Either memory or maildir
     # mongodb is not yet supported
     storage_engine = batou.component.Attribute(str, default="memory")
