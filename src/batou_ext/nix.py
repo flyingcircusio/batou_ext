@@ -72,10 +72,16 @@ class PurgePackage(batou.component.Component):
 
     def verify(self):
         try:
-            self.cmd("nix-env --query {{component.package}}")
+            self.cmd(f"nix-env --query {self.package}")
             raise batou.UpdateNeeded()
         except batou.utils.CmdExecutionError as e:
-            e.report()
+            if e.stderr.endswith("matches no derivations"):
+                batou.output.annotate(
+                    f"Could not find package to purge: {self.package}",
+                    yellow=True,
+                )
+            else:
+                e.report()
 
     def update(self):
         self.cmd("nix-env --uninstall {{component.package}}")
