@@ -135,6 +135,7 @@ class SystemdTimer(batou.component.Component):
     onCalendar = batou.component.Attribute(str)
     timeout = "1h"
     description = None
+    additional_service_config = None
     run_as = batou.component.Attribute(
         str,
         default=batou.component.ConfigString(
@@ -186,6 +187,11 @@ class SystemdTimer(batou.component.Component):
                     User = "{{component.run_as}}";
                     ExecStart = "{{component.wrapped_command}}";
                     TimeoutStartSec = "{{component.timeout}}";
+                    {%- if component.additional_service_config is not none %}
+                    {%- for setting, value in component.additional_service_config.items() %}
+                    {{ setting }} = {{ value }};
+                    {%- endfor %}
+                    {%- endif %}
                   };
                 };
               }
