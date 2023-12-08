@@ -1,5 +1,5 @@
 
-## 2.4.2 (unreleased)
+## 2.4.2 (2023-12-08)
 
 
 * Make it possible to add arbitrary additional configuration to a service created by a `SystemdTimer()`.
