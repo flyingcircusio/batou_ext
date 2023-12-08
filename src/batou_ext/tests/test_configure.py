@@ -93,7 +93,7 @@ class MockRoundcubeProvider(Component):
         self.provide("roundcube::database", self)
 
 
-def test_prepare(root, mocker, component):
+def test_prepare(root, mocker, component, tmpdir):
     """Assert that the `prepare` method of batou_ext components can be called.
 
     The `prepare` method itself calls the `configure` method.
@@ -102,8 +102,10 @@ def test_prepare(root, mocker, component):
     args = ("namevar",) if component.namevar else ()
     required = getattr(component, "_required_params_", None)
     kw = required if required else {}
+
     instance = component(*args, **kw)
     component_name = dotted_name(component)
+
     if component_name in {
         # expecting parent component to have a `crontab` attribute:
         "batou_ext.nix.InstallCrontab",
@@ -156,5 +158,14 @@ def test_prepare(root, mocker, component):
         instance.transport_name = "my_transport_name"
         instance.graylog_host = "my_graylog_host"
         instance.graylog_port = "my_graylog_port"
-
+    elif component_name == "batou_ext.nix.NixFile":
+        instance.content = ""
+    elif component_name == "batou_ext.nixos.NixOSModuleContext":
+        instance.source_component = instance
+        root.environment.deployment_base = "/does-not-exist"
+    elif component_name == "batou_ext.nixos.NixOSModule":
+        # This cannot be used as root component and the setup is all wrong.
+        return
+        # instance.name = "mymod"
+        # (tmpdir / "mymod.nix").write_text("{}", encoding="US-ASCII")
     instance.prepare(root)
