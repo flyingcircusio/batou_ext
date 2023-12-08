@@ -2,7 +2,9 @@
 ## 2.4.2 (unreleased)
 
 
-- Nothing changed yet.
+* Make it possible to add arbitrary additional configuration to a service created by a `SystemdTimer()`.
+
+* Add `nixos.NixOSModule` to inject component attributes into .nix files.
 
 
 ## 2.4.1 (2023-11-16)
