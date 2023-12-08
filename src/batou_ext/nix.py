@@ -502,7 +502,7 @@ class PythonWithNixPackages(batou.component.Component):
         self.cmd("./{} -c True".format(self.python))
 
 
-def nix_dict_to_nix(dct: dict[str, str]):
+def nix_dict_to_nix(dct):
     """Converts a dict with values that are already nixified to Nix code."""
     content = " ".join(f"{n} = {v};" for n, v in dct.items())
     return "{ " + content + " }"
@@ -515,9 +515,12 @@ def seq_to_nix(seq):
 
 def mapping_to_nix(obj):
     # XXX: only str keys for now
-    converted = {
-        k: conv for k, v in obj.items() if (conv := value_to_nix(v)) is not None
-    }
+
+    converted = {}
+    for k, v in obj.items():
+        conv = value_to_nix(v)
+        if conv is not None:
+            converted[k] = conv
     return nix_dict_to_nix(converted)
 
 
