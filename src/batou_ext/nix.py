@@ -600,6 +600,8 @@ def value_to_nix(value):
         return seq_to_nix(value)
     elif isinstance(value, Component):
         return component_to_nix(value)
+    elif isinstance(value, Timer):
+        return component_to_nix(value)
     elif isinstance(value, Address):
         return nix_dict_to_nix(address_to_nix_dict(value))
     elif isinstance(value, Host):
