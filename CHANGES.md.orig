@@ -1,10 +1,16 @@
 
-## 2.4.2 (unreleased)
+## 2.4.3 (unreleased)
 
 
 - Nothing changed yet.
 
-Make it possible to add arbitrary additional configuration to a service created by a SystemdTimer().
+- Improve output handling for the `PurgePackage` component. Will not appear like a fatal error in logs anymore when the package has been purged already or is not installed for another reason
+
+
+## 2.4.2 (2023-12-08)
+
+
+* Make it possible to add arbitrary additional configuration to a service created by a `SystemdTimer()`.
 
 * Add `nixos.NixOSModule` to inject component attributes into .nix files.
 

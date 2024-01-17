@@ -2,7 +2,7 @@
 ## 2.4.3 (unreleased)
 
 
-- Nothing changed yet.
+- Improve output handling for the `PurgePackage` component. Will not appear like a fatal error in logs anymore when the package has been purged already or is not installed for another reason
 
 
 ## 2.4.2 (2023-12-08)
