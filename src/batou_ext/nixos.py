@@ -3,7 +3,12 @@ from pathlib import Path
 from batou.component import Component
 from batou.lib.file import Purge
 
-from batou_ext.nix import NixFile, component_to_nix, nix_dict_to_nix
+from batou_ext.nix import (
+    NixFile,
+    component_to_nix,
+    nix_dict_to_nix,
+    value_to_nix,
+)
 
 # XXX: error messages stemming from the "batouModule" are displayed with
 # wrong location information, it shows the glue module instead of the actual
@@ -35,7 +40,10 @@ class NixOSModuleContext(Component):
             component = self.parent
 
         context = nix_dict_to_nix(
-            {"args": self.args, "component": component_to_nix(component)}
+            {
+                "args": value_to_nix(self.args),
+                "component": component_to_nix(component),
+            }
         )
 
         if self.prefix is None:
