@@ -593,7 +593,7 @@ def value_to_nix(value):
     elif isinstance(value, bool):
         return str(value).lower()
     elif value is None:
-        return None
+        return "null"
     elif isinstance(value, int):
         return str(value)
     elif isinstance(value, Path):
