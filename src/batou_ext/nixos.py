@@ -22,18 +22,21 @@ in
 
 
 class NixOSModuleContext(Component):
+    """Provides the context "data" to a nixos module."""
 
     source_component: Component = None
     prefix: str = None
+    args: dict = None
 
     def configure(self):
-
         if self.source_component:
             component = self.source_component
         else:
             component = self.parent
 
-        context = nix_dict_to_nix({"component": component_to_nix(component)})
+        context = nix_dict_to_nix(
+            {"args": self.args, "component": component_to_nix(component)}
+        )
 
         if self.prefix is None:
             self.prefix = component.__class__.__name__.lower()
@@ -46,22 +49,24 @@ class NixOSModuleContext(Component):
 
 
 class NixOSModule(Component):
-
     namevar = "name"
 
     name: str
     path: Path = Path("/etc/local/nixos")
     context = None
+    args = None
 
     def configure(self):
-
         self += NixFile(f"{self.name}.nix")
 
         if self.context is None:
             if hasattr(self.parent, "nixos_context"):
                 self.context = self.parent.nixos_context
             else:
-                self.context = NixOSModuleContext(source_component=self.parent)
+                self.context = NixOSModuleContext(
+                    source_component=self.parent,
+                    args=self.args,
+                )
                 self.parent.nixos_context = self.context
                 self.parent += self.context
 
