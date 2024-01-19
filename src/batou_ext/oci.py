@@ -4,6 +4,7 @@ import re
 import shlex
 from typing import Optional
 
+import batou
 import pkg_resources
 from batou import UpdateNeeded
 from batou.component import Attribute, Component
@@ -152,7 +153,11 @@ class Container(Component):
             )
 
         if local_digest != remote_digest:
+            batou.output.line(
+                f"Local digest differs from remote digest: {local_digest} != {remote_digest}, need an update()"
+            )
             raise UpdateNeeded()
 
     def update(self):
+        batou.output.line(f"Restarting docker-{self.container_name}.service")
         self.cmd(f"sudo systemctl restart docker-{self.container_name}")
