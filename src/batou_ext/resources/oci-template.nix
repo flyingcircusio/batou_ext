@@ -52,6 +52,13 @@
         "{{key}}:{{value}}"
       # {% endfor %}
       ];
+
+      dependsOn = [
+      # {% for value in component.depends_on  %}
+        "{{value}}"
+      # {% endfor %}
+
+      ];
     };
   };
 }

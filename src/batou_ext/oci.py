@@ -70,6 +70,7 @@ class Container(Component):
     mounts: dict = {}
     ports: dict = {}
     env: dict = {}
+    depends_on: list = None
 
     # secrets
     registry_address = Attribute(Optional[str], None)
@@ -93,8 +94,12 @@ class Container(Component):
         if self.version:
             self.image = f"{self.image}:{self.version}"
 
-        if self.registry_address and not self.image.startswith(
+        if (
             self.registry_address
+            # This is for the strange case of index.docker.io where you have
+            # to set the registry_address to `https://index.docker.io/v1/`
+            and not self.registry_address.startswith("https://")
+            and not self.image.startswith(self.registry_address)
         ):
             self.image = f"{self.registry_address}{'/' if not self.registry_address.endswith('/') else ''}{self.image}"
 
@@ -116,6 +121,9 @@ class Container(Component):
 
         if self.docker_cmd:
             self._docker_cmd_list = shlex.split(self.docker_cmd)
+
+        if not self.depends_on:
+            self.depends_on = []
 
         self += File(
             f"/etc/local/nixos/docker_{self.container_name}.nix",
