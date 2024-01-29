@@ -3,10 +3,10 @@ import shlex
 from textwrap import dedent
 from typing import Optional
 
-import batou
 from batou import UpdateNeeded
 from batou.component import Attribute, Component
 from batou.lib.file import File
+from batou.utils import CmdExecutionError
 
 import batou_ext.nix
 
@@ -85,7 +85,7 @@ class Container(Component):
         if (
             self.registry_user or self.registry_password
         ) and not self.registry_address:
-            batou.output.annotate(
+            self.log(
                 "WARN: you might want to specify the registry explicitly"
                 " unless you really intend to log into the default"
                 " docker registry"
@@ -162,14 +162,13 @@ class Container(Component):
                 """
             )
         )
-        remote_digest, stderr = self.cmd(
-            dedent(
-                """\
-            docker manifest inspect {{component.image}} -v \
-                | jq -r 'if type =="array" then (. | first) else . end | .Descriptor.digest'
-                """
-            )
-        )
+        try:
+            self.cmd(f"docker manifest inspect {self.image}@{local_digest}")
+        except CmdExecutionError as e:
+            valid = False
+            error = e.stderr
+        else:
+            valid = True
 
         # `docker manifest inspect` silently raises an error, returns code 0
         # when unathorized
@@ -178,7 +177,8 @@ class Container(Component):
                 "Wrong credentials for remote container registry"
             )
 
-        if local_digest != remote_digest:
+        if not valid:
+            self.log("Update due digest verification error: %r", error)
             raise UpdateNeeded()
 
     def update(self):
