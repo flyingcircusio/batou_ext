@@ -127,7 +127,7 @@ class Container(Component):
 
         self += File(
             f"/etc/local/nixos/docker_{self.container_name}.nix",
-            sensitive_data=True,
+            sensitive_data=False,
             source=os.path.join(
                 os.path.dirname(__file__), "resources/oci-template.nix"
             ),
