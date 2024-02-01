@@ -47,18 +47,16 @@ class Updater:
             self._environment.load()
         return self._environment
 
-    def set_environment_from_branch(self, branch):
+    def update_from_branch(self, branch: str):
         envs = sorted(os.listdir(os.path.join(self.basedir, "environments")))
         for env_name in envs:
             env = batou.environment.Environment(env_name)
             env.load()
             if env.branch == branch:
-                if self.environment_name:
-                    raise ValueError(
-                        f"Branch {branch} is used in multiple enviornments, "
-                        "cannot auto-update."
-                    )
+                print(f"Updating environment: {env_name}")
                 self.environment_name = env_name
+                self.set_versions()
+
         if not self.environment_name:
             raise ValueError(
                 f"Branch {branch} is not used in any environment, "
@@ -157,11 +155,12 @@ def main():
 
     if args.environment:
         update.environment_name = args.environment
+        update.set_versions()
     elif args.branch:
-        update.set_environment_from_branch(args.branch)
+        update.update_from_branch(args.branch)
     else:
         update.interactive()
-    update.set_versions()
+        update.set_versions()
 
 
 if __name__ == "__main__":
