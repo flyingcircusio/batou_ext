@@ -126,6 +126,14 @@ class SystemdTimer(batou.component.Component):
     See https://www.freedesktop.org/software/systemd/man/systemd.time.html
     for details about the `onCalendar` timer settings.
 
+    If `persistent` is set to True, the time when the service unit was last
+    triggered is stored on disk.
+    When the timer is activated, the service unit is triggered immediately
+    if it would have been triggered at least once during the time when
+    the timer was inactive.
+
+    For deployments, this usually means that the unit is started immediately
+    after, without waiting for the next scheduled activation.
     """
 
     _required_params_ = {"command": "/bin/true", "onCalendar": "02:00:00"}
@@ -133,6 +141,7 @@ class SystemdTimer(batou.component.Component):
     namevar = "tag"
     command = batou.component.Attribute(str)
     onCalendar = batou.component.Attribute(str)
+    persistent = batou.component.Attribute("literal", False)
     timeout = "1h"
     description = None
     additional_service_config = None
@@ -166,6 +175,11 @@ class SystemdTimer(batou.component.Component):
         )
         self.wrapped_command = self._.path
 
+        if isinstance(self.persistent, bool) and self.persistent:
+            self.persistent_timer_config = "true"
+        else:
+            self.persistent_timer_config = "false"
+
         self += batou.lib.file.File(
             f"/etc/local/nixos/timer-{self.tag}.nix",
             content=dedent(
@@ -176,7 +190,7 @@ class SystemdTimer(batou.component.Component):
                   wantedBy = [ "timers.target" ];
                   timerConfig = {
                     OnCalendar = "{{component.onCalendar}}";
-                    Persistent = true;
+                    Persistent = {{component.persistent_timer_config}};
                   };
                 };
 
