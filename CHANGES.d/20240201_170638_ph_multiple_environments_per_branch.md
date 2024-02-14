@@ -1,0 +1,1 @@
+- Change the behaviour of the batou_ext.versions updater to allow environments to share a branch
