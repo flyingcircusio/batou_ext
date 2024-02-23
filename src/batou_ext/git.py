@@ -144,6 +144,68 @@ class Commit(batou.component.Component):
         return bool(stdout.strip())
 
 
+class Remote(batou.component.Component):
+    """
+    Ensure that a git repository checkout out at `git_repo` has the origin
+    `name` pointing to `url`.
+
+    Usage::
+
+        self += batou_ext.git.Remote(
+            "/path/to/linux",
+            name="upstream",
+            url="ssh://git@github.com/torvalds/linux"
+        )
+
+    By default, the component aborts with an error if `git_repo` does not
+    exist or is not a git repository. This is not always desirable, for
+    instance when this is involved in migrating an existing `git_repo`
+    to a new remote: then, this works fine for migration, but not when
+    bootstrapping e.g. a new environment where `git_repo` doesn't exist
+    yet.
+
+    To solve that, it's possible to let the component do nothing if
+    `git_repo` doesn't exist like this:
+
+        self += batou_ext.git.Remote(
+            "/path/to/linux",
+            ignore_not_existing=True,
+            # ...
+        )
+    """
+
+    namevar = "git_repo"
+    url = batou.component.Attribute(str)
+    name = batou.component.Attribute(str, "origin")
+    ignore_not_existing = batou.component.Attribute(bool, False)
+
+    def verify(self):
+        if not os.path.exists(self.git_repo):
+            if self.ignore_not_existing:
+                return
+            else:
+                raise ValueError(
+                    f"batou_ext.git.Remote({self.git_repo}): path does not exist!"
+                )
+        elif not os.path.exists(f"{self.git_repo}/.git"):
+            raise ValueError(
+                f"batou_ext.git.Remote({self.git_repo}): not a git repository!"
+            )
+
+        with self.chdir(self.git_repo):
+            stdout, _ = self.cmd(
+                f"git remote get-url {self.name}", ignore_returncode=True
+            )
+            if self.url != stdout.strip():
+                raise batou.UpdateNeeded()
+
+    def update(self):
+        with self.chdir(self.git_repo):
+            stdout, _ = self.cmd("git remote")
+            verb = "set-url" if self.name in stdout.splitlines() else "add"
+            self.cmd(f"git remote {verb} {self.name} {self.url}")
+
+
 class Push(batou.component.Component):
     """`git push` if there are outgoing changes."""
 
