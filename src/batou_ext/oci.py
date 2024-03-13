@@ -71,6 +71,7 @@ class Container(Component):
     ports: dict = {}
     env: dict = {}
     depends_on: list = None
+    extra_options: list = None
 
     # secrets
     registry_address = Attribute(Optional[str], None)
