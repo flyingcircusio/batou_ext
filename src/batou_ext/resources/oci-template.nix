@@ -36,7 +36,12 @@
         # {% endif %}
       };
 
-      extraOptions = [ "--pull=always" ];
+      extraOptions = [
+        "--pull=always"
+        # {% for option in (component.extra_options or []) %}
+        "{{option}}"
+        # {% endfor %}
+      ];
 
       volumes = [
       # {% for key, value in component.mounts.items() | sort  %}
