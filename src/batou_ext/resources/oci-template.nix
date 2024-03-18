@@ -36,7 +36,12 @@
         # {% endif %}
       };
 
-      extraOptions = [ "--pull=always" ];
+      extraOptions = [
+        "--pull=always"
+        # {% for option in (component.extra_options or []) %}
+        "{{option}}"
+        # {% endfor %}
+      ];
 
       volumes = [
       # {% for key, value in component.mounts.items() | sort  %}
@@ -44,13 +49,20 @@
       # {% endfor %}
       ];
 
-      image = "{{component.image}}";
+      image = "{{component.image}}:{{component.version}}";
       environmentFiles = [ {{component.envfile.path}} ];
 
       ports = [
       # {% for key, value in component.ports.items() | sort  %}
         "{{key}}:{{value}}"
       # {% endfor %}
+      ];
+
+      dependsOn = [
+      # {% for value in component.depends_on  %}
+        "{{value}}"
+      # {% endfor %}
+
       ];
     };
   };
