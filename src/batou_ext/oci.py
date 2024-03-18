@@ -92,9 +92,6 @@ class Container(Component):
                 " docker registry"
             )
 
-        if self.version:
-            self.image = f"{self.image}:{self.version}"
-
         if (
             self.registry_address
             # This is for the strange case of index.docker.io where you have
@@ -157,7 +154,7 @@ class Container(Component):
         local_digest, stderr = self.cmd(
             dedent(
                 """\
-            docker image inspect {{component.image}} \
+            docker image inspect {{component.image}}:{{component.version}} \
                 | jq -r 'first | .RepoDigests | first | split("@") | last' \
                 || echo image not available locally
                 """

@@ -49,7 +49,7 @@
       # {% endfor %}
       ];
 
-      image = "{{component.image}}";
+      image = "{{component.image}}:{{component.version}}";
       environmentFiles = [ {{component.envfile.path}} ];
 
       ports = [
