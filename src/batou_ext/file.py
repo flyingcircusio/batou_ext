@@ -4,6 +4,7 @@ import os.path
 import shutil
 import urllib.parse
 
+import batou
 import batou.component
 import batou.lib.file
 import batou.lib.git

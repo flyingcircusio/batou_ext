@@ -4,6 +4,7 @@ import re
 import shlex
 from typing import Optional
 
+import batou
 import pkg_resources
 from batou import UpdateNeeded
 from batou.component import Attribute, Component
@@ -84,7 +85,7 @@ class Container(Component):
         if (
             self.registry_user or self.registry_password
         ) and not self.registry_address:
-            batou.output.warn(
+            batou.output.annotate(
                 "WARN: you might want to specify the registry explicitly unless you really intend to log into the default docker registry"
             )
 
