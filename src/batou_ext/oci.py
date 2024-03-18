@@ -3,7 +3,7 @@ import shlex
 from textwrap import dedent
 from typing import Optional
 
-import batou.output
+import batou
 from batou import UpdateNeeded
 from batou.component import Attribute, Component
 from batou.lib.file import File
