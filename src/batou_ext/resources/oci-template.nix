@@ -39,7 +39,7 @@
       extraOptions = [
         "--pull=always"
         # {% for option in (component.extra_options or []) %}
-        "{option}"
+        "{{option}}"
         # {% endfor %}
       ];
 
