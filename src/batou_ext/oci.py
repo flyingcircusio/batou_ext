@@ -167,7 +167,7 @@ class Container(Component):
             valid = False
             error = e.stderr
             if error.startswith("unsupported manifest format"):  # gitlab
-                batou.output.debug(error)
+                batou.output.annotate(error, debug=True)
                 error = error[:50]
         else:
             valid = True
