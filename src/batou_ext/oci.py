@@ -3,6 +3,7 @@ import shlex
 from textwrap import dedent
 from typing import Optional
 
+import batou.output
 from batou import UpdateNeeded
 from batou.component import Attribute, Component
 from batou.lib.file import File
@@ -158,10 +159,16 @@ class Container(Component):
             )
         )
         try:
-            self.cmd(f"docker manifest inspect {self.image}@{local_digest}")
+            self.cmd(
+                "docker manifest inspect"
+                f" {self.image}:{self.version}@{local_digest}"
+            )
         except CmdExecutionError as e:
             valid = False
             error = e.stderr
+            if error.startswith("unsupported manifest format"):  # gitlab
+                batou.output.debug(error)
+                error = error[:50]
         else:
             valid = True
 
