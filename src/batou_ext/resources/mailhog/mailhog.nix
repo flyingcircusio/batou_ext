@@ -1,20 +1,27 @@
-{ pkgs, lib, ... }:
-{
+{ lib, ... }: {
   services.mailhog = {
     enable = true;
-    apiPort = {{component.apiport}};
-    smtpPort = {{component.mailport}};
-    uiPort = {{component.uiport}};
+    apiPort = lib.toInt "{{component.apiport}}";
+    smtpPort = lib.toInt "{{component.mailport}}";
+    uiPort = lib.toInt "{{component.uiport}}";
     storage = "{{component.storage_engine}}";
   };
+
+  # {% if component.systemd_namespace != "" %}
+  systemd.services.mailhog.serviceConfig.LogNamespace = "{{component.systemd_namespace}}";
+  # {% endif %}
+
+  # {% if component.disable_stdout %}
+  systemd.services.mailhog.serviceConfig.StandardOutput = "null";
+  # {% endif %}
 
   flyingcircus.services.nginx.virtualHosts = {
     "{{component.public_name}}" = {
       forceSSL = true;
       enableACME = true;
-      {% if component.http_auth_enable %}
+      # {% if component.http_auth_enable %}
       basicAuthFile = "{{component.http_auth.path}}";
-      {% endif %}
+      # {% endif %}
       locations = {
         "/" = {
           proxyPass = "http://localhost:{{component.uiport}}";
