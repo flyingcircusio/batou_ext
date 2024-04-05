@@ -1,5 +1,5 @@
 
-## 2.4.4 (unreleased)
+## 2.4.4 (2024-04-05)
 
 
 - Change the behaviour of the batou_ext.versions updater to allow environments to share a branch
