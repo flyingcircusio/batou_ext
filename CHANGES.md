@@ -2,7 +2,9 @@
 ## 2.4.4 (unreleased)
 
 
-- Nothing changed yet.
+- Change the behaviour of the batou_ext.versions updater to allow environments to share a branch
+
+* Added a component `batou_ext.git.Remote` which allows to manipulate remotes of a git repository.
 
 
 ## 2.4.3 (2024-01-17)
