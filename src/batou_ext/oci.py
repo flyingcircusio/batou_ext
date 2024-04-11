@@ -67,7 +67,7 @@ class Container(Component):
     # specific options
     entrypoint: Optional[str] = None
     docker_cmd: Optional[str] = None
-    envfile: Optional[str] = None
+    envfile: Optional[File] = None
     mounts: dict = {}
     ports: dict = {}
     env: dict = {}
@@ -125,6 +125,9 @@ class Container(Component):
         )
 
     def verify(self):
+        self.assert_no_changes()
+        self.envfile.assert_no_changes()
+
         if self.registry_address:
             logintxt, _ = self.cmd(
                 self.expand(
