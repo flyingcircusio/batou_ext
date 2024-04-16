@@ -1,0 +1,2 @@
+- add an option to move mailhog log output (`stdout` + `stderr`) to a different namespace, e.g. "mailhog". see systemd.exec(5) for more information
+- add an option to disable `stdout` logging for the mailhog service
