@@ -2,6 +2,7 @@ import glob
 import os
 import os.path
 import shutil
+import subprocess
 import urllib.parse
 
 import batou
@@ -24,6 +25,8 @@ class SymlinkAndCleanup(batou.component.Component):
     _last_link = None
 
     prefix = None
+
+    use_systemd_run_async_cleanup = False
 
     def configure(self):
         self._current_link = (
@@ -97,13 +100,40 @@ class SymlinkAndCleanup(batou.component.Component):
                 if current:
                     batou.output.annotate("last -> {}".format(current))
                     os.symlink(current, self._last_link)
-            for el in self._list_removals():
-                batou.output.annotate("Removing: {}".format(el))
+            candidates = self._list_removals()
+            if self.use_systemd_run_async_cleanup:
+                # spawns a IOPS limited systemd-run cleanup job
                 try:
-                    if os.path.isdir(el):
-                        shutil.rmtree(el)
-                    else:
-                        os.remove(el)
-                except OSError as e:
-                    batou.output.error(f'Failed to remove "{el}": {e.strerror}')
-                    pass
+                    batou.output.annotate(
+                        "Removing using systemd-run: {}".format(candidates)
+                    )
+                    rm_cmd = [
+                        "rm",
+                        "-rf",
+                        *candidates,  # consider: ARG_MAX is limited
+                    ]
+                    subprocess.run(
+                        [
+                            "systemd-run",
+                            "--unit",
+                            f"batou-cleanup-{self.prefix}",
+                            "--property=IOReadIOPSMax=250",
+                            "--property=IOWriteIOPSMax=250",
+                            *rm_cmd,
+                        ],
+                        check=True,
+                    )
+                except subprocess.CalledProcessError as e:
+                    batou.output.error(f"Failed to remove: {e}")
+            else:
+                for el in candidates:
+                    batou.output.annotate("Removing: {}".format(el))
+                    try:
+                        if os.path.isdir(el):
+                            shutil.rmtree(el)
+                        else:
+                            os.remove(el)
+                    except OSError as e:
+                        batou.output.error(
+                            f'Failed to remove "{el}": {e.strerror}'
+                        )
