@@ -65,7 +65,14 @@ class Updater:
 
     @property
     def versions_ini(self):
-        return self.environment.overrides["settings"]["versions_ini"]
+        if "versions_ini" in self.environment.overrides["settings"]:
+            return self.environment.overrides["settings"]["versions_ini"]
+        elif os.path.exists("versions.ini"):
+            return "versions.ini"
+        else:
+            raise ValueError(
+                "No versions.ini specified in the environment file (via `settings.versions_ini`) and the file `versions.ini` does not exist in the git root, cannot proceed"
+            )
 
     def interactive(self):
         envs = os.listdir(os.path.join(self.basedir, "environments"))
