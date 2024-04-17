@@ -1,5 +1,8 @@
 import batou.component
 import batou.lib.file
+import pkg_resources
+
+import batou_ext.nix
 
 
 class HTTPBasicAuth(batou.component.Component):
@@ -54,5 +57,188 @@ class HTTPBasicAuth(batou.component.Component):
             )
         self += batou.lib.file.File(
             "htpasswd_{}".format(self.env_name), content=self.basic_auth_string
+        )
+        self.path = self._.path
+
+
+@batou_ext.nix.rebuild
+class HTTPServiceWatchdog(batou.component.Component):
+    """
+    Adds a "watchdog" on top of a systemd service that checks within a given interval
+    whether an HTTP URL is available and restarts the service if not.
+
+    Usage:
+
+        self += HTTPWatchdogScript()
+        self += HTTPServiceWatchdog(
+            "application",
+            script=self.path_to_script_that_starts_application,
+            healthcheck_url="https://example.com",
+            watchdog_script_path=self._.path
+        )
+
+    This creates a systemd service `application.service` that will be restarted
+    if no HTTP request every 64s against :arg:`healthcheck_url` is successful.
+
+    Arguments
+    ---------
+
+    * `service`: name of the systemd unit a watchdog is attached to.
+    * `predefined_service`: whether the systemd unit is defined in another
+      module, e.g. in NixOS itself (see below).
+    * `script`: path to the script that gets started by the service.
+    * `healthcheck_url`: the URL HTTP requests are issued against.
+    * `healthcheck_timeout`: timeout for the HTTP request against :arg:`healthcheck_url`.
+    * `check_interval`: time to sleep between two healthchecks.
+    * `startup_check_interval`: time to sleep between healthchecks on startup.
+    * `start_timeout`: how long until the first HTTP request must pass (see below for details).
+    * `watchdog_interval`: interval between which one healthcheck must pass.
+
+    Existing services
+    -----------------
+
+    If the watchdog needs to be added to an existing service, e.g.
+    a service from NixOS itself, it can be done like this:
+
+        self += HTTPServiceWatchdog(
+            "docker-foobar",
+            predefined_service=True,
+            # ...
+        )
+
+    This only works if `systemd.services.docker-foobar.script` was declared
+    by the module defining `docker-foobar.service`. If
+    `systemd.services.docker-foobar.serviceConfig.ExecStart` is used by the module,
+    this won't work.
+
+    Inner workings
+    --------------
+
+    `systemd` provides a watchdog feature: the service needs to send `WATCHDOG=1` once in
+    a given interval to `sd_notify(3)`. If that doesn't happen, the service will be aborted.
+    Via an auto-restart defined in the unit, it will be started up again.
+
+    This mechanism is used by this component:
+
+    * It overrides the systemd service with a script that forks:
+        * The parent process is the running application. This one
+          must be started by the executable file passed to this
+          component via :arg:`script`.
+        * The child is a script that regularly checks if `healthcheck_url`
+          is available and sends `WATCHDOG=1` if that's the case.
+
+    * Certain applications can take a while until these are started up.
+      When the unit is started, the forked off child process sends a request
+      to :arg:`healthcheck_url` every :arg:`startup_check_interval` seconds.
+
+      This is done until either
+
+      * One request succeeds. The application is considered "up" by then
+        and the watchdog starts.
+
+        Before that's the case, `systemd` will list the unit as "activating"
+        rather than "active".
+
+      * A timeout set by :arg:`start_timeout` is reached. `systemd` will abort
+        the application startup and terminate the unit. Because the unit is configured
+        to restart, a startup will be attempted again.
+
+      * If the startup attempts should be aborted eventually, this can be implemented
+        via the options `StartLimitBurst`/`StartLimitIntervalSec` in the systemd unit.
+
+        The options are documented in
+        `systemd.unit(5) <https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html#StartLimitIntervalSec=interval>`.
+
+        See below on how to modify the unit created by this component.
+
+    * As long as :arg:`healthcheck_url` is up, a request will be issued every
+      :arg:`check_interval` seconds and after that `WATCHDOG=1` will be sent
+      to `sd_notify(3)`.
+
+      As soon as the URL isn't successful anymore, an exponential backoff will
+      be made: this means that after the request against :arg:`healthcheck_url`
+      failed `n` times, 2^n seconds of sleep between two healthcheck checks are added
+      to the :arg:`check_interval` seconds of sleep.
+
+      For instance, after one failed request, the watchdog will wait 2^1=2 seconds
+      in addition to :arg:`check_interval`.
+
+      If :arg:`watchdog_interval` is 32 and :arg:`check_interval` is 1, there are
+      three attempts to recover.
+
+      I.e. 2^n seconds of sleep + 1s of sleep interval.
+      For each of the three attempts so far this is `2^1 + 1 + 2^2 + 1 * 2^3 + 1 = 17s`.
+      The timeout of 1s for the HTTP request is negligible in this example
+      and thus left out.
+
+      Because this is the fourth failure, a sleep of 2^4 + 1 seconds (=17s) will
+      be started . Since 17+17 > 32, the watchdog will kill the process before another
+      attempt can be made.
+
+    Customize the systemd unit
+    --------------------------
+
+    The systemd unit will be written as Nix code to the target machine.
+    This means that overrides are possible via the Nix module system. For instance,
+    `StartLimitBurst`/`StartLimitIntervalSec` can be added like this:
+
+        self += HTTPServiceWatchdog("foobar", ...)
+        self += File(
+            "/etc/local/nixos/customize-foobar.nix",
+            content="{ systemd.services.foobar.serviceConfig = { "
+                + "StartLimitIntervalSec = ...; StartLimitBurst = ... }; }"
+        )
+
+    Limitations
+    -----------
+
+    * The service injects a custom Python that's used by the watchdog script. It's highly
+      recommended to override the PATH in :arg:`script`, e.g. by sourcing `/etc/profile`.
+    * The running application must not kill the watchdog.
+    """
+
+    namevar = "service"
+    predefined_service = batou.component.Attribute("literal", default=False)
+    watchdog_script_path = batou.component.Attribute(str)
+    script = batou.component.Attribute(str, default=None)
+
+    healthcheck_url = batou.component.Attribute(str)
+    healthcheck_timeout = batou.component.Attribute(int, default=2)
+    check_interval = batou.component.Attribute(int, default=2)
+    startup_check_interval = batou.component.Attribute(int, default=4)
+    start_timeout = batou.component.Attribute(int, default=64)
+    watchdog_interval = batou.component.Attribute(int, default=64)
+
+    def configure(self):
+        if self.predefined_service and self.script is not None:
+            raise ValueError(
+                f"batou_ext.http.HTTPServiceWatchdog({self.service}): cannot set 'script' if service is predefined."
+            )
+        if not self.predefined_service and self.script is None:
+            raise ValueError(
+                f"batou_ext.http.HTTPServiceWatchdog({self.service}): must set script if predefined_service is False."
+            )
+
+        self += batou.lib.file.File(
+            f"/etc/local/nixos/{self.service}-watchdog.nix",
+            content=pkg_resources.resource_string(
+                __name__, "resources/http-watchdog.nix"
+            ),
+        )
+
+
+class HTTPWatchdogScript(batou.component.Component):
+    """
+    Writes the wrapper script for the HTTP watchdog into the service user's home.
+    Only needed in conjunction with :class:`batou_ext.http.HTTPServiceWatchdog`.
+    """
+
+    def configure(self):
+        self += batou.lib.file.File(
+            "watchdog-wrapper.py",
+            mode=0o755,
+            content=pkg_resources.resource_string(
+                __name__, "resources/watchdog-wrapper.py"
+            ),
         )
         self.path = self._.path

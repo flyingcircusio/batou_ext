@@ -168,4 +168,8 @@ def test_prepare(root, mocker, component, tmpdir):
         return
         # instance.name = "mymod"
         # (tmpdir / "mymod.nix").write_text("{}", encoding="US-ASCII")
+    elif component_name == "batou_ext.http.HTTPServiceWatchdog":
+        instance.script = "/srv/s-myuser/start-application.sh"
+        instance.watchdog_script_path = "/srv/s-myuser/watchdog-wrapper.py"
+        instance.healthcheck_url = "https://example.com"
     instance.prepare(root)
