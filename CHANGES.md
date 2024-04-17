@@ -1,5 +1,5 @@
 
-## 2.4.5 (unreleased)
+## 2.4.5 (2024-04-17)
 
 
 - add an option to move mailhog log output (`stdout` + `stderr`) to a different namespace, e.g. "mailhog". see systemd.exec(5) for more information
