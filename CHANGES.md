@@ -9,13 +9,14 @@
 
 
 - add an option to move mailhog log output (`stdout` + `stderr`) to a different namespace, e.g. "mailhog". see systemd.exec(5) for more information
+
 - add an option to disable `stdout` logging for the mailhog service
 
 - improve dectection of a versions file for versions updates
 
 - fix the oci.Container verify method not throwing an updaterequired on changes to the docker container's environment file
 
-Add systemd-run async cleanup option for SymlinkAndCleanup removals
+- Add systemd-run async cleanup option for SymlinkAndCleanup removals
 
 
 ## 2.4.4 (2024-04-05)
