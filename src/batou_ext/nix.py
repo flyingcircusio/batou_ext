@@ -612,6 +612,8 @@ def value_to_nix(value):
         return nix_dict_to_nix(host_to_nix_dict(value))
     elif isinstance(value, Environment):
         return nix_dict_to_nix(environment_to_nix_dict(value))
+    elif isinstance(value, batou.utils.Timer):
+        return None  # ignore
     else:
         raise TypeError(f"unsupported type '{type(value)}'")
 
