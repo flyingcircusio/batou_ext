@@ -1,5 +1,5 @@
 
-## 2.4.6 (unreleased)
+## 2.4.6 (2024-04-23)
 
 
 - OCI: Support registries where the docker login is different than the registry used in referencing containers.
