@@ -19,6 +19,7 @@ setup(
         "pyaml",
         "setuptools",
         "six",
+        "InquirerPy",
     ],
     extras_require={
         "test": [
@@ -27,9 +28,8 @@ setup(
             "pytest",
             "pytest-mock",
         ],
-        "version-select": [
-            "InquirerPy",
-        ],
+        "version-select": ["InquirerPy"],
+        "s3-bootstrap": ["boto3", "InquirerPy"],
     },
     author="Flying Circus <support@flyingcircus.io>",
     author_email="support@flyingcircus.io",
@@ -64,6 +64,7 @@ Programming Language :: Python :: 3 :: Only
             "jenkins = batou_ext.jenkins:main",
             "fcio = batou_ext.fcio:main",
             "versions = batou_ext.versions:main",
+            "s3_bootstrap = batou_ext.s3_bootstrap:main [s3-bootstrap]",
         ]
     ),
     zip_safe=False,
