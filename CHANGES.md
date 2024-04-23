@@ -2,7 +2,15 @@
 ## 2.4.6 (unreleased)
 
 
-- Nothing changed yet.
+- OCI: Support registries where the docker login is different than the registry used in referencing containers.
+
+- OCI: Improve change detection of remote images (required for docker.io)
+
+- OCI: The nix file does not contain sensitive data, so don’t mark it as such.
+
+- OCI: add support for extraOptions
+
+* Added a script `s3_bootstrap` that interactively creates an S3 bucket (including a radosgw account & keys if needed). Will be installed with `batou_ext` if the `s3-bootstrap` extra is requested.
 
 
 ## 2.4.5 (2024-04-17)

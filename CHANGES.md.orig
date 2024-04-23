@@ -1,17 +1,32 @@
 
-## 2.4.5 (unreleased)
+## 2.4.6 (unreleased)
 
 
 - Nothing changed yet.
 
+- OCI: Support registries where the docker login is different than the registry used in referencing containers.
+
+- OCI: Improve change detection of remote images (required for docker.io)
+
+- OCI: The nix file does not contain sensitive data, so don’t mark it as such.
+
+- OCI: add support for extraOptions
+
+* Added a script `s3_bootstrap` that interactively creates an S3 bucket (including a radosgw account & keys if needed). Will be installed with `batou_ext` if the `s3-bootstrap` extra is requested.
+
+
+## 2.4.5 (2024-04-17)
+
+
 - add an option to move mailhog log output (`stdout` + `stderr`) to a different namespace, e.g. "mailhog". see systemd.exec(5) for more information
+
 - add an option to disable `stdout` logging for the mailhog service
 
 - improve dectection of a versions file for versions updates
 
 - fix the oci.Container verify method not throwing an updaterequired on changes to the docker container's environment file
 
-Add systemd-run async cleanup option for SymlinkAndCleanup removals
+- Add systemd-run async cleanup option for SymlinkAndCleanup removals
 
 
 ## 2.4.4 (2024-04-05)
