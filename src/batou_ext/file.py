@@ -28,6 +28,11 @@ class SymlinkAndCleanup(batou.component.Component):
 
     use_systemd_run_async_cleanup = False
 
+    # Use extra args to e.g. limit IOPS:
+    #     ["--property=IOReadIOPSMax=/dev/vda 100",
+    #      "--property=IOWriteIOPSMax=/dev/vda 100"]
+    systemd_extra_args: list = None
+
     def configure(self):
         self._current_link = (
             f"{self.prefix}-current" if self.prefix else "current"
@@ -100,29 +105,31 @@ class SymlinkAndCleanup(batou.component.Component):
                 if current:
                     batou.output.annotate("last -> {}".format(current))
                     os.symlink(current, self._last_link)
+
             candidates = self._list_removals()
-            if self.use_systemd_run_async_cleanup:
-                # spawns a IOPS limited systemd-run cleanup job
+            if not candidates:
+                batou.output.annotate("Nothing to remove.")
+            elif self.use_systemd_run_async_cleanup:
+                # Spawns an systemd-run cleanup job with custom args.
+                candidates = [os.path.join(self.dir, c) for c in candidates]
+                rm_cmd = [
+                    "rm",
+                    "-rfv",
+                    *candidates,  # consider: ARG_MAX is limited
+                ]
+                extra_args = self.systemd_extra_args or []
+                cmd = [
+                    "systemd-run",
+                    "--unit",
+                    f"batou-cleanup-{self.prefix}",
+                    "--user",
+                    *extra_args,
+                    *rm_cmd,
+                ]
+                batou.output.annotate(f"Removing: {candidates}")
+                batou.output.annotate(f"    {cmd}")
                 try:
-                    batou.output.annotate(
-                        "Removing using systemd-run: {}".format(candidates)
-                    )
-                    rm_cmd = [
-                        "rm",
-                        "-rf",
-                        *candidates,  # consider: ARG_MAX is limited
-                    ]
-                    subprocess.run(
-                        [
-                            "systemd-run",
-                            "--unit",
-                            f"batou-cleanup-{self.prefix}",
-                            "--property=IOReadIOPSMax=100",
-                            "--property=IOWriteIOPSMax=100",
-                            *rm_cmd,
-                        ],
-                        check=True,
-                    )
+                    subprocess.run(cmd, check=True)
                 except subprocess.CalledProcessError as e:
                     batou.output.error(f"Failed to remove: {e}")
             else:
