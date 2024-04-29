@@ -2,7 +2,12 @@
 ## 2.4.7 (unreleased)
 
 
-- Nothing changed yet.
+* Added component `batou_ext.http.HTTPServiceWatchdog` that adds a check to a systemd unit
+  whether a given URL is reachable (e.g. a `/health` endpoint). If the URL cannot be reached within
+  a certain interval, the service will be restarted. Further details are documented in the
+  docstring.
+
+- Fix `SymlinkAndCleanup` async delete and allow custom extra arguments to `systemd run`.
 
 
 ## 2.4.6 (2024-04-23)
