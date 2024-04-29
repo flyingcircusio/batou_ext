@@ -1,5 +1,5 @@
 
-## 2.4.7 (unreleased)
+## 2.4.7 (2024-04-29)
 
 
 * Added component `batou_ext.http.HTTPServiceWatchdog` that adds a check to a systemd unit
