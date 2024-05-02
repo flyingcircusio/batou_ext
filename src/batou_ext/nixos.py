@@ -42,6 +42,7 @@ class NixOSModuleContext(Component):
             f"{self.prefix}_generated_context.nix",
             content=context,
             format_nix_code=True,
+            sensitive_data=True,
         )
 
 
