@@ -83,6 +83,9 @@ class Container(Component):
         "image": "mysql",
     }
 
+    # cache spanning multiple components deploying the same container
+    _remote_manifest_cache = {}
+
     def configure(self):
         if (
             self.registry_user or self.registry_password
@@ -136,51 +139,84 @@ class Container(Component):
         self.assert_no_changes()
         self.envfile.assert_no_changes()
 
-        if self.registry_address:
-            logintxt, _ = self.cmd(
-                self.expand(
-                    dedent(
-                        """\
-        docker login \\
-            {%- if component.registry_user and component.registry_password %}
-            -u {{component.registry_user}} \\
-            -p {{component.registry_password}} \\
-            {%- endif %}
-            {{component.registry_address}}
-        """
-                    )
-                )
-            )
+        valid = False
 
-        local_digest, stderr = self.cmd(
+        container_image_id, stderr = self.cmd(
+            dedent(
+                """\
+            docker container insepct {{component.container_name}} \
+                | jq -r '.[0].Image'
+                """
+            )
+        )
+        local_image_id, stderr = self.cmd(
             dedent(
                 """\
             docker image inspect {{component.image}}:{{component.version}} \
-                | jq -r 'first | .RepoDigests | first | split("@") | last' \
+                | jq -r '.[0].Id' \
                 || echo image not available locally
                 """
             )
         )
-        try:
-            self.cmd(
-                "docker manifest inspect"
-                f" {self.image}:{self.version}@{local_digest}"
+        if local_image_id != container_image_id:
+            # If the container is not running the image we expect, we need to
+            # restart it. If its the same, we need to dig further
+            error = (
+                "Container is running different image. "
+                "({container_image_id} vs. {local_image_id})"
             )
-        except CmdExecutionError as e:
-            valid = False
-            error = e.stderr
-            if error.startswith("unsupported manifest format"):  # gitlab
-                batou.output.annotate(error, debug=True)
-                error = error[:50]
-        else:
-            valid = True
+            local_digest, stderr = self.cmd(
+                dedent(
+                    """\
+                docker image inspect {{component.image}}:{{component.version}} \
+                    | jq -r 'first | .RepoDigests | first | split("@") | last' \
+                    || echo image not available locally
+                    """
+                )
+            )
 
-        # `docker manifest inspect` silently raises an error, returns code 0
-        # when unathorized
-        if stderr == "unauthorized":
-            raise RuntimeError(
-                "Wrong credentials for remote container registry"
-            )
+            image_ident = f"{self.image}:{self.version}@{local_digest}"
+            try:
+                valid = self._remote_manifest_cache[image_ident]
+                error = "(cached)"
+            except KeyError:
+                if self.registry_address:
+                    logintxt, _ = self.cmd(
+                        self.expand(
+                            dedent(
+                                """\
+                docker login \\
+                    {%- if component.registry_user and component.registry_password %}
+                    -u {{component.registry_user}} \\
+                    -p {{component.registry_password}} \\
+                    {%- endif %}
+                    {{component.registry_address}}
+                """
+                            )
+                        )
+                    )
+
+                try:
+                    stdout, stderr = self.cmd(
+                        f"docker manifest inspect {image_ident}"
+                    )
+                except CmdExecutionError as e:
+                    valid = False
+                    error = e.stderr
+                    if error.startswith(
+                        "unsupported manifest format"
+                    ):  # gitlab
+                        batou.output.annotate(error, debug=True)
+                        error = error[:50]
+                else:
+                    # `docker manifest inspect` silently raises an error,
+                    # returns code 0 when unathorized
+                    if stderr == "unauthorized":
+                        raise RuntimeError(
+                            "Wrong credentials for remote container registry"
+                        )
+                    valid = True
+                self._remote_manifest_cache[image_ident] = valid
 
         if not valid:
             self.log("Update due digest verification error: %r", error)
