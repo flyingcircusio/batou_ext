@@ -2,7 +2,16 @@
 ## 2.4.8 (unreleased)
 
 
-- Nothing changed yet.
+- systemd timers: add an option to enable persistence
+  breaking change: systemd timers are now non-persistent by default.
+  The previous default behaviour was a problem for cronjobs that should
+  not be started immediately following a reboot / downtime
+
+* Added a component `batou_ext.python.FixELFRunPath` which modifies `DT_RUNPATH` & `DT_RPATH` of `.so`-files in a venv to load the correct libraries (from either a Nix env or other Python libraries). Please read the docstring carefully before using it.
+
+- OCI: cache validation result during deployment.
+
+  Caching results speeds up deployments where multiple containers with the same image are deployed.
 
 
 ## 2.4.7 (2024-04-29)
