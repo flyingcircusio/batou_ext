@@ -1,5 +1,5 @@
 
-## 2.4.8 (unreleased)
+## 2.4.8 (2024-05-08)
 
 
 - systemd timers: add an option to enable persistence
