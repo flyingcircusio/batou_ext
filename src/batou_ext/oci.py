@@ -62,7 +62,8 @@ class Container(Component):
     # general options
     image = Attribute(str)
     version: str = "latest"
-    container_name: Optional[str] = None
+    container_name = Attribute(str)
+    monitor: bool = True
 
     # specific options
     entrypoint: Optional[str] = None

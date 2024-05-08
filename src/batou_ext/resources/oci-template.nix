@@ -1,4 +1,6 @@
-{ ... }: {
+{ ... }:
+{
+  # {% if component.monitor %}
   flyingcircus = {
     services.sensu-client.checks."docker-{{component.container_name}}" = {
       notification = "Status of container {{component.container_name}}";
@@ -12,7 +14,7 @@
       '';
     };
   };
-
+  # {% endif %}
 
   virtualisation.oci-containers = {
     backend = "docker";
