@@ -2,7 +2,7 @@
 ## 2.4.9 (unreleased)
 
 
-- Nothing changed yet.
+- Fix `PurgePackage` raising error when package is not found.
 
 
 ## 2.4.8 (2024-05-08)
