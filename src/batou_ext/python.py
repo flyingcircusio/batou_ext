@@ -132,6 +132,12 @@ class FixELFRunPath(batou.component.Component):
       by the venv since DT_RPATH has the highest priority (over LD_LIBRARY_PATH
       and DT_RUNPATH).
 
+    * `~/.nix-profile/lib/*` for each `*` that contains a shared object. This is
+      necessary for e.g. libmysqlclient / libmariadb.so.3 which is in a subdir of
+      `$out/lib`.
+
+      This behavior can be turned off by setting `recurse_env_dir` to `False`.
+
     * `$ORIGIN/../foo.libs`. With this path, libraries relative to the
       shared library's path will be loaded. For instance, numpy
       installs `numpy.libs` with a few prebuilt libraries such as gfortran
@@ -181,12 +187,26 @@ class FixELFRunPath(batou.component.Component):
         list, default=["**/*.so", "**/*.so.*"]
     )
     patchelf_jobs = batou.component.Attribute(int, default=4)
+    recurse_env_dir = batou.component.Attribute(bool, default=True)
 
     def verify(self):
         self.assert_no_changes()
         self.parent.assert_no_changes()
 
     def update(self):
+        if self.recurse_env_dir:
+            with self.chdir(self.env_directory):
+                directories = ":".join(
+                    sorted(
+                        {
+                            self.env_directory + "/" + os.path.dirname(so_file)
+                            for so_file in glob("**/*.so", recursive=True)
+                        }
+                    )
+                )
+        else:
+            directories = self.env_directory
+
         with self.chdir(self.path):
             files_to_fix = [
                 x
@@ -197,7 +217,7 @@ class FixELFRunPath(batou.component.Component):
                 return
 
             # add user env to DT_RPATH
-            self.__patchelf(["--add-rpath", self.env_directory], files_to_fix)
+            self.__patchelf(["--add-rpath", directories], files_to_fix)
             # drop everything from DT_RPATH except self.env_directory
             # and directories in the venv (to allow shared libraries from numpy
             # to load other shared libraries from numpy).
@@ -205,7 +225,7 @@ class FixELFRunPath(batou.component.Component):
                 [
                     "--shrink-rpath",
                     "--allowed-rpath-prefixes",
-                    f"{self.env_directory}:$ORIGIN",
+                    f"{directories}:$ORIGIN",
                 ],
                 files_to_fix,
             )
