@@ -84,7 +84,9 @@ class Container(Component):
     }
 
     # cache spanning multiple components deploying the same container
-    _remote_manifest_cache = {}
+    # the values are bools indicating whether or not containers with
+    # this specific digest are up to date
+    _remote_manifest_cache: dict[str, bool] = {}
 
     def configure(self):
         if (
@@ -139,16 +141,17 @@ class Container(Component):
         self.assert_no_changes()
         self.envfile.assert_no_changes()
 
-        valid = False
-
+        # id of the running container
         container_image_id, stderr = self.cmd(
             dedent(
                 """\
-            docker container insepct {{component.container_name}} \
+            docker container inspect {{component.container_name}} \
                 | jq -r '.[0].Image'
                 """
             )
         )
+
+        # newest *locally* available id
         local_image_id, stderr = self.cmd(
             dedent(
                 """\
@@ -158,69 +161,80 @@ class Container(Component):
                 """
             )
         )
+
+        # If the container is not running the image we expect, we need to restart it.
+        # This will also ensure the container is up-to-date locally since the
+        # container's nix service is set to always pull
         if local_image_id != container_image_id:
-            # If the container is not running the image we expect, we need to
-            # restart it. If its the same, we need to dig further
             error = (
                 "Container is running different image. "
                 "({container_image_id} vs. {local_image_id})"
             )
-            local_digest, stderr = self.cmd(
-                dedent(
-                    """\
-                docker image inspect {{component.image}}:{{component.version}} \
-                    | jq -r 'first | .RepoDigests | first | split("@") | last' \
-                    || echo image not available locally
-                    """
+            self.log(
+                "Container is running an older version than is locally available and needs to be restarted"
+            )
+            raise UpdateNeeded()
+
+        # If the container is running the newest locally available image then
+        # check if there is a newer version available remotely
+
+        # query the local digest to compare against upstream
+        local_digest, stderr = self.cmd(
+            dedent(
+                """\
+            docker image inspect {{component.image}}:{{component.version}} \
+                | jq -r 'first | .RepoDigests | first | split("@") | last' \
+                || echo image not available locally
+                """
+            )
+        )
+
+        image_ident = f"{self.image}:{self.version}@{local_digest}"
+
+        # test whether the ident has been checked already
+        if image_ident in self._remote_manifest_cache:
+            if self._remote_manifest_cache[image_ident]:
+                # the image is up to date -> does not need an update
+                return
+            raise UpdateNeeded()
+
+        if self.registry_address:
+            logintxt, _ = self.cmd(
+                self.expand(
+                    dedent(
+                        """\
+        docker login \\
+            {%- if component.registry_user and component.registry_password %}
+            -u {{component.registry_user}} \\
+            -p {{component.registry_password}} \\
+            {%- endif %}
+            {{component.registry_address}}
+        """
+                    )
                 )
             )
 
-            image_ident = f"{self.image}:{self.version}@{local_digest}"
-            try:
-                valid = self._remote_manifest_cache[image_ident]
-                error = "(cached)"
-            except KeyError:
-                if self.registry_address:
-                    logintxt, _ = self.cmd(
-                        self.expand(
-                            dedent(
-                                """\
-                docker login \\
-                    {%- if component.registry_user and component.registry_password %}
-                    -u {{component.registry_user}} \\
-                    -p {{component.registry_password}} \\
-                    {%- endif %}
-                    {{component.registry_address}}
-                """
-                            )
-                        )
-                    )
-
-                try:
-                    stdout, stderr = self.cmd(
-                        f"docker manifest inspect {image_ident}"
-                    )
-                except CmdExecutionError as e:
-                    valid = False
-                    error = e.stderr
-                    if error.startswith(
-                        "unsupported manifest format"
-                    ):  # gitlab
-                        batou.output.annotate(error, debug=True)
-                        error = error[:50]
-                else:
-                    # `docker manifest inspect` silently raises an error,
-                    # returns code 0 when unathorized
-                    if stderr == "unauthorized":
-                        raise RuntimeError(
-                            "Wrong credentials for remote container registry"
-                        )
-                    valid = True
-                self._remote_manifest_cache[image_ident] = valid
-
-        if not valid:
-            self.log("Update due digest verification error: %r", error)
+        try:
+            # check if the digest aligns with the remote image
+            # if it does not, this command will throw an error
+            stdout, stderr = self.cmd(f"docker manifest inspect {image_ident}")
+        except CmdExecutionError as e:
+            error = e.stderr
+            if error.startswith("unsupported manifest format"):  # gitlab
+                error = "Local and remote digest are out of sync! The container needs to be restarted."
+            batou.output.annotate(error, debug=True)
+            self._remote_manifest_cache[local_digest] = False
             raise UpdateNeeded()
+
+        # `docker manifest inspect` silently raises an error when unauthorized, returns exit code 0
+        if stderr == "unauthorized":
+            raise RuntimeError(
+                "Wrong credentials for remote container registry"
+            )
+
+        # add the validated ident to the cache so that components using the same container
+        # and same versions don't have to query the remote
+        self._remote_manifest_cache[image_ident] = True
 
     def update(self):
         self.cmd(f"sudo systemctl restart docker-{self.container_name}")
