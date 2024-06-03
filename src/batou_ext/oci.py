@@ -144,7 +144,7 @@ class Container(Component):
         container_image_id, stderr = self.cmd(
             dedent(
                 """\
-            docker container insepct {{component.container_name}} \
+            docker container inspect {{component.container_name}} \
                 | jq -r '.[0].Image'
                 """
             )
