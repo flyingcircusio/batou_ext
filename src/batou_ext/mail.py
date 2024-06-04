@@ -116,7 +116,7 @@ class Mailhog(batou.component.Component):
         "public_smtp_name": "mail.flyingcircus.io",
     }
     public_name = batou.component.Attribute(str)
-    public_smtp_name = batou.component.Attribute(str)
+    public_smtp_name = batou.component.Attribute(str, default=None)
     mailport = batou.component.Attribute(int, 1025)
     uiport = batou.component.Attribute(int, 8025)
     apiport = batou.component.Attribute(int, 8025)
@@ -138,6 +138,9 @@ class Mailhog(batou.component.Component):
     def configure(self):
         if self.provide_as:
             self.provide(self.provide_as, self)
+
+        if not self.public_smtp_name:
+            self.public_smtp_name = self.host.fqdn
 
         # Migration from old nginx.conf
         if self.purge_old_mailhog_configs:
