@@ -1,8 +1,20 @@
 
-## 2.4.8 (unreleased)
+## 2.4.9 (unreleased)
 
 
 - Nothing changed yet.
+
+- `batou_ext.python.FixELFRunPath`: search not only `env_directory`, but also its subdirs for C libraries needed by the libraries to patch.
+
+- Fix `PurgePackage` raising error when package is not found.
+
+- The attribute `public_smtp_name` of `batou_ext.mail.Mailhog` now has a default value. It points to `self.host.fqdn`.
+
+- adjust the certificate expiry check output to be more easily parseable
+
+
+## 2.4.8 (2024-05-08)
+
 
 - systemd timers: add an option to enable persistence
   breaking change: systemd timers are now non-persistent by default.
