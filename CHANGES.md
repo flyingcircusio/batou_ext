@@ -1,5 +1,5 @@
 
-## 2.4.9 (unreleased)
+## 2.4.9 (2024-06-04)
 
 
 - `batou_ext.python.FixELFRunPath`: search not only `env_directory`, but also its subdirs for C libraries needed by the libraries to patch.
