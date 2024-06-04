@@ -1,7 +1,7 @@
 import os
 import shlex
 from textwrap import dedent
-from typing import Optional
+from typing import Dict, Optional
 
 import batou
 from batou import UpdateNeeded
@@ -86,7 +86,7 @@ class Container(Component):
     # cache spanning multiple components deploying the same container
     # the values are bools indicating whether or not containers with
     # this specific digest are up to date
-    _remote_manifest_cache: dict[str, bool] = {}
+    _remote_manifest_cache: Dict[str, bool] = {}
 
     def configure(self):
         if (
