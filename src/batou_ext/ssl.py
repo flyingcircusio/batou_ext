@@ -322,8 +322,8 @@ class CertificateCheckLocal(batou.component.Component):
     critical_days = 14
 
     def configure(self):
-        self.critical = self.critical_days * 24 * 3600
-        self.warning = self.warning_days * 24 * 3600
+        self.critical_seconds = self.critical_days * 24 * 3600
+        self.warning_seconds = self.warning_days * 24 * 3600
 
         if self.name is None:
             raise ValueError("Required name is missing from certificate check")
