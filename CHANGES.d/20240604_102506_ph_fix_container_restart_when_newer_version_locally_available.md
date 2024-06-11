@@ -1,1 +1,1 @@
-- fix a typo in the oci container component's verify method
+- oci.Container: Fix a typo in the oci container component's verify method
