@@ -2,7 +2,9 @@
 ## 2.4.10 (unreleased)
 
 
-- Nothing changed yet.
+- oci.Container: Fix a bug where containers were not restarted properly even though their image digest was out of sync after the remote tag has been updated
+
+- oci.Container: Fix a typo in the oci container component's verify method
 
 
 ## 2.4.9 (2024-06-04)
