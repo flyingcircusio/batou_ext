@@ -1,0 +1,1 @@
+- fix a bug where containers were not restarted properly even though their image digest was out of sync after the remote tag has been updated
