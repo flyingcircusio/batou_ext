@@ -99,7 +99,9 @@ def get_current_versions(
 
 
 def update_from_branch(basedir: str, branch: str):
+    branch_is_used = False
     envs = sorted(os.listdir(os.path.join(basedir, "environments")))
+
     for env_name in envs:
         environment = batou.environment.Environment(env_name)
         environment.load()
@@ -107,10 +109,17 @@ def update_from_branch(basedir: str, branch: str):
         if environment.branch != branch:
             continue
 
+        branch_is_used = True
+
         print(f"Updating environment: {env_name}")
         current_versions = get_current_versions(basedir, environment)
         versions_ini = find_versions_ini(environment)
         set_versions(versions_ini, current_versions)
+
+    if not branch_is_used:
+        raise ValueError(
+            f"Branch {branch} is not used in any environment, cannot auto-upate."
+        )
 
 
 def update_single(basedir: str, environment_name: str):
