@@ -119,12 +119,14 @@ class SymlinkAndCleanup(batou.component.Component):
                 ]
                 extra_args = self.systemd_extra_args or []
                 cmd = [
+                    "nohup",
                     "systemd-run",
                     "--unit",
                     f"batou-cleanup-{self.prefix}",
                     "--user",
                     *extra_args,
                     *rm_cmd,
+                    "&",
                 ]
                 batou.output.annotate(f"Removing: {candidates}")
                 batou.output.annotate(f"    {cmd}")
