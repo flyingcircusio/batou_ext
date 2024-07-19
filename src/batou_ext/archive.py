@@ -21,11 +21,10 @@ class SingleUntar(batou.lib.archive.Untar):
 
     cleanup_markers_after_days = Attribute(int, default=None)
 
-    _markers_to_unlink = []
-    _only_marker_cleanup = False
-
     def configure(self):
         super().configure()
+        self._markers_to_unlink = []
+        self._only_marker_cleanup = False
         self._finish_marker = os.path.join(
             os.path.dirname(self.target),
             f".{os.path.basename(self.target)}.finished-extract",
