@@ -3,7 +3,9 @@ import os
 import os.path
 import shutil
 import subprocess
+import tempfile
 import urllib.parse
+from textwrap import dedent
 
 import batou
 import batou.component
@@ -17,6 +19,8 @@ class SymlinkAndCleanup(batou.component.Component):
     """
     Symlink the give file or directory to `current`, symlink the file or directory that was symlinked to `current` to `last` and remove all files matching `pattern` that are not currently linked to current or last.
     This utility is mostly used for Git Checkouts, which can grow considerably in size, but may also be used for S3 File Downloads or other Folders and Files that should be cached.
+
+    The files matching `pattern` are removed by moving them into a directory that will be cleaned up by systemd's tmpfiles, rendering it entirely independent from the deployment.
     """
 
     namevar = "current"
@@ -26,12 +30,9 @@ class SymlinkAndCleanup(batou.component.Component):
 
     prefix = None
 
+    ## DEPRECATED, do not use
     use_systemd_run_async_cleanup = False
-
-    # Use extra args to e.g. limit IOPS:
-    #     ["--property=IOReadIOPSMax=/dev/vda 100",
-    #      "--property=IOWriteIOPSMax=/dev/vda 100"]
-    systemd_extra_args: list = None
+    systemd_extra_args = None
 
     def configure(self):
         self._current_link = (
@@ -40,6 +41,20 @@ class SymlinkAndCleanup(batou.component.Component):
         self._last_link = f"{self.prefix}-last" if self.prefix else "last"
         self.dir = os.path.dirname(self.current)
         self.current = os.path.basename(self.current)
+        self += DeploymentTrash()
+        self.trash = self._
+
+        if self.use_systemd_run_async_cleanup:
+            batou.output.annotate(
+                "use_systemd_run_async_cleanup is deprecated and will be removed in a future release, please remove it",
+                yellow=True,
+            )
+
+        if self.systemd_extra_args:
+            batou.output.annotate(
+                "systemd_extra_args is deprecated and will be removed in a future release, please remove it",
+                yellow=True,
+            )
 
     @staticmethod
     def _link(path):
@@ -109,40 +124,33 @@ class SymlinkAndCleanup(batou.component.Component):
             candidates = self._list_removals()
             if not candidates:
                 batou.output.annotate("Nothing to remove.")
-            elif self.use_systemd_run_async_cleanup:
-                # Spawns an systemd-run cleanup job with custom args.
-                candidates = [os.path.join(self.dir, c) for c in candidates]
-                rm_cmd = [
-                    "rm",
-                    "-rfv",
-                    *candidates,  # consider: ARG_MAX is limited
-                ]
-                extra_args = self.systemd_extra_args or []
-                cmd = [
-                    "nohup",
-                    "systemd-run",
-                    "--unit",
-                    f"batou-cleanup-{self.prefix}",
-                    "--user",
-                    *extra_args,
-                    *rm_cmd,
-                    "&",
-                ]
+
+            for c in candidates:
                 batou.output.annotate(f"Removing: {candidates}")
-                batou.output.annotate(f"    {cmd}")
-                try:
-                    subprocess.run(cmd, check=True)
-                except subprocess.CalledProcessError as e:
-                    batou.output.error(f"Failed to remove: {e}")
-            else:
-                for el in candidates:
-                    batou.output.annotate("Removing: {}".format(el))
-                    try:
-                        if os.path.isdir(el):
-                            shutil.rmtree(el)
-                        else:
-                            os.remove(el)
-                    except OSError as e:
-                        batou.output.error(
-                            f'Failed to remove "{el}": {e.strerror}'
-                        )
+                self.trash.discard(c)
+
+
+class DeploymentTrash(batou.component.Component):
+    def configure(self):
+        self.trashdir = os.path.expanduser("~/.deployment-trash")
+        self += batou.lib.file.File(self.trashdir, ensure="directory")
+        self += batou.lib.file.File(
+            "/etc/local/nixos/trash.nix",
+            content=dedent(
+                """\
+            {
+              systemd.tmpfiles.rules = [
+                "d {{component.trashdir}} 0755 - - 1h -"
+              ];
+            }
+        """
+            ),
+        )
+
+    def discard(self, path):
+        target = tempfile.mkdtemp(dir=self.trashdir)
+        try:
+            os.rename(path, os.path.join(target, os.path.basename(path)))
+        except FileNotFoundError:
+            # Nothing to delete.
+            pass
