@@ -2,7 +2,17 @@
 ## 2.4.11 (unreleased)
 
 
-- Nothing changed yet.
+- `oci.Container`: Add option to disable OCI container monitoring.
+
+  This is mainly useful for containers which are not running all the time.
+
+- `oci.Container`: make rebuild optional
+
+  This is useful, when there are multiple container deployed which should be activated at once.
+
+- Fix a bug in the version update script where multiple environments sharing the same branch would not be updated correctly
+
+- the `SymlinkAndCleanup` component was adjusted to clean up asynchronously using systemd's tmpfiles instead of deleting all candidates immediately
 
 
 ## 2.4.10 (2024-06-11)

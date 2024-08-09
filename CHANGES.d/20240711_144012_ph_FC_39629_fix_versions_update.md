@@ -1,1 +1,0 @@
-- Fix a bug in the version update script where multiple environments sharing the same branch would not be updated correctly

@@ -1,1 +1,0 @@
-- the `SymlinkAndCleanup` component was adjusted to clean up asynchronously using systemd's tmpfiles instead of deleting all candidates immediately
