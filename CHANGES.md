@@ -1,5 +1,5 @@
 
-## 2.4.11 (unreleased)
+## 2.4.11 (2024-08-09)
 
 
 - `oci.Container`: Add option to disable OCI container monitoring.
