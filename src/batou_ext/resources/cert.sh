@@ -17,6 +17,7 @@ source /etc/profile
     --preferred-chain "{{component.letsencrypt_alternative_chain}}" \
 {%- endif %}
     -c "$@"
+setfacl -Rm u:{{component.granted_user}}:rX {{component.workdir}}/"$@"
 {% if component.extracommand %}
 {{component.extracommand}}
 {% endif %}
