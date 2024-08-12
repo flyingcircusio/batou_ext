@@ -1,5 +1,5 @@
 
-## 2.4.14 (unreleased)
+## 2.4.14 (2024-08-12)
 
 
 - `ssl.Certificate`: Set proper ACL for non-let's encrypt certificates.
