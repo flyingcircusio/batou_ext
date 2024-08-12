@@ -2,7 +2,7 @@
 ## 2.4.14 (unreleased)
 
 
-- Nothing changed yet.
+- `ssl.Certificate`: Set proper ACL for non-let's encrypt certificates.
 
 
 ## 2.4.13 (2024-08-12)
