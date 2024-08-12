@@ -11,6 +11,8 @@ import batou.lib.nagios
 import pkg_resources
 import six
 
+from .acl import ACL
+
 
 class Certificate(batou.component.Component):
     """SSL certificate management using let's encrypt -- or not
@@ -132,12 +134,21 @@ class Certificate(batou.component.Component):
                 sensitive_data=True,
             )
             self += self.key_file
+            self += ACL(
+                self.key_file.path,
+                ruleset=[
+                    "user::rw-",
+                    f"user:{self.granted_user}:r--",
+                    "group::---",
+                    "mask::r--",
+                    "other::---",
+                ],
+            )
 
             if self.trusted_crt_content:
                 self.trusted_file = batou.lib.file.File(
                     "{}/{}.trust.crt".format(self.workdir, self.domain),
                     content=self.trusted_crt_content,
-                    mode=0o600,
                 )
                 self += self.trusted_file
                 self.trusted = self.trusted_file.path
@@ -257,7 +268,6 @@ openssl x509 -req -days 3650 \
 
 
 class ActivateLetsEncrypt(batou.component.Component):
-
     cert: Certificate = None
 
     def verify(self):
@@ -275,7 +285,6 @@ class ActivateLetsEncrypt(batou.component.Component):
 
 
 class CertificateCheck(batou.component.Component):
-
     namevar = "public_name"
     warning_days = 25
     critical_days = 14
