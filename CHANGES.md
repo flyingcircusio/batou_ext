@@ -1,5 +1,5 @@
 
-## 2.4.12 (unreleased)
+## 2.4.12 (2024-08-12)
 
 
 - Set correct acl for `ssl.Certificates` on certificate renew.
