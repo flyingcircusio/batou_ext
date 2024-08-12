@@ -2,7 +2,7 @@
 ## 2.4.12 (unreleased)
 
 
-- Nothing changed yet.
+- Set correct acl for `ssl.Certificates` on certificate renew.
 
 
 ## 2.4.11 (2024-08-09)

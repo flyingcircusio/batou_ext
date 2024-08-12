@@ -1,1 +1,0 @@
-- Set correct acl for `ssl.Certificates` on certificate renew.
