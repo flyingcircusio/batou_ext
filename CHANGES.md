@@ -1,5 +1,5 @@
 
-## 2.4.13 (unreleased)
+## 2.4.13 (2024-08-12)
 
 
 - Fix setting acl for `ssl.Certificate` during ceritificate renewal.
