@@ -13,9 +13,7 @@
   flyingcircus.services.nginx.virtualHosts."{{ component.public_name }}" = {
     forceSSL = true;
     enableACME = true;
-    # {% if component.http_auth_enable %}
     basicAuthFile = "{{component.http_auth.path}}";
-    # {% endif %}
     locations."/" = {
       proxyPass = "http://[::1]:8025";
       proxyWebsockets = true;

@@ -180,7 +180,6 @@ class Mailpit(batou.component.Component):
 
     max = batou.component.Attribute(int, 500)
 
-    http_auth_enable = batou.component.Attribute("literal", default=False)
     http_basic_auth = None
 
     provide_as = None  # (optional) str to self.provide()
@@ -196,11 +195,10 @@ class Mailpit(batou.component.Component):
             self.public_smtp_name, self.smtp_port
         )
 
-        if self.http_auth_enable:
-            if self.http_basic_auth is None:
-                self.http_auth = self.require_one("http_basic_auth")
-            else:
-                self.http_auth = self.http_basic_auth
+        if self.http_basic_auth is None:
+            self.http_auth = self.require_one("http_basic_auth")
+        else:
+            self.http_auth = self.http_basic_auth
 
         self += batou.lib.file.File(
             "/etc/local/nixos/mailpit.nix",
