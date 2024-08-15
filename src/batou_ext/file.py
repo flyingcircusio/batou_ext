@@ -35,9 +35,6 @@ class SymlinkAndCleanup(Component):
 
     prefix = None
 
-    systemd_read_max_iops = 100
-    systemd_write_max_iops = 100
-
     ## DEPRECATED, do not use
     use_systemd_run_async_cleanup = False
     systemd_extra_args = None
@@ -49,10 +46,7 @@ class SymlinkAndCleanup(Component):
         self._last_link = f"{self.prefix}-last" if self.prefix else "last"
         self.dir = os.path.dirname(self.current)
         self.current = os.path.basename(self.current)
-        self += DeploymentTrash(
-            read_iops_limit=self.systemd_read_max_iops,
-            write_iops_limit=self.systemd_write_max_iops,
-        )
+        self += DeploymentTrash()
         self.trash = self._
 
         if self.use_systemd_run_async_cleanup:
@@ -146,11 +140,11 @@ class DeploymentTrash(Component):
     A trash folder that is regularly cleaned up by systemd's tmpfiles.
     Files and Folders can be moved in here for asynchronous deletion that is
     not tied to the deployment. Due to this component being commonly used to
-    offload deleting very large files, it also supports adding IOPS limits.
+    offload deleting very large files.
 
 
     ```python
-    self.trash = DeploymentTrash(read_iops_limit=250, write_iops_limit=250)
+    self.trash = DeploymentTrash()
     self += self.trash
 
     # files that are created here should not be part of the deployment but
@@ -161,8 +155,6 @@ class DeploymentTrash(Component):
     ```
     """
 
-    read_iops_limit = 100
-    write_iops_limit = 100
     nix_file = Attribute(
         str,
         default=ConfigString(
@@ -181,11 +173,6 @@ class DeploymentTrash(Component):
               systemd.tmpfiles.rules = [
                 "d {{component.trashdir}} 0755 - - 1h -"
               ];
-
-              systemd.services."systemd-tmpfiles-clean".unitConfig = {
-                IOReadIOPSMax="{{component.trashdir}} {{component.read_iops_limit}}";
-                IOWriteIOPSMax="{{component.trashdir}} {{component.write_iops_limit}}";
-              };
             }
         """
             ),
