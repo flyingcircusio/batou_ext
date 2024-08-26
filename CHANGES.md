@@ -2,7 +2,7 @@
 ## 2.4.15 (unreleased)
 
 
-- Nothing changed yet.
+- fix a regression in the versions update script where the environment was not loaded correctly
 
 
 ## 2.4.14 (2024-08-12)
