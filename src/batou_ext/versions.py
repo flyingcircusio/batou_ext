@@ -124,6 +124,7 @@ def update_from_branch(basedir: str, branch: str):
 
 def update_single(basedir: str, environment_name: str):
     environment = batou.environment.Environment(environment_name)
+    environment.load()
     versions_ini = find_versions_ini(environment)
     current_versions = get_current_versions(basedir, environment)
     set_versions(versions_ini, current_versions)
