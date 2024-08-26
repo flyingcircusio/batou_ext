@@ -1,5 +1,5 @@
 
-## 2.4.15 (unreleased)
+## 2.4.15 (2024-08-26)
 
 
 - fix a regression in the versions update script where the environment was not loaded correctly
