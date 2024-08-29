@@ -165,3 +165,44 @@ class Mailhog(batou.component.Component):
                 __name__, "resources/mailhog/mailhog.nix"
             ),
         )
+
+
+@batou_ext.nix.rebuild
+class Mailpit(batou.component.Component):
+    _required_params_ = {
+        "public_name": "example.com",
+    }
+
+    public_name = batou.component.Attribute(str)
+    public_smtp_name = batou.component.Attribute(str, default=None)
+    ui_port = batou.component.Attribute(int, 8025)
+    smtp_port = batou.component.Attribute(int, 1025)
+
+    max = batou.component.Attribute(int, 500)
+
+    http_basic_auth = None
+
+    provide_as = None  # (optional) str to self.provide()
+
+    def configure(self):
+        if self.provide_as:
+            self.provide(self.provide_as, self)
+
+        if not self.public_smtp_name:
+            self.public_smtp_name = self.host.fqdn
+
+        self.address = batou.utils.Address(
+            self.public_smtp_name, self.smtp_port
+        )
+
+        if self.http_basic_auth is None:
+            self.http_auth = self.require_one("http_basic_auth")
+        else:
+            self.http_auth = self.http_basic_auth
+
+        self += batou.lib.file.File(
+            "/etc/local/nixos/mailpit.nix",
+            content=pkg_resources.resource_string(
+                __name__, "resources/mailpit.nix"
+            ),
+        )
