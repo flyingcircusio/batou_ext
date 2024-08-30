@@ -630,7 +630,7 @@ def component_to_nix(component: Component):
             pass
         elif inspect.ismethod(value) or inspect.isgenerator(value):
             pass
-        elif name in ("sub_components", "changed"):
+        elif name in ("sub_components", "changed", "instances"):
             pass
         elif isinstance(value, NixOSModuleContext):
             pass
