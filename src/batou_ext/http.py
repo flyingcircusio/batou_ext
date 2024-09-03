@@ -21,7 +21,7 @@ class HTTPBasicAuth(batou.component.Component):
         from batou_ext.http import HTTPBasicAuth
 
         self += batou_ext.http.HTTPBasicAuth(
-            "myauth",
+            env_name="myauth",
             username="joe",
             password="secret",
             basic_auth_string="joe:$apr1$Ma0Fc6pW$Kl5dV4ecBXH12gDieRHVq.")
