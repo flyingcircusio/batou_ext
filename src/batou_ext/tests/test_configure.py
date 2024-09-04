@@ -172,4 +172,8 @@ def test_prepare(root, mocker, component, tmpdir):
         instance.script = "/srv/s-myuser/start-application.sh"
         instance.watchdog_script_path = "/srv/s-myuser/watchdog-wrapper.py"
         instance.healthcheck_url = "https://example.com"
+    elif component_name == "batou_ext.mail.Mailpit":
+        batou_ext.http.HTTPBasicAuth(
+            **batou_ext.http.HTTPBasicAuth._required_params_
+        ).prepare(root)
     instance.prepare(root)
