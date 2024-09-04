@@ -25,9 +25,11 @@ class Redis(batou.component.Component):
     cleanup = batou.component.Attribute("literal", default=False)
     cleanup_command = batou.component.Attribute(str, default="FLUSHDB")
 
+    provide_as = batou.component.Attribute(str, default="redis")
+
     def configure(self):
         assert self.password
-        self.provide("redis", self)
+        self.provide(self.provide_as, self)
 
         self.address = batou.utils.Address(self.host.fqdn, self.port)
         self += batou.lib.file.File(
