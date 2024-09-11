@@ -1,5 +1,5 @@
 
-## 2.4.16 (unreleased)
+## 2.4.16 (2024-09-11)
 
 
 - A new component `batou_ext.mail.Mailpit` has been added.
