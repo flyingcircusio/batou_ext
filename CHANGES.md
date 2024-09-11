@@ -2,7 +2,19 @@
 ## 2.4.16 (unreleased)
 
 
-- Nothing changed yet.
+- A new component `batou_ext.mail.Mailpit` has been added.
+  Mailpit is an alternative for Mailhog which is not maintained anymore.
+
+- fix a mysterious regression that cause a test to fail
+
+- redis.Redis: Allow to set provide name
+
+* The `SymlinkAndCleanup` internally uses the `DeploymentTrash` component internally which
+  deletes old code using `systemd-tmpfiles` and throttles the operation with `IOReadIOPSMax`
+  and `IOWriteIOPSMax`.
+
+  This didn't have any effect before because these settings were wrongly placed in `[Unit]`
+  instead of `[Service]`.
 
 
 ## 2.4.15 (2024-08-26)
