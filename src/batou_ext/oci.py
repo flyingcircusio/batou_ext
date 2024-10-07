@@ -1,3 +1,4 @@
+import json
 import os
 import shlex
 from textwrap import dedent
@@ -15,8 +16,12 @@ import batou_ext.nix
 class Container(Component):
     """A OCI Container component.
 
-    With this component you can dynamically schedule docker containers to be
-    run on the target host.
+    With this component you can dynamically schedule docker or podman containers
+    to be run on the target host.
+
+    Note: the `podman` backend is still considered experimental and thus subject
+    to change. Running both docker and podman containers on the same VM is currently
+    not supported.
 
     Note: Docker image specifiers do not follow a properly resolvable pattern.
     Therefore, container registries have to be specified seperately if you need
@@ -70,16 +75,59 @@ class Container(Component):
 
     self += Rebuild()
     self += container.activate()
+    ```
 
+    Containers can use `podman` as backend when specifying the `backend` property:
+    ```
+    self += batou_ext.oci.Container(
+        backend="podman",
+        image="mysql"
+    )
+    ```
 
+    If a container image has a healthcheck configured and the systemd unit
+    is supposed to be activate _after_ the container went healthy, this
+    can be done using the `podman` backend by specifying the `sd_notify`
+    parameter:
 
+    ```
+    self += batou_ext.oci.Container(
+        image="with-healthchecks",
+        backend="podman",
+        sd_notify="healthy"
+    )
+    ```
 
+    By default, the unit gets into active state with `podman` when the container
+    is started, but not necessarily the service. This is still an improvement
+    over how the docker unit is handled which is "active" as soon as the unit
+    was started which means the service could still be busy downloading the image.
+
+    If a podman container doesn't have a healthcheck defined, it's possible to add
+    one via this component. The command is passed `/bin/sh -c`:
+
+    ```
+    self += batou_ext.oci.Container(
+        image="without-healthcheck",
+        backend="podman",
+        sd_notify="healthy",
+        health_cmd="curl --fail localhost || exit 1"
+    )
+    ```
+
+    Please note that the healthcheck is executed _inside_ the container, so
+    the container above would require a `curl` installed.
     """
 
     # general options
     image = Attribute(str)
     version: str = "latest"
     container_name = Attribute(str)
+    backend = Attribute(str, "docker")
+
+    sd_notify = Attribute(str, None)
+    health_cmd = Attribute(str, None)
+    user = Attribute(str, None)
 
     # Set up monitoring
     monitor: bool = True
@@ -95,7 +143,7 @@ class Container(Component):
     ports: dict = {}
     env: dict = {}
     depends_on: list = None
-    extra_options: list = None
+    extra_options: list = []
 
     # secrets
     registry_address = Attribute(Optional[str], None)
@@ -108,6 +156,11 @@ class Container(Component):
     }
 
     def configure(self):
+        if self.backend not in ["docker", "podman"]:
+            raise ValueError(
+                f"Unsupported backend '{self.backend}' for container '{self.container_name}' (allowed: docker, podman)!"
+            )
+
         if (
             self.registry_user or self.registry_password
         ) and not self.registry_address:
@@ -144,6 +197,29 @@ class Container(Component):
 
         if self.docker_cmd:
             self._docker_cmd_list = shlex.split(self.docker_cmd)
+
+        if self.backend != "podman":
+            for prop in ["sd_notify", "user", "health_cmd"]:
+                assert (
+                    getattr(self, prop) is None
+                ), f"Container '{self.container_name}' runs with Docker, so the '{prop}' option is not supported!"
+        else:
+            if self.sd_notify is not None:
+                assert self.sd_notify in [
+                    "container",
+                    "conmon",
+                    "healthy",
+                    "ignore",
+                ], f"Container '{self.container_name}' set invalid value for 'sd_notify'. Allowed values: container, conmon, healthy, ignore!"
+
+            if self.health_cmd is not None:
+                # `json.dumps` quotes the quoted string in a way that it can
+                # be placed as valid string into a Nix expression.
+                # The bash-quoting is done in the OCI module in NixOS.
+                self.health_cmd = json.dumps(self.health_cmd)
+
+            if self.user is None:
+                self.user = self.host.service_user
 
         if not self.depends_on:
             self.depends_on = []
@@ -220,7 +296,11 @@ class ContainerRestart(Component):
         # query the local digest to compare against upstream
         local_digest = self._get_local_digest()
 
-        image_ident = f"{container.image}:{container.version}@{local_digest}"
+        image_ident = (
+            f"{container.image}:{container.version}@{local_digest}"
+            if self.container.backend == "docker"
+            else f"{container.image}@{local_digest}"
+        )
 
         # test whether the ident has been checked already
         if image_ident in self._remote_manifest_cache:
@@ -243,7 +323,7 @@ class ContainerRestart(Component):
     def update(self):
         if self._need_explicit_restart:
             self.cmd(
-                f"sudo systemctl restart docker-{self.container.container_name}"
+                f"sudo systemctl restart {self.container.backend}-{self.container.container_name}"
             )
 
     def _get_running_container_image_id(self):
@@ -254,7 +334,7 @@ class ContainerRestart(Component):
         image_id, stderr = self.cmd(
             dedent(
                 """\
-            docker container inspect {{component.container.container_name}} \
+            {{ component.container.backend }} container inspect {{component.container.container_name}} \
                 | jq -r '.[0].Image'
                 """
             )
@@ -269,7 +349,7 @@ class ContainerRestart(Component):
         local_image_id, stderr = self.cmd(
             dedent(
                 """\
-            docker image inspect {{component.container.image}}:{{component.container.version}} \
+            {{ component.container.backend }} image inspect {{component.container.image}}:{{component.container.version}} \
                 | jq -r '.[0].Id' \
                 || echo image not available locally
                 """
@@ -281,7 +361,7 @@ class ContainerRestart(Component):
         local_digest, stderr = self.cmd(
             dedent(
                 """\
-            docker image inspect {{component.container.image}}:{{component.container.version}} \
+            {{ component.container.backend }} image inspect {{component.container.image}}:{{component.container.version}} \
                 | jq -r 'first | .RepoDigests | first | split("@") | last' \
                 || echo image not available locally
                 """
@@ -294,7 +374,7 @@ class ContainerRestart(Component):
             self.expand(
                 dedent(
                     """\
-        docker login \\
+        {{ component.container.backend }} login \\
             {%- if component.container.registry_user and component.container.registry_password %}
             -u {{component.container.registry_user}} \\
             -p {{component.container.registry_password}} \\
@@ -309,7 +389,9 @@ class ContainerRestart(Component):
         try:
             # check if the digest aligns with the remote image
             # if it does not, this command will throw an error
-            stdout, stderr = self.cmd(f"docker manifest inspect {image_ident}")
+            stdout, stderr = self.cmd(
+                f"{self.container.backend} manifest inspect {image_ident}"
+            )
         except CmdExecutionError as e:
             error = e.stderr
             if error.startswith("unsupported manifest format"):  # gitlab
