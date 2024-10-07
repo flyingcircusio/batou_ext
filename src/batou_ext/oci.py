@@ -80,6 +80,10 @@ class Container(Component):
     image = Attribute(str)
     version: str = "latest"
     container_name = Attribute(str)
+    backend = Attribute(str, "docker")
+
+    sd_notify = Attribute(str, None)
+    user = Attribute(str, None)
 
     # Set up monitoring
     monitor: bool = True
@@ -95,7 +99,7 @@ class Container(Component):
     ports: dict = {}
     env: dict = {}
     depends_on: list = None
-    extra_options: list = None
+    extra_options: list = []
 
     # secrets
     registry_address = Attribute(Optional[str], None)
@@ -108,6 +112,11 @@ class Container(Component):
     }
 
     def configure(self):
+        if self.backend not in ["docker", "podman"]:
+            raise ValueError(
+                f"Unsupported backend '{self.backend}' for container '{self.container_name}' (allowed: docker, podman)!"
+            )
+
         if (
             self.registry_user or self.registry_password
         ) and not self.registry_address:
@@ -144,6 +153,25 @@ class Container(Component):
 
         if self.docker_cmd:
             self._docker_cmd_list = shlex.split(self.docker_cmd)
+
+        if self.backend != "podman":
+            assert (
+                self.sd_notify is None
+            ), f"Container '{self.container_name}' runs with Docker, so the sd_notify option is not supported!"
+            assert (
+                self.user is None
+            ), f"Container '{self.container_name}' runs with Docker, so the user option is not supported!"
+        elif self.sd_notify is not None:
+            assert self.sd_notify in [
+                "container",
+                "conmon",
+                "healthy",
+                "ignore",
+            ], f"Container '{self.container_name}' set invalid value for 'sd_notify'. Allowed values: container, conmon, healthy, ignore!"
+            self.extra_options.append(f"--sdnotify={self.sd_notify}")
+
+        if self.backend == "podman" and self.user is None:
+            self.user = self.host.service_user
 
         if not self.depends_on:
             self.depends_on = []
