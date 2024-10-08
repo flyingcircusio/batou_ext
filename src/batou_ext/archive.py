@@ -58,6 +58,7 @@ class SingleUntar(batou.lib.archive.Untar):
     def update(self):
         if not self._only_marker_cleanup:
             super().update()
+            self.touch(self.target)
             self.touch(self._finish_marker)
 
         for old_marker in self._markers_to_unlink:
