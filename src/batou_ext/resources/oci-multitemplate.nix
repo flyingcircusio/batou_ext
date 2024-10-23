@@ -1,6 +1,6 @@
 {lib, ...}: {
   config = lib.mkMerge [
-    # {% for container in containers | sort %}
+    # {% for container in component.containers | sort %}
     {
       # {% if container.monitor %}
       flyingcircus = {
