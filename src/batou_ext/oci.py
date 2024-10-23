@@ -15,7 +15,6 @@ import batou_ext.nix
 @batou_ext.nix.rebuild
 class ContainerHost(Component):
     def configure(self):
-        self.provide("container-host", self)
         self.containers = self.require("oci-container", host=self.host)
         self.containers = sorted(
             self.containers, key=lambda x: x.container_name
@@ -166,9 +165,9 @@ class Container(Component):
         if not self.depends_on:
             self.depends_on = []
 
-        if not self.require_one(
-            "container-host", strict=False, host=self.host, reverse=True
-        ):
+        if "containerhost" in self.environment.components_for(self.host).keys():
+            self.provide("oci-container", self)
+        else:
             self += File(
                 f"/etc/local/nixos/docker_{self.container_name}.nix",
                 sensitive_data=False,
@@ -176,8 +175,6 @@ class Container(Component):
                     os.path.dirname(__file__), "resources/oci-template.nix"
                 ),
             )
-        else:
-            self.provide("oci-container", self)
 
         if self.rebuild:
             self += batou_ext.nix.Rebuild()
