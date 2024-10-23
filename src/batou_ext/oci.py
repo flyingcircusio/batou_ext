@@ -12,6 +12,19 @@ from batou.utils import CmdExecutionError
 import batou_ext.nix
 
 
+@batou_ext.nix.rebuild
+class ContainerHost(Component):
+    def configure(self):
+        self.containers = self.require("oci-container", host=self.host)
+        self += File(
+            "/etc/local/nixos/oci-containers.nix",
+            sensitive_data=False,
+            source=os.path.join(
+                os.path.dirname(__file__), "resources/oci-multitemplate.nix"
+            ),
+        )
+
+
 class Container(Component):
     """A OCI Container component.
 
@@ -23,6 +36,14 @@ class Container(Component):
     to log in before. If you do not provide a container registry, docker will
     use the default one for authentication. You can choose to also append the
     image attribute with the registry but this module will do so automatically.
+
+    If you need multiple Containers running on the same host, adding a `ContainerHost`
+    component will simplify managment a lot.
+
+    Example:
+    ```
+    self += batou_ext.oci.Container(image = "mysql", version = "8.0")
+    ```
 
     ```
     # the following two call are identical:
@@ -51,11 +72,6 @@ class Container(Component):
     self += batou_ext.oci.Container(image="test.registry/foo")
     ```
 
-    Example:
-    ```
-    self += batou_ext.oci.Container(image = "mysql", version = "8.0")
-    ```
-
     If you have multiple containers on one machine you can consolidate the
     rebuild:
 
@@ -70,9 +86,7 @@ class Container(Component):
 
     self += Rebuild()
     self += container.activate()
-
-
-
+    ```
 
     """
 
@@ -148,13 +162,16 @@ class Container(Component):
         if not self.depends_on:
             self.depends_on = []
 
-        self += File(
-            f"/etc/local/nixos/docker_{self.container_name}.nix",
-            sensitive_data=False,
-            source=os.path.join(
-                os.path.dirname(__file__), "resources/oci-template.nix"
-            ),
-        )
+        if not self.require_one(
+            "container-host", strict=False, host=self.host, reverse=True
+        ):
+            self += File(
+                f"/etc/local/nixos/docker_{self.container_name}.nix",
+                sensitive_data=False,
+                source=os.path.join(
+                    os.path.dirname(__file__), "resources/oci-template.nix"
+                ),
+            )
 
         if self.rebuild:
             self += batou_ext.nix.Rebuild()

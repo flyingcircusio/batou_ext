@@ -18,13 +18,15 @@ def git_resolve(url, version):
             return version
     # Symbolic name?
     cmd = subprocess.Popen(
-        ["git", "ls-remote", url, version + "^{}"], stdout=subprocess.PIPE
+        ["git", "ls-remote", url, f"refs/tags/{version}^{{}}"],
+        stdout=subprocess.PIPE,
     )
     stdout, stderr = cmd.communicate()
     # if its not a tag, start another more generic attempt
     if not stdout:
         cmd = subprocess.Popen(
-            ["git", "ls-remote", url, version], stdout=subprocess.PIPE
+            ["git", "ls-remote", url, f"refs/heads/{version}"],
+            stdout=subprocess.PIPE,
         )
         stdout, stderr = cmd.communicate()
     stdout = stdout.decode("ascii")
