@@ -167,6 +167,7 @@ class Container(Component):
 
         if "containerhost" in self.environment.components_for(self.host).keys():
             self.provide("oci-container", self)
+            self.rebuild = False
         else:
             self += File(
                 f"/etc/local/nixos/docker_{self.container_name}.nix",
