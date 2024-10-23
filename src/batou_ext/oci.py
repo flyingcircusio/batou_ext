@@ -173,6 +173,8 @@ class Container(Component):
                     os.path.dirname(__file__), "resources/oci-template.nix"
                 ),
             )
+        else:
+            self.provide("oci-container", self)
 
         if self.rebuild:
             self += batou_ext.nix.Rebuild()
