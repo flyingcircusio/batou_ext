@@ -17,6 +17,9 @@ class ContainerHost(Component):
     def configure(self):
         self.provide("container-host", self)
         self.containers = self.require("oci-container", host=self.host)
+        self.containers = sorted(
+            self.containers, key=lambda x: x.container_name
+        )
         self += File(
             "/etc/local/nixos/oci-containers.nix",
             sensitive_data=False,
