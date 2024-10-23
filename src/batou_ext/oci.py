@@ -15,6 +15,7 @@ import batou_ext.nix
 @batou_ext.nix.rebuild
 class ContainerHost(Component):
     def configure(self):
+        self.provide("container-host", self)
         self.containers = self.require("oci-container", host=self.host)
         self += File(
             "/etc/local/nixos/oci-containers.nix",
