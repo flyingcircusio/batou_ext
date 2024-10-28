@@ -1,5 +1,5 @@
 
-## 2.4.17 (unreleased)
+## 2.4.17 (2024-10-28)
 
 
 - A new component `batou_ext.systemd.ScalableService` has been added. This provides configurations
