@@ -2,6 +2,8 @@
 ## 2.4.17 (unreleased)
 
 
+- Nothing changed yet.
+
 - A new component `batou_ext.systemd.ScalableService` has been added. This provides configurations
   for a service that can exist multiple times (e.g. queue consumers). Detailed usage instructions
   and further information can be found in the component's docstring.
