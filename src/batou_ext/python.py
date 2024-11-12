@@ -1,6 +1,7 @@
 import os.path
 import shlex
 from glob import glob
+from textwrap import dedent
 
 import batou.component
 import batou.lib.python
@@ -217,13 +218,13 @@ class FixELFRunPath(batou.component.Component):
                 return
 
             # add user env to DT_RPATH
-            self.__patchelf(["--add-rpath", directories], files_to_fix)
-            # drop everything from DT_RPATH except self.env_directory
+            # & drop everything from DT_RPATH except self.env_directory
             # and directories in the venv (to allow shared libraries from numpy
             # to load other shared libraries from numpy).
             self.__patchelf(
                 [
-                    "--shrink-rpath",
+                    "--add-rpath-and-shrink",
+                    directories,
                     "--allowed-rpath-prefixes",
                     f"{directories}:$ORIGIN",
                 ],
@@ -231,12 +232,36 @@ class FixELFRunPath(batou.component.Component):
             )
 
     def __patchelf(self, args, paths):
+        # The idea behind the `pkgs.patchelf-venv or` is to move the expression
+        # into fc-nixos eventually to not rebuild patchelf on-demand (not too urgent though
+        # since the patchelf build is relatively small).
+        # If the patch gets accepted upstream, we should remove the entire dance here. If not,
+        # the platform approach will be taken.
+        patchelf_expr = shlex.quote(
+            dedent(
+                """
+        with import <nixpkgs> {}; {
+          patchelf = pkgs.patchelf-venv or patchelf.overrideAttrs ({ patches ? [], ... }: {
+            patches = patches ++ [
+              (fetchpatch {
+                url = "https://github.com/flyingcircusio/patchelf/commit/6ffde887d77275323c81c2e091891251b021abb3.patch";
+                hash = "sha256-4Qct2Ez3v6DyUG26JTWt6/tkaqB9h1gYaoaObqhvFS8=";
+              })
+            ];
+          });
+        }
+        """
+            )
+        )
+
         args_ = " ".join(shlex.quote(arg) for arg in args)
         # `--force-rpath` because we need `rpath` for $ORIGIN since rpath
         # works for all ELFs below in the dependency tree in contrast to DT_RUNPATH.
         # It's impossible to use both at the same time because DT_RPATH will always
         # be ignored then. For more context, see `ld.so(8)`.
-        patchelf = "nix run -f '<nixpkgs>' -- patchelf --force-rpath"
+        patchelf = (
+            f"nix run --impure --expr {patchelf_expr} -- patchelf --force-rpath"
+        )
         cmd = f"xargs -P {self.patchelf_jobs} {patchelf} {args_}"
         proc = self.cmd(cmd, communicate=False)
 
