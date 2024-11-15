@@ -1,5 +1,5 @@
 
-## 2.4.18 (unreleased)
+## 2.4.18 (2024-11-15)
 
 
 - nixos.NixOSModule: Mark generated context file as sensitive (Fixes #167)
