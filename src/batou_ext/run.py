@@ -31,6 +31,7 @@ class Run(batou.component.Component):
     namevar = "command"
     content = None
     file = None
+    env = None
 
     def configure(self):
 
@@ -55,5 +56,5 @@ class Run(batou.component.Component):
 
     def update(self):
         self.touch(self.command_file.path)
-        self.cmd(self.command_file.path)
+        self.cmd(self.command_file.path, env=self.env)
         self.touch(f"{self.command_file.path}_stamp")
