@@ -190,7 +190,7 @@ class DeploymentTrash(batou.component.Component):
     def discard(self, path):
         target = tempfile.mkdtemp(dir=self.trashdir)
         try:
-            os.rename(path, os.path.join(target, os.path.basename(path)))
+            shutil.move(path, os.path.join(target, os.path.basename(path)))
         except FileNotFoundError:
             # Nothing to delete.
             pass

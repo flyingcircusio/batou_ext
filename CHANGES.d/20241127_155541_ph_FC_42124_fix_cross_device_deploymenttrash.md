@@ -1,0 +1,1 @@
+- fix an exception in the deploymenttrash component when the folder to discard and the temporary folder are not on the same device
