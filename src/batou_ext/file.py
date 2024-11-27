@@ -41,6 +41,7 @@ class SymlinkAndCleanup(batou.component.Component):
 
     systemd_read_max_iops = 100
     systemd_write_max_iops = 100
+    trashdir = None
 
     ## DEPRECATED, do not use
     use_systemd_run_async_cleanup = False
@@ -56,6 +57,7 @@ class SymlinkAndCleanup(batou.component.Component):
         self += DeploymentTrash(
             read_iops_limit=self.systemd_read_max_iops,
             write_iops_limit=self.systemd_write_max_iops,
+            trashdir=self.trashdir,
         )
         self.trash = self._
 
@@ -166,8 +168,12 @@ class DeploymentTrash(batou.component.Component):
     read_iops_limit = 100
     write_iops_limit = 100
 
+    trashdir = None
+
     def configure(self):
-        self.trashdir = os.path.expanduser("~/.deployment-trash")
+        if not self.trashdir:
+            self.trashdir = os.path.expanduser("~/.deployment-trash")
+
         self += batou.lib.file.File(self.trashdir, ensure="directory")
         self += batou.lib.file.File(
             "/etc/local/nixos/trash.nix",
@@ -194,3 +200,8 @@ class DeploymentTrash(batou.component.Component):
         except FileNotFoundError:
             # Nothing to delete.
             pass
+        except OSError as e:
+            batou.output.annotate(
+                "check that the deployment trash dir and the directory you want to trash are on the same device"
+            )
+            raise e

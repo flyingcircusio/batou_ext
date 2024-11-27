@@ -1,0 +1,1 @@
+- make the DeploymentTrash's trash directory configurable and output a potentially helpful message on OSErrors which could indicate that the trash directory and the directory that is being trashed are on different devices
