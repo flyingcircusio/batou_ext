@@ -2,7 +2,7 @@
 ## 2.4.19 (unreleased)
 
 
-- Nothing changed yet.
+- make the DeploymentTrash's trash directory configurable and output a potentially helpful message on OSErrors which could indicate that the trash directory and the directory that is being trashed are on different devices
 
 
 ## 2.4.18 (2024-11-15)
