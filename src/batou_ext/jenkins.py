@@ -7,6 +7,19 @@ import subprocess
 import sys
 
 
+def git_ls_remote(url, ref):
+    cmd = subprocess.Popen(
+        ["git", "ls-remote", url, ref], stdout=subprocess.PIPE
+    )
+    stdout, _ = cmd.communicate()
+    if cmd.returncode != 0:
+        raise ValueError(
+            f"'git ls-remote {url} {ref}' failed with exit code {cmd.returncode}. Stderr is printed above."
+        )
+    if stdout:
+        return stdout.decode("ascii").split("\t", 1)
+
+
 def git_resolve(url, version):
     if len(version) == 40:
         # revision.
@@ -16,19 +29,25 @@ def git_resolve(url, version):
             pass
         else:
             return version
-    # Symbolic name?
-    cmd = subprocess.Popen(
-        ["git", "ls-remote", url, version + "^{}"], stdout=subprocess.PIPE
-    )
-    stdout, stderr = cmd.communicate()
-    # if its not a tag, start another more generic attempt
-    if not stdout:
-        cmd = subprocess.Popen(
-            ["git", "ls-remote", url, version], stdout=subprocess.PIPE
-        )
-        stdout, stderr = cmd.communicate()
-    stdout = stdout.decode("ascii")
-    return stdout.split("\t", 1)[0]
+
+    ls_remote = git_ls_remote(url, version)
+    if ls_remote:
+        rev, full_refspec = ls_remote
+        # If full_refspec indicates that a tag was found, retry with `^{}`
+        # to check if the tag is annotated: an annotated tag (e.g. due to its
+        # own message or a signature) has its own revision which is not equal
+        # to the revision of the commit that got tagged.
+        # The difference is crucial in some cases however, e.g. if the commit's
+        # rev is part of the S3 URL containing the frontend artifacts for this
+        # deploy.
+        if full_refspec.startswith("refs/tags/"):
+            ls_remote_tag = git_ls_remote(url, f"{version}^{{}}")
+            # If the result is empty here, the tag is not annotated, thus using the
+            # rev from the first invocation is correct. We don't end up here because of
+            # an error anymore since non-zero returns now fail with a ValueError earlier.
+            if ls_remote_tag:
+                rev = ls_remote_tag[0]
+        return rev
 
 
 class VersionsUpdater:
