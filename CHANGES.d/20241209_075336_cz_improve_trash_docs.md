@@ -1,0 +1,1 @@
+- Improve documentation of `batou_ext.file.DeploymentTrash`
