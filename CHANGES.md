@@ -1,5 +1,5 @@
 
-## 2.4.20 (unreleased)
+## 2.4.20 (2024-12-10)
 
 
 - Correctness fix for `jenkins set-version`: if a tag is resolved, make sure it's _always_
