@@ -2,7 +2,11 @@
 ## 2.4.20 (unreleased)
 
 
-- Nothing changed yet.
+- Correctness fix for `jenkins set-version`: if a tag is resolved, make sure it's _always_
+  resolved to the rev of the tagged commit (instead of the tag's rev) or fail hard to avoid
+  incorrect revs.
+
+- Improve documentation of `batou_ext.file.DeploymentTrash`
 
 
 ## 2.4.19 (2024-11-28)
