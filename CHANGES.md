@@ -2,7 +2,9 @@
 ## 2.4.21 (unreleased)
 
 
-- Nothing changed yet.
+- Fix interactive version select.
+
+- Change the releaser defaults to actually release
 
 
 ## 2.4.20 (2024-12-10)
