@@ -79,6 +79,8 @@ def select_versions_interactive(basedir: str) -> dict:
         ).execute()
 
         interative_versions[c] = new_version
+
+    set_versions(versions_ini, interative_versions)
     return interative_versions
 
 
@@ -168,8 +170,7 @@ def main():
     elif args.branch:
         update_from_branch(basedir, args.branch)
     else:
-        target_versions = select_versions_interactive()
-        set_versions(target_versions)
+        select_versions_interactive(basedir)
 
 
 if __name__ == "__main__":
