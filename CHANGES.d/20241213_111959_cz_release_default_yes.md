@@ -1,0 +1,1 @@
+- Change the releaser defaults to actually release
