@@ -1,5 +1,5 @@
 
-## 2.4.21 (unreleased)
+## 2.4.21 (2024-12-13)
 
 
 - Fix interactive version select.
