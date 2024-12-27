@@ -1,5 +1,5 @@
 
-## 2.4.22 (unreleased)
+## 2.4.22 (2024-12-27)
 
 
 - Allow to configure the name of the `.nix` file created by `batou_ext.file.DeploymentTrash`.
