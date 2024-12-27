@@ -2,7 +2,7 @@
 ## 2.4.22 (unreleased)
 
 
-- Nothing changed yet.
+- Allow to configure the name of the `.nix` file created by `batou_ext.file.DeploymentTrash`.
 
 
 ## 2.4.21 (2024-12-13)

@@ -1,1 +1,0 @@
-- Allow to configure the name of the `.nix` file created by `batou_ext.file.DeploymentTrash`.
