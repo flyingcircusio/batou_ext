@@ -42,6 +42,7 @@ class SymlinkAndCleanup(batou.component.Component):
     systemd_read_max_iops = 100
     systemd_write_max_iops = 100
     trashdir = None
+    trash_config_file_name = batou.component.Attribute(str, default="trash.nix")
 
     ## DEPRECATED, do not use
     use_systemd_run_async_cleanup = False
@@ -58,6 +59,7 @@ class SymlinkAndCleanup(batou.component.Component):
             read_iops_limit=self.systemd_read_max_iops,
             write_iops_limit=self.systemd_write_max_iops,
             trashdir=self.trashdir,
+            file_name=self.trash_config_file_name,
         )
         self.trash = self._
 
@@ -170,6 +172,8 @@ class DeploymentTrash(batou.component.Component):
     ```
     """
 
+    file_name = batou.component.Attribute(str, default="trash.nix")
+
     read_iops_limit = 100
     write_iops_limit = 100
 
@@ -181,7 +185,7 @@ class DeploymentTrash(batou.component.Component):
 
         self += batou.lib.file.File(self.trashdir, ensure="directory")
         self += batou.lib.file.File(
-            "/etc/local/nixos/trash.nix",
+            f"/etc/local/nixos/{self.file_name}",
             content=dedent(
                 """\
             {
