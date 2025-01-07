@@ -1,4 +1,10 @@
 
+## 2.4.24 (unreleased)
+
+
+- Nothing changed yet.
+
+
 ## 2.4.23 (2025-01-07)
 
 
