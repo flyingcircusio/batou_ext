@@ -194,8 +194,8 @@ class DeploymentTrash(batou.component.Component):
               ];
 
               systemd.services."systemd-tmpfiles-clean".serviceConfig = {
-                IOReadIOPSMax="{{component.trashdir}} {{component.read_iops_limit}}";
-                IOWriteIOPSMax="{{component.trashdir}} {{component.write_iops_limit}}";
+                IOReadIOPSMax=["{{component.trashdir}} {{component.read_iops_limit}}"];
+                IOWriteIOPSMax=["{{component.trashdir}} {{component.write_iops_limit}}"];
               };
             }
         """
