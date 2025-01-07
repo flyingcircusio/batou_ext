@@ -1,5 +1,5 @@
 
-## 2.4.23 (unreleased)
+## 2.4.23 (2025-01-07)
 
 
 - Fix using multiple DeploymentTrash Component on a single host breaking the Nix rebuild, especially across different deployments to the same machine.
