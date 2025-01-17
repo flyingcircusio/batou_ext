@@ -2,13 +2,13 @@
 {
   # {% if component.monitor %}
   flyingcircus = {
-    services.sensu-client.checks."docker-{{component.container_name}}" = {
+    services.sensu-client.checks."{{ component.backend }}-{{component.container_name}}" = {
       notification = "Status of container {{component.container_name}}";
       command = ''
-        if $(systemctl is-active --quiet docker-{{component.container_name}}); then
-          echo "docker container {{component.container_name}} is ok"
+        if $(systemctl is-active --quiet {{ component.backend }}-{{component.container_name}}); then
+          echo "{{ component.backend }} container {{component.container_name}} is ok"
         else
-          echo "docker container {{component.container_name}} is inactive"
+          echo "{{ component.backend }} container {{component.container_name}} is inactive"
           exit 2
         fi
       '';
@@ -17,7 +17,6 @@
   # {% endif %}
 
   virtualisation.oci-containers = {
-    backend = "docker";
     containers."{{component.container_name}}" = {
       # {% if component.entrypoint %}
       entrypoint = "{{component.entrypoint}}";
@@ -40,9 +39,20 @@
 
       extraOptions = [
         "--pull=always"
+        # {% if component.backend == "podman" %}
+        "--cgroups=enabled"
+        "--cidfile=/run/{{component.container_name}}/ctr-id"
+        # {% endif %}
         # {% for option in (component.extra_options or []) %}
         "{{option}}"
         # {% endfor %}
+        # {% if component.sd_notify %}
+        "--sdnotify={{ component.sd_notify }}"
+        # {% endif %}
+        # {% if component.health_cmd %}
+        "--health-cmd"
+        {{ component.health_cmd }}
+        # {% endif %}
       ];
 
       volumes = [
@@ -68,4 +78,23 @@
       ];
     };
   };
+
+  # {% if component.backend == "podman" %}
+  systemd.services."podman-{{ component.container_name }}".serviceConfig = {
+    User = "{{ component.user }}";
+    RuntimeDirectory = "{{component.container_name}}";
+    # {% if component.sd_notify == "healthy" %}
+    Delegate = true;
+    NotifyAccess = "all";
+    # {% endif %}
+  };
+
+  # {% if component.sd_notify == "healthy" %}
+  systemd.services."podman-{{ component.container_name }}".wants = [ "linger-users.service" ];
+  users.users."{{ component.user }}".linger = true;
+  # {% endif %}
+  # {% if component.sd_notify == "conmon" %}
+  users.users."{{ component.user }}".linger = false;
+  # {% endif %}
+  # {% endif %}
 }
