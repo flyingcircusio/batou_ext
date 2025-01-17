@@ -16,12 +16,7 @@
   };
   # {% endif %}
 
-  # {% if component.backend == "podman" %}
-  virtualisation.podman.enable = true;
-  # {% endif %}
-
   virtualisation.oci-containers = {
-    backend = "{{ component.backend }}";
     containers."{{component.container_name}}" = {
       # {% if component.entrypoint %}
       entrypoint = "{{component.entrypoint}}";

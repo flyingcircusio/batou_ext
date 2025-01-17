@@ -13,6 +13,29 @@ from batou.utils import CmdExecutionError
 import batou_ext.nix
 
 
+class PodmanRuntime(Component):
+    """
+    Marker to indicate that containers are running with podman instead of
+    docker.
+
+    The backend can only be set globally in NixOS, so this is done with a single,
+    global component here.
+    """
+
+    def configure(self):
+        self.provide("oci:podman", self)
+        self += File(
+            "/etc/local/nixos/oci-backend.nix",
+            content=dedent(
+                """\
+        {
+          virtualisation.podman.enable = true;
+        }
+        """
+            ),
+        )
+
+
 class Container(Component):
     """A OCI Container component.
 
@@ -77,10 +100,11 @@ class Container(Component):
     self += container.activate()
     ```
 
-    Containers can use `podman` as backend when specifying the `backend` property:
+    Containers can use `podman` as backend by adding the `PodmanRuntime`
+    component:
     ```
+    self += batou_ext.oci.PodmanRuntime()
     self += batou_ext.oci.Container(
-        backend="podman",
         image="mysql"
     )
     ```
@@ -91,9 +115,9 @@ class Container(Component):
     parameter:
 
     ```
+    self += batou_ext.oci.PodmanRuntime()
     self += batou_ext.oci.Container(
         image="with-healthchecks",
-        backend="podman",
         sd_notify="healthy"
     )
     ```
@@ -107,9 +131,9 @@ class Container(Component):
     one via this component. The command is passed `/bin/sh -c`:
 
     ```
+    self += batou_ext.oci.PodmanRuntime()
     self += batou_ext.oci.Container(
         image="without-healthcheck",
-        backend="podman",
         sd_notify="healthy",
         health_cmd="curl --fail localhost || exit 1"
     )
@@ -123,7 +147,6 @@ class Container(Component):
     image = Attribute(str)
     version: str = "latest"
     container_name = Attribute(str)
-    backend = Attribute(str, "docker")
 
     sd_notify = Attribute(str, None)
     health_cmd = Attribute(str, None)
@@ -156,10 +179,11 @@ class Container(Component):
     }
 
     def configure(self):
-        if self.backend not in ["docker", "podman"]:
-            raise ValueError(
-                f"Unsupported backend '{self.backend}' for container '{self.container_name}' (allowed: docker, podman)!"
-            )
+        self.backend = (
+            "podman"
+            if self.require("oci:podman", strict=False, host=self.host)
+            else "docker"
+        )
 
         if (
             self.registry_user or self.registry_password
