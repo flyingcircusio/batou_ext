@@ -138,6 +138,19 @@ class DNSAliases(batou.component.Component):
         return error, results
 
 
+API_URL = "https://{project}:{api_key}@api.flyingcircus.io/v1"
+
+
+def create_xmlrpc_client(environment: batou.environment.Environment):
+    rg_name = environment.overrides["provision"]["project"]
+    api_key = environment.overrides["provision"]["api_key"]
+    api_url = environment.overrides["provision"].get("api_url", API_URL)
+    api = xmlrpc.client.ServerProxy(
+        api_url.format(project=rg_name, api_key=api_key)
+    )
+    return api
+
+
 class Provision(batou.component.Component):
     """FCIO provisioning component.
 
@@ -151,7 +164,6 @@ class Provision(batou.component.Component):
     location = "rzob"
     vm_environment_class = "NixOS"
     vm_environment = None
-    api_url = "https://{project}:{api_key}@api.flyingcircus.io/v1"
 
     # Passed by the CLI runner, not meant to be set via environment:
     env_name: str = None
@@ -171,15 +183,7 @@ class Provision(batou.component.Component):
         return environment
 
     def get_api(self):
-        rg_name = self.environment_.overrides["provision"]["project"]
-        api_key = self.environment_.overrides["provision"]["api_key"]
-        api_url = self.environment_.overrides["provision"].get("api_url")
-        if not api_url:
-            api_url = self.api_url
-        api = xmlrpc.client.ServerProxy(
-            api_url.format(project=rg_name, api_key=api_key)
-        )
-        return api
+        return create_xmlrpc_client(self.environment_)
 
     def get_currently_provisioned_vms(self):
         return self.api.query("virtualmachine")
@@ -303,6 +307,69 @@ class Provision(batou.component.Component):
                 {key: (None, value) for key, value in list(new_vm.items())}
             )
         return result
+
+
+class DirectoryXMLRPC(batou.component.Component):
+    def configure(self):
+        self.xmlrpc = create_xmlrpc_client(self.environment)
+        self.provide("directory-xmlrpc", self.xmlrpc)
+
+
+class MaintenanceStart(batou.component.Component):
+    def configure(self):
+        self.require("needs-maintenance", strict=False, reverse=True)
+        self.xmlrpc = self.require_one("directory-xmlrpc")
+
+    def verify(self):
+        raise batou.UpdateNeeded()
+
+    def update(self):
+        change_maintenance_state(
+            self.xmlrpc, self.host.name, desired_state=True
+        )
+
+
+class MaintenanceEnd(batou.component.Component):
+    def configure(self):
+        self.require("needs-maintenance", strict=False)
+        self.xmlrpc = self.require_one("directory-xmlrpc")
+
+    def verify(self):
+        raise batou.UpdateNeeded()
+
+    def update(self):
+        change_maintenance_state(
+            self.xmlrpc, self.host.name, desired_state=False
+        )
+
+
+def change_maintenance_state(
+    xmlrpc, host_name, desired_state, predict_only=False
+):
+    rg_name = host_name[:-2]
+    rg = next(
+        (rg for rg in xmlrpc.query("resourcegroup") if rg["name"] == rg_name),
+        None,
+    )
+    if rg is None:
+        raise ValueError(
+            f"Cannot change maintenance state of RG '{rg_name}', not in list of RGs modifyable with the xmlrpc API token."
+        )
+
+    if desired_state == rg["in_maintenance"]:
+        raise ValueError(
+            f"Maintenance state of RG '{rg_name}' is already '{desired_state}'!"
+        )
+
+    xmlrpc.apply(
+        [
+            {
+                "__type__": "resourcegroup",
+                "in_maintenance": desired_state,
+                "name": rg_name,
+            }
+        ]
+    )
 
 
 def main():
