@@ -40,6 +40,7 @@
       extraOptions = [
         "--pull=always"
         # {% if component.backend == "podman" %}
+        "--cgroups=enabled"
         "--cidfile=/run/{{component.container_name}}/ctr-id"
         # {% endif %}
         # {% for option in (component.extra_options or []) %}
@@ -88,6 +89,12 @@
     # {% endif %}
   };
 
+  # {% if component.sd_notify == "healthy" %}
+  systemd.services."podman-{{ component.container_name }}".wants = [ "linger-users.service" ];
   users.users."{{ component.user }}".linger = true;
+  # {% endif %}
+  # {% if component.sd_notify == "conmon" %}
+  users.users."{{ component.user }}".linger = false;
+  # {% endif %}
   # {% endif %}
 }

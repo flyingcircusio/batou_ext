@@ -230,7 +230,6 @@ class Container(Component):
         else:
             if self.sd_notify is not None:
                 assert self.sd_notify in [
-                    "container",
                     "conmon",
                     "healthy",
                     "ignore",
