@@ -82,8 +82,10 @@
   systemd.services."podman-{{ component.container_name }}".serviceConfig = {
     User = "{{ component.user }}";
     RuntimeDirectory = "{{component.container_name}}";
+    # {% if component.sd_notify == "healthy" %}
     Delegate = true;
     NotifyAccess = "all";
+    # {% endif %}
   };
 
   users.users."{{ component.user }}".linger = true;
