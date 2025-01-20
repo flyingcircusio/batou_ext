@@ -24,14 +24,14 @@ class NixosModuleContent(ManagedContentBase):
 
   );
 in {
-  imports = [(module (args // { inherit component; }))];
+  imports = [(module component)];
 }
             """,
         )
 
 
 @batou_ext.nix.rebuild
-class NixosModule(Component):
+class NixOSModule(Component):
     namevar = "path"
     source_component: Optional[Component] = None
 
