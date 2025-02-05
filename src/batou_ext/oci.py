@@ -1,3 +1,4 @@
+import json
 import os
 import shlex
 from textwrap import dedent
@@ -12,11 +13,38 @@ from batou.utils import CmdExecutionError
 import batou_ext.nix
 
 
+class PodmanRuntime(Component):
+    """
+    Marker to indicate that containers are running with podman instead of
+    docker.
+
+    The backend can only be set globally in NixOS, so this is done with a single,
+    global component here.
+    """
+
+    def configure(self):
+        self.provide("oci:podman", self)
+        self += File(
+            "/etc/local/nixos/oci-backend.nix",
+            content=dedent(
+                """\
+        {
+          virtualisation.podman.enable = true;
+        }
+        """
+            ),
+        )
+
+
 class Container(Component):
     """A OCI Container component.
 
-    With this component you can dynamically schedule docker containers to be
-    run on the target host.
+    With this component you can dynamically schedule docker or podman containers
+    to be run on the target host.
+
+    Note: the `podman` backend is still considered experimental and thus subject
+    to change. Running both docker and podman containers on the same VM is currently
+    not supported.
 
     Note: Docker image specifiers do not follow a properly resolvable pattern.
     Therefore, container registries have to be specified seperately if you need
@@ -70,16 +98,52 @@ class Container(Component):
 
     self += Rebuild()
     self += container.activate()
+    ```
 
+    Containers can use `podman` as backend by adding the `PodmanRuntime`
+    component:
+    ```
+    self += batou_ext.oci.PodmanRuntime()
+    self += batou_ext.oci.Container(
+        image="mysql"
+    )
+    ```
 
+    This assumes that the container has a healthcheck configured.
+    The unit `podman-mysql` will remain in state `activating` until
+    the container is in `healthy` state. Then, it's transitioned into
+    `active` state.
 
+    The `batou_ext.nix.Rebuild` component will wait until newly started
+    and restarted units are `active`, i.e. it will wait until the container is
+    up with `podman`.
 
+    If a podman container doesn't have a healthcheck defined, it's possible to add
+    one via this component. The command is passed `/bin/sh -c`:
+
+    ```
+    self += batou_ext.oci.PodmanRuntime()
+    self += batou_ext.oci.Container(
+        image="without-healthcheck",
+        health_cmd="curl --fail localhost || exit 1"
+    )
+    ```
+
+    Please note that the healthcheck is executed _inside_ the container, so
+    the container above would require a `curl` installed.
+
+    When using podman containers, the user running the container
+    has lingering enabled, i.e. a long-running user session is started by
+    logind (https://www.freedesktop.org/software/systemd/man/latest/loginctl.html#enable-linger%20USER%E2%80%A6).
     """
 
     # general options
     image = Attribute(str)
     version: str = "latest"
     container_name = Attribute(str)
+
+    health_cmd = Attribute(str, None)
+    user = Attribute(str, None)
 
     # Set up monitoring
     monitor: bool = True
@@ -95,7 +159,7 @@ class Container(Component):
     ports: dict = {}
     env: dict = {}
     depends_on: list = None
-    extra_options: list = None
+    extra_options: list = []
 
     # secrets
     registry_address = Attribute(Optional[str], None)
@@ -108,6 +172,12 @@ class Container(Component):
     }
 
     def configure(self):
+        self.backend = (
+            "podman"
+            if self.require("oci:podman", strict=False, host=self.host)
+            else "docker"
+        )
+
         if (
             self.registry_user or self.registry_password
         ) and not self.registry_address:
@@ -144,6 +214,21 @@ class Container(Component):
 
         if self.docker_cmd:
             self._docker_cmd_list = shlex.split(self.docker_cmd)
+
+        if self.backend != "podman":
+            for prop in ["user", "health_cmd"]:
+                assert (
+                    getattr(self, prop) is None
+                ), f"Container '{self.container_name}' runs with Docker, so the '{prop}' option is not supported!"
+        else:
+            if self.health_cmd is not None:
+                # `json.dumps` quotes the quoted string in a way that it can
+                # be placed as valid string into a Nix expression.
+                # The bash-quoting is done in the OCI module in NixOS.
+                self.health_cmd = json.dumps(self.health_cmd)
+
+            if self.user is None:
+                self.user = self.host.service_user
 
         if not self.depends_on:
             self.depends_on = []
@@ -220,7 +305,11 @@ class ContainerRestart(Component):
         # query the local digest to compare against upstream
         local_digest = self._get_local_digest()
 
-        image_ident = f"{container.image}:{container.version}@{local_digest}"
+        image_ident = (
+            f"{container.image}:{container.version}@{local_digest}"
+            if self.container.backend == "docker"
+            else f"{container.image}@{local_digest}"
+        )
 
         # test whether the ident has been checked already
         if image_ident in self._remote_manifest_cache:
@@ -243,7 +332,7 @@ class ContainerRestart(Component):
     def update(self):
         if self._need_explicit_restart:
             self.cmd(
-                f"sudo systemctl restart docker-{self.container.container_name}"
+                f"sudo systemctl restart {self.container.backend}-{self.container.container_name}"
             )
 
     def _get_running_container_image_id(self):
@@ -254,7 +343,7 @@ class ContainerRestart(Component):
         image_id, stderr = self.cmd(
             dedent(
                 """\
-            docker container inspect {{component.container.container_name}} \
+            {{ component.container.backend }} container inspect {{component.container.container_name}} \
                 | jq -r '.[0].Image'
                 """
             )
@@ -269,7 +358,7 @@ class ContainerRestart(Component):
         local_image_id, stderr = self.cmd(
             dedent(
                 """\
-            docker image inspect {{component.container.image}}:{{component.container.version}} \
+            {{ component.container.backend }} image inspect {{component.container.image}}:{{component.container.version}} \
                 | jq -r '.[0].Id' \
                 || echo image not available locally
                 """
@@ -281,7 +370,7 @@ class ContainerRestart(Component):
         local_digest, stderr = self.cmd(
             dedent(
                 """\
-            docker image inspect {{component.container.image}}:{{component.container.version}} \
+            {{ component.container.backend }} image inspect {{component.container.image}}:{{component.container.version}} \
                 | jq -r 'first | .RepoDigests | first | split("@") | last' \
                 || echo image not available locally
                 """
@@ -294,7 +383,7 @@ class ContainerRestart(Component):
             self.expand(
                 dedent(
                     """\
-        docker login \\
+        {{ component.container.backend }} login \\
             {%- if component.container.registry_user and component.container.registry_password %}
             -u {{component.container.registry_user}} \\
             -p {{component.container.registry_password}} \\
@@ -309,7 +398,9 @@ class ContainerRestart(Component):
         try:
             # check if the digest aligns with the remote image
             # if it does not, this command will throw an error
-            stdout, stderr = self.cmd(f"docker manifest inspect {image_ident}")
+            stdout, stderr = self.cmd(
+                f"{self.container.backend} manifest inspect {image_ident}"
+            )
         except CmdExecutionError as e:
             error = e.stderr
             if error.startswith("unsupported manifest format"):  # gitlab
