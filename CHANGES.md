@@ -1,5 +1,5 @@
 
-## 2.4.24 (unreleased)
+## 2.4.24 (2025-02-17)
 
 
 - `batou_ext.file.SymlinkAndCleanup`: add option `etag_suffix`.
