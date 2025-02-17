@@ -2,7 +2,13 @@
 ## 2.4.24 (unreleased)
 
 
-- Nothing changed yet.
+- `batou_ext.file.SymlinkAndCleanup`: add option `etag_suffix`.
+  This contains a suffix that each symlinked file may have.
+
+  For instance, when doing `SymlinkAndCleanup` on a file downloaded with
+  `batou_ext.s3.Download`, the pattern `*.tar.gz` doesn't clean up the
+  `.etag` files. However, `*.tar.gz*` (or an equivalent) would also remove
+  the etag files of the files that are symlinked to `current` & `last`.
 
 
 ## 2.4.23 (2025-01-07)
