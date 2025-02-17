@@ -34,6 +34,7 @@ class SymlinkAndCleanup(batou.component.Component):
 
     namevar = "current"
     pattern = None
+    etag_suffix = batou.component.Attribute(str, ".etag")
     _current_link = None
     _last_link = None
 
@@ -92,6 +93,7 @@ class SymlinkAndCleanup(batou.component.Component):
 
     def _list_removals(self):
         candidates = glob.glob(self.pattern)
+        candidates.extend(glob.glob(self.pattern + self.etag_suffix))
 
         current = self._link(self._current_link)
         last = self._link(self._last_link)
@@ -99,10 +101,18 @@ class SymlinkAndCleanup(batou.component.Component):
             # keep last+current
             self.remove(candidates, current)
             self.remove(candidates, last)
+            if current is not None:
+                self.remove(candidates, current + self.etag_suffix)
+            if last is not None:
+                self.remove(candidates, last + self.etag_suffix)
         else:
             # keep current + new current"
             self.remove(candidates, current)
             self.remove(candidates, self.current)
+            if current is not None:
+                self.remove(candidates, current + self.etag_suffix)
+            if self.current is not None:
+                self.remove(candidates, self.current + self.etag_suffix)
 
         return candidates
 
