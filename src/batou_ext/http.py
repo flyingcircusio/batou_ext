@@ -61,7 +61,6 @@ class HTTPBasicAuth(batou.component.Component):
         self.path = self._.path
 
 
-@batou_ext.nix.rebuild
 class HTTPServiceWatchdog(batou.component.Component):
     """
     Adds a "watchdog" on top of a systemd service that checks within a given interval
@@ -209,6 +208,8 @@ class HTTPServiceWatchdog(batou.component.Component):
     start_timeout = batou.component.Attribute(int, default=64)
     watchdog_interval = batou.component.Attribute(int, default=64)
 
+    rebuild = batou.component.Attribute("literal", default=True)
+
     def configure(self):
         if self.predefined_service and self.script is not None:
             raise ValueError(
@@ -225,6 +226,9 @@ class HTTPServiceWatchdog(batou.component.Component):
                 __name__, "resources/http-watchdog.nix"
             ),
         )
+
+        if self.rebuild:
+            self += batou_ext.nix.Rebuild()
 
 
 class HTTPWatchdogScript(batou.component.Component):
