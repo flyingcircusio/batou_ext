@@ -1,5 +1,5 @@
 
-## 2.4.25 (unreleased)
+## 2.4.25 (2025-02-21)
 
 
 - `batou_ext.oci.Container`: allow to use `podman` as backend instead of `docker`.
