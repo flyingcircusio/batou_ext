@@ -2,7 +2,15 @@
 ## 2.4.25 (unreleased)
 
 
-- Nothing changed yet.
+- `batou_ext.oci.Container`: allow to use `podman` as backend instead of `docker`.
+  This also enables the following features:
+
+  * Rootless containers: by setting the `user` option to a different user. By default,
+    the service user of the deployment is used.
+
+  * Only mark services as `active` if the container is up. This requires that the
+    container has a healthcheck. Alternatively, a healthcheck can be configured
+    with the health_cmd attribute.
 
 
 ## 2.4.24 (2025-02-17)
