@@ -2,7 +2,10 @@
 ## 2.4.26 (unreleased)
 
 
-- Nothing changed yet.
+- `batou_ext.oci.Container`: set `backend` explicitly in Nix expression.
+
+  Otherwise this depends on the state version having varying results depending on whether
+  the machine was installed with a NixOS older or newer than 22.05.
 
 
 ## 2.4.25 (2025-02-21)
