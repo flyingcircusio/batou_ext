@@ -17,6 +17,7 @@
   # {% endif %}
 
   virtualisation.oci-containers = {
+    backend = "{{ component.backend }}";
     containers."{{component.container_name}}" = {
       # {% if component.entrypoint %}
       entrypoint = "{{component.entrypoint}}";
