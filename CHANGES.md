@@ -1,5 +1,5 @@
 
-## 2.4.26 (unreleased)
+## 2.4.26 (2025-02-28)
 
 
 - `batou_ext.oci.Container`: set `backend` explicitly in Nix expression.
