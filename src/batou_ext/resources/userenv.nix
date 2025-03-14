@@ -24,4 +24,8 @@ in buildEnv {
       {%- endfor %}
     ];
     extraOutputsToInstall = [ "bin" "dev" "lib" "man" "out" ];
+
+    {% if component.ignore_collisions %}
+    ignoreCollisions = true;
+    {% endif %}
 }
