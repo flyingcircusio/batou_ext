@@ -140,6 +140,7 @@ class UserEnv(batou.component.Component):
     shellInit = ""
     packages = ()
     let_extra = ""
+    ignore_collisions = batou.component.Attribute("literal", default=False)
 
     def configure(self):
         self.checksum = hashlib.sha256()
