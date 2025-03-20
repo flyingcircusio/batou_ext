@@ -1,5 +1,5 @@
 
-## 2.4.27 (unreleased)
+## 2.4.27 (2025-03-20)
 
 
 - Add a new parameter for `nix.UserEnv` components to ignore collisions between file names from different derivations or outputs of the same derivation
