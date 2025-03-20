@@ -93,6 +93,11 @@ class MockRoundcubeProvider(Component):
         self.provide("roundcube::database", self)
 
 
+class MockXMLRPCProvider(Component):
+    def configure(self):
+        self.provide("directory-xmlrpc", self)
+
+
 def test_prepare(root, mocker, component, tmpdir):
     """Assert that the `prepare` method of batou_ext components can be called.
 
@@ -172,6 +177,16 @@ def test_prepare(root, mocker, component, tmpdir):
         instance.script = "/srv/s-myuser/start-application.sh"
         instance.watchdog_script_path = "/srv/s-myuser/watchdog-wrapper.py"
         instance.healthcheck_url = "https://example.com"
+    elif component_name in {
+        "batou_ext.fcio.MaintenanceStart",
+        "batou_ext.fcio.MaintenanceEnd",
+    }:
+        MockXMLRPCProvider().prepare(root)
+    elif component_name == "batou_ext.fcio.DirectoryXMLRPC":
+        root.environment.overrides["provision"] = {
+            "project": "foo",
+            "api_key": "aligator3",
+        }
     elif component_name == "batou_ext.mail.Mailpit":
         batou_ext.http.HTTPBasicAuth(
             **batou_ext.http.HTTPBasicAuth._required_params_
