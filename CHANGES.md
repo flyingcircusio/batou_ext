@@ -2,7 +2,7 @@
 ## 2.4.27 (unreleased)
 
 
-- Nothing changed yet.
+- Add a new parameter for `nix.UserEnv` components to ignore collisions between file names from different derivations or outputs of the same derivation
 
 
 ## 2.4.26 (2025-02-28)
