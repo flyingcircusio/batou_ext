@@ -1,0 +1,1 @@
+- add `nix.Rebuild.continue_on_warning` to continue the deployment on nix unit start *warnings*.
