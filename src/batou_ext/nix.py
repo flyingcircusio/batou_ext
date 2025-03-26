@@ -36,7 +36,7 @@ from batou.lib.file import (
     Owner,
     Presence,
 )
-from batou.utils import Address, NetLoc, CmdExecutionError
+from batou.utils import Address, CmdExecutionError, NetLoc
 
 
 class Package(batou.component.Component):
@@ -193,11 +193,11 @@ class Rebuild(batou.component.Component):
             # cleaned up with some idempotence/convergence mechanism and that
             # requires continuing in some situations where nixos-rebuild
             # indicates errors restarting units. Those are kind of `advisory`
-            # anyway, so ... 
+            # anyway, so ...
             if "warning: the following units failed: " in e.stderr:
                 self.log("Detected failed unit restarts, continuing anyway.")
-
-            raise
+            else:
+                raise
 
 
 def rebuild(cls):
