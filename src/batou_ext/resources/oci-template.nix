@@ -1,4 +1,4 @@
-{ ... }:
+{ config, ... }:
 {
   # {% if component.monitor %}
   flyingcircus = {
@@ -81,14 +81,21 @@
   };
 
   # {% if component.backend == "podman" %}
-  systemd.services."podman-{{ component.container_name }}".serviceConfig = {
-    User = "{{ component.user }}";
-    RuntimeDirectory = "{{component.container_name}}";
-    Delegate = true;
-    NotifyAccess = "all";
+  systemd.services."podman-{{ component.container_name }}" = let
+    inherit (config.users.users."{{ component.user }}") uid;
+  in {
+    wants = [ "linger-users.service" ];
+    requires = [ "user@${toString uid}.service" ];
+    after = [ "user@${toString uid}.service" ];
+    unitConfig.RequiresMountsFor = "/run/user/${toString uid}/containers";
+    serviceConfig = {
+      User = "{{ component.user }}";
+      RuntimeDirectory = "{{component.container_name}}";
+      Delegate = true;
+      NotifyAccess = "all";
+      PrivateTmp = true;
+    };
   };
-
-  systemd.services."podman-{{ component.container_name }}".wants = [ "linger-users.service" ];
   users.users."{{ component.user }}".linger = true;
   # {% endif %}
 }
