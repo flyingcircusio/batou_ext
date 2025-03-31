@@ -2,7 +2,9 @@
 ## 2.4.28 (unreleased)
 
 
-- Nothing changed yet.
+- oci: make `user@uid.service` wait until all containers have exited and clear `/tmp` of containers.
+  Without those, unclean shutdowns were observed that prevented the containers from getting back
+  up on a reboot.
 
 
 ## 2.4.27 (2025-03-20)
