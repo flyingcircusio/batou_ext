@@ -1,5 +1,5 @@
 
-## 2.4.28 (unreleased)
+## 2.4.28 (2025-03-31)
 
 
 - oci: make `user@uid.service` wait until all containers have exited and clear `/tmp` of containers.
