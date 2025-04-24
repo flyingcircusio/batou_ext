@@ -93,7 +93,6 @@
       RuntimeDirectory = "{{component.container_name}}";
       Delegate = true;
       NotifyAccess = "all";
-      PrivateTmp = true;
     };
   };
   users.users."{{ component.user }}".linger = true;
