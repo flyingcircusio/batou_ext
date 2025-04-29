@@ -2,7 +2,7 @@
 ## 2.4.29 (unreleased)
 
 
-- Nothing changed yet.
+- oci/podman: don't set `PrivateTmp` in the systemd unit anymore. This has the opposite effect of what's intended, it breaks rootless containers.
 
 
 ## 2.4.28 (2025-03-31)
