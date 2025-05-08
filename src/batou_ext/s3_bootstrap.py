@@ -8,6 +8,8 @@ from typing import Dict, List, Union
 import boto3
 from InquirerPy import inquirer
 
+from batou_ext.s3 import RGW_S3_CONFIG
+
 
 class ANSIColors:
     FAIL = "\033[91m"
@@ -185,7 +187,10 @@ class CreateBucket(Step):
 
     def verify(self, key: Union[Keypair, None]):
         print_bold(f"Creating bucket {self.name}...")
-        kwargs = {"endpoint_url": "https://files.flyingcircus.io/"}
+        kwargs = {
+            "endpoint_url": "https://files.flyingcircus.io/",
+            "config": RGW_S3_CONFIG,
+        }
         if key is not None:
             kwargs["aws_access_key_id"] = key.key_id
             kwargs["aws_secret_access_key"] = key.secret_key

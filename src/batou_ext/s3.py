@@ -17,6 +17,7 @@ To make a bucket available, to e.g. the application::
     self += batou_ext.s3.Bucket('downloads', s3=self.s3)
 
 """
+
 import os
 from unittest.mock import Mock
 
@@ -24,8 +25,14 @@ import batou.component
 import batou.utils
 import boto3
 import botocore.exceptions
+from botocore.config import Config
 
 from batou_ext.file import SymlinkAndCleanup
+
+RGW_S3_CONFIG = Config(
+    request_checksum_calculation="when_required",
+    response_checksum_validation="when_required",
+)
 
 
 class S3(batou.component.Component):
@@ -52,6 +59,7 @@ class S3(batou.component.Component):
             aws_access_key_id=self.access_key_id,
             aws_secret_access_key=self.secret_access_key,
             endpoint_url=self.endpoint_url,
+            config=RGW_S3_CONFIG,
         )
 
 
