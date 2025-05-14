@@ -1,5 +1,5 @@
 
-## 2.4.30 (unreleased)
+## 2.4.30 (2025-05-14)
 
 
 - Added `batou_ext.fcio.Maintenance{Start,End}`: with these components it's possible to mark the RG
