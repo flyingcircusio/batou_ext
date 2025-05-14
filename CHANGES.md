@@ -2,7 +2,15 @@
 ## 2.4.30 (unreleased)
 
 
-- Nothing changed yet.
+- Added `batou_ext.fcio.Maintenance{Start,End}`: with these components it's possible to mark the RG
+  as "in maintenance". Components can be scheduled between these two by doing
+  `self.provide("needs-maintenance", self)`.
+
+- The components `batou_ext.fcio.{MaintenanceStart,MaintenanceEnd,DirectoryXMLRPC}` were added to
+  put a resource group into maintenance for a deployment. Please read the doc comment
+  of `batou_ext.fcio.MaintenanceStart` for further reference.
+
+- Fix S3 integration to be compatible with custom S3 services.
 
 
 ## 2.4.29 (2025-04-29)
