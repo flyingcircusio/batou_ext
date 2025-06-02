@@ -36,7 +36,7 @@ from batou.lib.file import (
     Owner,
     Presence,
 )
-from batou.utils import Address, NetLoc
+from batou.utils import Address, CmdExecutionError, NetLoc
 
 
 class Package(batou.component.Component):
@@ -185,7 +185,19 @@ class Rebuild(batou.component.Component):
             self.parent.assert_no_subcomponent_changes()
 
     def update(self):
-        self.cmd("sudo fc-manage --build")
+        try:
+            self.cmd("sudo fc-manage --build")
+        except CmdExecutionError as e:
+            # In a number of deployments we're running into the issue that
+            # there may be somewhat inconsistent states that can only be
+            # cleaned up with some idempotence/convergence mechanism and that
+            # requires continuing in some situations where nixos-rebuild
+            # indicates errors restarting units. Those are kind of `advisory`
+            # anyway, so ...
+            if "warning: the following units failed: " in e.stderr:
+                self.log("Detected failed unit restarts, continuing anyway.")
+            else:
+                raise
 
 
 def rebuild(cls):
