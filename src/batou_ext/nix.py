@@ -7,6 +7,7 @@ import os.path
 import shlex
 import subprocess
 import time
+from importlib.resources import files
 from pathlib import Path
 
 import batou
@@ -18,7 +19,6 @@ import batou.lib.nagios
 import batou.lib.service
 import batou.lib.supervisor
 import batou.utils
-import pkg_resources
 from batou import (
     IPAddressConfigurationError,
     ReportingException,
@@ -144,10 +144,9 @@ class UserEnv(batou.component.Component):
 
     def configure(self):
         self.checksum = hashlib.sha256()
-        template = pkg_resources.resource_string(
-            __name__, "resources/userenv.nix"
-        ).decode("UTF-8")
-        self.profile = self.expand(template).encode("UTF-8")
+        self.profile = (
+            files(__spec__.parent) / "resources/userenv.nix"
+        ).read_bytes()
         self.checksum.update(self.profile)
         self.nix_env_name = self.expand(
             "{{component.profile_name}}-1.{{component.checksum.hexdigest()}}"
@@ -290,9 +289,9 @@ class UserInit(batou.component.Component):
         self.checksum = self.parent.checksum
         self += batou.lib.file.File(
             service_file,
-            content=pkg_resources.resource_string(
-                "batou_ext", "resources/systemd.service"
-            ),
+            content=(
+                files(__spec__.parent) / "resources/systemd.service"
+            ).read_bytes(),
         )
         self += Rebuild()
 
@@ -479,23 +478,23 @@ class PythonWithNixPackages(batou.component.Component):
 
         self += batou.lib.file.File(
             "{}.nix".format(self.python),
-            content=pkg_resources.resource_string(
-                "batou_ext", "resources/python.nix"
-            ),
+            content=(
+                files(__spec__.parent) / "resources/python.nix"
+            ).read_bytes(),
         )
         self += batou.lib.file.File(
             "setupEnv-{}".format(self.python),
             mode=0o755,
-            content=pkg_resources.resource_string(
-                "batou_ext", "resources/setupEnv.sh"
-            ),
+            content=(
+                files(__spec__.parent) / "resources/setupEnv.sh"
+            ).read_bytes(),
         )
         self.env_file = self._
         self += batou.lib.file.File(
             "{}.c".format(self.python),
-            content=pkg_resources.resource_string(
-                "batou_ext", "resources/loader.c"
-            ),
+            content=(
+                files(__spec__.parent) / "resources/loader.c"
+            ).read_bytes(),
         )
         self.provide(self.python, os.path.join(self.workdir, self.python))
 

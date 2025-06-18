@@ -1,0 +1,1 @@
+- Remove deprecated pkg_resources and replace with importlib.resources

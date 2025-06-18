@@ -43,7 +43,7 @@ class Pipenv(batou.component.Component):
             # Is this Python (still) functional 'enough'
             # from a setuptools/distribute perspective?
             self.assert_cmd(
-                '{{component.executable}} -c "import pkg_resources"'
+                '{{component.executable}} -c "from importlib.resources import files"'
             )
 
     def update(self):

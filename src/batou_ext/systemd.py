@@ -1,4 +1,5 @@
-import pkg_resources
+from importlib.resources import files
+
 from batou.component import Attribute, Component
 from batou.lib.file import File
 
@@ -75,9 +76,9 @@ class ScalableService(Component):
     def configure(self):
         self += File(
             f"/etc/local/nixos/scale-{self.base_name}.nix",
-            content=pkg_resources.resource_string(
-                "batou_ext", "resources/scalable-service.nix"
-            ),
+            content=(
+                files(__spec__.parent) / "resources/scalable-service.nix"
+            ).read_bytes(),
         )
 
         self.unit_identifier = f"{self.base_name}@"
