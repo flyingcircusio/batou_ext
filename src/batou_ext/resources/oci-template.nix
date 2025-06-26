@@ -1,4 +1,4 @@
-{ config, ... }:
+{ lib, config, ... }:
 {
   # {% if component.monitor %}
   flyingcircus = {
@@ -89,7 +89,7 @@
     after = [ "user@${toString uid}.service" ];
     unitConfig.RequiresMountsFor = "/run/user/${toString uid}/containers";
     serviceConfig = {
-      User = "{{ component.user }}";
+      User = lib.mkForce "{{ component.user }}";
       RuntimeDirectory = "{{component.container_name}}";
       Delegate = true;
       NotifyAccess = "all";
