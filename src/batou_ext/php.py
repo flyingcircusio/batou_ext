@@ -22,10 +22,10 @@ Example for NixOS::
 
 import hashlib
 import os.path
+from importlib.resources import files
 
 import batou.component
 import batou.lib.file
-import pkg_resources
 
 
 class Ini(batou.component.Component):
@@ -52,9 +52,9 @@ class Ini(batou.component.Component):
         # Providing a php.ini
         self += batou.lib.file.File(
             "php.ini",
-            content=pkg_resources.resource_string(
-                __name__, "resources/php/php.ini"
-            ),
+            content=(
+                files(__spec__.parent) / "resources/php/php.ini"
+            ).read_bytes(),
         )
         self.php_ini = self._
 
@@ -112,9 +112,9 @@ class FPM(batou.component.Component):
 
         self += batou.lib.file.File(
             "php-fpm.conf",
-            content=pkg_resources.resource_string(
-                __name__, "resources/php/php-fpm.conf"
-            ),
+            content=(
+                files(__spec__.parent) / "resources/php/php-fpm.conf"
+            ).read_bytes(),
         )
         self._checksum.update(self._.content)
         self.php_fpm_ini = self._.path
@@ -127,9 +127,9 @@ class FPM(batou.component.Component):
         self += batou.lib.file.File(
             self.name,
             mode=0o755,
-            content=pkg_resources.resource_string(
-                __name__, "resources/php/php-fpm.sh"
-            ),
+            content=(
+                files(__spec__.parent) / "resources/php/php-fpm.sh"
+            ).read_bytes(),
         )
         self._checksum.update(self._.content)
 

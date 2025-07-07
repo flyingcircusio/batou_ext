@@ -1,8 +1,8 @@
+from importlib.resources import files
 from textwrap import dedent
 
 import batou.component
 import batou.lib.file
-import pkg_resources
 
 import batou_ext.nix
 import batou_ext.ssl
@@ -161,9 +161,9 @@ class Mailhog(batou.component.Component):
 
         self += batou.lib.file.File(
             "/etc/local/nixos/mailhog.nix",
-            content=pkg_resources.resource_string(
-                __name__, "resources/mailhog/mailhog.nix"
-            ),
+            content=(
+                files(__spec__.parent) / "resources/mailhog/mailhog.nix"
+            ).read_bytes(),
         )
 
 
@@ -202,7 +202,7 @@ class Mailpit(batou.component.Component):
 
         self += batou.lib.file.File(
             "/etc/local/nixos/mailpit.nix",
-            content=pkg_resources.resource_string(
-                __name__, "resources/mailpit.nix"
-            ),
+            content=(
+                files(__spec__.parent) / "resources/mailpit.nix"
+            ).read_bytes(),
         )

@@ -2,13 +2,13 @@ import hashlib
 import os
 import os.path
 import tempfile
+from importlib.resources import files
 
 import batou.component
 import batou.lib.cron
 import batou.lib.download
 import batou.lib.file
 import batou.lib.nagios
-import pkg_resources
 import six
 
 from .acl import ACL
@@ -209,9 +209,9 @@ KEY_ALGO={{component.dehydrated_publickey_algo}}
 
             self += batou.lib.file.File(
                 self.expand("cert-{{component.domain}}.sh"),
-                content=pkg_resources.resource_string(
-                    "batou_ext", "resources/cert.sh"
-                ),
+                content=(
+                    files(__spec__.parent) / "resources/cert.sh"
+                ).read_bytes(),
                 mode=0o700,
             )
             self.cert_sh = self._
@@ -339,9 +339,10 @@ class CertificateCheckLocal(batou.component.Component):
 
         self += batou.lib.file.File(
             "cert_check_{}.sh".format(self.name),
-            content=pkg_resources.resource_string(
-                __name__, "resources/ssl/local_certificate_check.sh"
-            ),
+            content=(
+                files(__spec__.parent)
+                / "resources/ssl/local_certificate_check.sh"
+            ).read_bytes(),
             mode=0o755,
         )
         self.script = self._.path

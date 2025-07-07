@@ -1,6 +1,7 @@
+from importlib.resources import files
+
 import batou.component
 import batou.lib.file
-import pkg_resources
 
 import batou_ext.nix
 
@@ -222,9 +223,9 @@ class HTTPServiceWatchdog(batou.component.Component):
 
         self += batou.lib.file.File(
             f"/etc/local/nixos/{self.service}-watchdog.nix",
-            content=pkg_resources.resource_string(
-                __name__, "resources/http-watchdog.nix"
-            ),
+            content=(
+                files(__spec__.parent) / "resources/http-watchdog.nix"
+            ).read_bytes(),
         )
 
         if self.rebuild:
@@ -241,8 +242,8 @@ class HTTPWatchdogScript(batou.component.Component):
         self += batou.lib.file.File(
             "watchdog-wrapper.py",
             mode=0o755,
-            content=pkg_resources.resource_string(
-                __name__, "resources/watchdog-wrapper.py"
-            ),
+            content=(
+                files(__spec__.parent) / "resources/watchdog-wrapper.py"
+            ).read_bytes(),
         )
         self.path = self._.path

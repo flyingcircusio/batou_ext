@@ -1,6 +1,7 @@
+from importlib.resources import files
+
 import batou.component
 import batou.lib.file
-import pkg_resources
 
 
 class JournalBeatTransport(batou.component.Component):
@@ -18,7 +19,7 @@ class JournalBeatTransport(batou.component.Component):
 
         self += batou.lib.file.File(
             self.nix_file_path,
-            content=pkg_resources.resource_string(
-                __name__, "resources/journalbeat.nix"
-            ),
+            content=(
+                files(__spec__.parent) / "resources/journalbeat.nix"
+            ).read_bytes(),
         )

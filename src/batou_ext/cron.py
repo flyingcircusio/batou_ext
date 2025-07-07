@@ -1,8 +1,8 @@
+from importlib.resources import files
 from textwrap import dedent
 
 import batou.component
 import batou.lib.nagios
-import pkg_resources
 
 
 class CronJob(batou.component.Component):
@@ -87,9 +87,9 @@ class CronJob(batou.component.Component):
 
         self += batou.lib.file.File(
             self.expand("{{component.tag}}.sh"),
-            content=pkg_resources.resource_string(
-                __name__, "resources/cron-wrapper.sh"
-            ),
+            content=(
+                files(__spec__.parent) / "resources/cron-wrapper.sh"
+            ).read_bytes(),
             mode=0o755,
         )
         self.wrapped_command = self._.path
@@ -215,9 +215,9 @@ class SystemdTimer(batou.component.Component):
 
         self += batou.lib.file.File(
             self.expand("check_systemd_unit.py"),
-            content=pkg_resources.resource_string(
-                __name__, "resources/check_systemd_unit.py"
-            ),
+            content=(
+                files(__spec__.parent) / "resources/check_systemd_unit.py"
+            ).read_bytes(),
             mode=0o755,
         )
         self.check_command = self._.path
