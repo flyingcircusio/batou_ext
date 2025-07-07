@@ -2,7 +2,9 @@
 ## 2.4.31 (unreleased)
 
 
-- Nothing changed yet.
+- Remove deprecated pkg_resources and replace with importlib.resources
+
+- Fixed compatibility of `batou_ext.oci` with `podman` backend and NixOS 25.05.
 
 
 ## 2.4.30 (2025-05-14)
