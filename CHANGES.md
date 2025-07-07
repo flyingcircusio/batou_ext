@@ -1,5 +1,5 @@
 
-## 2.4.31 (unreleased)
+## 2.4.31 (2025-07-07)
 
 
 - Remove deprecated pkg_resources and replace with importlib.resources
