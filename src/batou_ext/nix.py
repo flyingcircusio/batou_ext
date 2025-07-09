@@ -144,9 +144,11 @@ class UserEnv(batou.component.Component):
 
     def configure(self):
         self.checksum = hashlib.sha256()
-        self.profile = (
-            files(__spec__.parent) / "resources/userenv.nix"
-        ).read_bytes()
+        self.profile = self.expand(
+            (files(__spec__.parent) / "resources/userenv.nix")
+            .read_bytes()
+            .decode("utf-8")
+        ).encode("utf-8")
         self.checksum.update(self.profile)
         self.nix_env_name = self.expand(
             "{{component.profile_name}}-1.{{component.checksum.hexdigest()}}"
