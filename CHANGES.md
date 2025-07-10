@@ -1,5 +1,5 @@
 
-## 2.4.32 (unreleased)
+## 2.4.32 (2025-07-10)
 
 
 - Fix UserEnv: Jinja2 variables in the final template were no longer substituted due to a regression.
