@@ -14,6 +14,18 @@ class MySQLGeneric(batou.component.Component):
         admin_password='myadminpassword',
         allow_from_hostname='127.0.0.1',
         provide_as='myapplicationdatabase')
+
+    If you want to make usage of `sudo -u mysql` rather than providing an admin
+    password you may use
+
+    from batou.lib import mysql
+
+    self += batou_ext.mysql.MySQLGeneric(
+         …
+         admin_password=mysql.USE_SUDO,
+         …
+    )
+
     """
 
     _required_params_ = {
