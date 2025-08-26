@@ -21,44 +21,61 @@ class SSHKeyPair(Component):
     id_ed25519 = None
     id_ed25519_pub = None
 
+    file_name = Attribute(str, default=None)
+
     scan_hosts = Attribute("list", default=[])
     provide_itself = Attribute("literal", default=True)
     purge_unmanaged_keys = Attribute("literal", default=False)
+    provide_as = Attribute(str, default="sshkeypair")
 
     def configure(self):
         if self.provide_itself:
-            self.provide("sshkeypair", self)
+            self.provide(self.provide_as, self)
 
         self += File("~/.ssh", ensure="directory", mode=0o700)
+
+        if self.file_name is not None:
+            if self.id_rsa and self.id_ed25519:
+                raise ValueError(
+                    "When setting `file_name`, using both id_rsa and id_ed25519 is not supported!"
+                )
+
+            file_name_rsa = self.file_name
+            file_name_ed25519 = self.file_name
+        else:
+            file_name_rsa = "id_rsa"
+            file_name_ed25519 = "id_ed25519"
 
         # RSA
         if self.id_rsa:
             self += File(
-                "~/.ssh/id_rsa",
+                f"~/.ssh/{file_name_rsa}",
                 content=(self.id_rsa + "\n"),
                 mode=0o600,
                 sensitive_data=True,
             )
         elif self.purge_unmanaged_keys:
-            self += Purge("~/.ssh/id_rsa")
+            self += Purge(f"~/.ssh/{file_name_rsa}")
 
         if self.id_rsa_pub:
-            self += File("~/.ssh/id_rsa.pub", content=self.id_rsa_pub)
+            self += File(f"~/.ssh/{file_name_rsa}.pub", content=self.id_rsa_pub)
 
         # ED25519
         if self.id_ed25519:
             self += File(
-                "~/.ssh/id_ed25519",
+                f"~/.ssh/{file_name_ed25519}",
                 content="{}\n".format(self.id_ed25519),
                 mode=0o600,
                 sensitive_data=True,
             )
 
         elif self.purge_unmanaged_keys:
-            self += Purge("~/.ssh/id_ed25519")
+            self += Purge(f"~/.ssh/{file_name_ed25519}")
 
         if self.id_ed25519_pub:
-            self += File("~/.ssh/id_ed25519.pub", content=self.id_ed25519_pub)
+            self += File(
+                f"~/.ssh/{file_name_ed25519}.pub", content=self.id_ed25519_pub
+            )
 
         # ScanHost
         for host in self.scan_hosts:
