@@ -2,7 +2,17 @@
 ## 2.4.33 (unreleased)
 
 
-- Nothing changed yet.
+- Extend documentation for mysql.MySQLGeneric with an example for mysql.USE_SUDO
+  from batou.lib.mysql
+
+- add `nix.Rebuild.continue_on_warning` to continue the deployment on nix unit start *warnings*.
+
+- Add options `file_name` and `provide_as` to `batou_ext.ssh.SSHKeyPair`. With this, it's possible to add multiple
+  SSH keys into a deployment.
+
+- Add `python.BuildEnv` to provide python virtual env support on nixos.
+
+  The component helps to build venvs with classic requirements.txt so that one does not need to package everything for nixos.
 
 
 ## 2.4.32 (2025-07-10)
