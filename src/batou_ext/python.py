@@ -1,14 +1,16 @@
+import json
 import os.path
 import shlex
 from glob import glob
 from textwrap import dedent
 
-import batou.component
 import batou.lib.python
+from batou.component import Attribute, Component, ConfigString
+from batou.lib.file import File
 from batou.utils import CmdExecutionError
 
 
-class Pipenv(batou.component.Component):
+class Pipenv(Component):
     """Sync pipenv
 
     Usage:
@@ -52,7 +54,7 @@ class Pipenv(batou.component.Component):
             self.cmd("pipenv sync", env={"PIPENV_VENV_IN_PROJECT": "1"})
 
 
-class VirtualEnvRequirements(batou.component.Component):
+class VirtualEnvRequirements(Component):
     """
     Installs a Python VirtualEnv with a given requirements.txt
 
@@ -62,10 +64,8 @@ class VirtualEnvRequirements(batou.component.Component):
             requirements_path='/path/to/my/requirements.txt')
     """
 
-    version = batou.component.Attribute(str, default="2.7")
-    requirements_path = batou.component.Attribute(
-        str, batou.component.ConfigString("requirements.txt")
-    )
+    version = Attribute(str, default="3.12")
+    requirements_path = Attribute(str, ConfigString("requirements.txt"))
 
     # Shell script to be sourced before creating VirtualEnv and pip
     pre_run_script_path = None
@@ -77,7 +77,6 @@ class VirtualEnvRequirements(batou.component.Component):
     venv = None
 
     def configure(self):
-
         if isinstance(self.requirements_path, str):
             self.requirements_paths = [self.requirements_path]
         elif isinstance(self.requirements_path, list):
@@ -111,7 +110,7 @@ class VirtualEnvRequirements(batou.component.Component):
                 )
 
 
-class FixELFRunPath(batou.component.Component):
+class FixELFRunPath(Component):
     """
     Patches DT_RUNPATH & DT_RPATH of each shared object to either point to a
     given user env or a path relative to the shared object. Should only be used
@@ -182,13 +181,11 @@ class FixELFRunPath(batou.component.Component):
         Subsequently, it ensures that the correct glibc is provided on linking.
     """
 
-    path = batou.component.Attribute(str)
-    env_directory = batou.component.Attribute(str)
-    glob_patterns = batou.component.Attribute(
-        list, default=["**/*.so", "**/*.so.*"]
-    )
-    patchelf_jobs = batou.component.Attribute(int, default=4)
-    recurse_env_dir = batou.component.Attribute(bool, default=True)
+    path = Attribute(str)
+    env_directory = Attribute(str)
+    glob_patterns = Attribute(list, default=["**/*.so", "**/*.so.*"])
+    patchelf_jobs = Attribute(int, default=4)
+    recurse_env_dir = Attribute(bool, default=True)
 
     def verify(self):
         self.assert_no_changes()
@@ -270,3 +267,116 @@ class FixELFRunPath(batou.component.Component):
         )
         if proc.returncode != 0:
             raise CmdExecutionError(cmd, proc.returncode, stdout, stderr)
+
+
+class BuildEnv(Component):
+    """Build a (raw) python environment in NixOS.
+
+    Example::
+
+        self += File("python-env.nix")
+        self += BuildEnv()
+        self.nix_env = self._
+
+        self += File("requirements.txt")
+        self += VirtualEnvRequirements(
+            version=self.nix_env.version,
+            requirements_path=["requirements.txt"]
+            venv=VirtualEnv(
+                self.nix_env.version,
+                executable=self.nix_env.executable,
+            ),
+            env=self.nix_env.environment_variables(),
+        )
+        self += FixELFRunPath(
+            path=self.map(""), env_directory=f"{self.nix_env.env_dir}/lib"
+        )
+
+    The required nix-env file could look like this::
+
+        {
+          pkgs ? import <nixpkgs> { },
+          lib ? pkgs.lib,
+        }:
+        let
+          env = pkgs.buildEnv {
+            name = "python-env";
+            paths = with pkgs; [
+              python312
+              zlib
+              # allows to link against a glibc that's compatible with the rest
+              # of the package-set used in this env.
+              gcc
+              # Hacky workaround for unintuitivie buildEnv behavior: when explicitly
+              # selecting an output (via `pkgs.foo.lib`), `extraOutputsToInstall` will
+              # discard this selection and install the outputs listed in this attribute
+              # instead 🫠
+              (buildEnv {
+                name = "libgcc";
+                paths = [ libgcc ];
+                extraOutputsToInstall = [ "lib" ];
+              })
+            ];
+            extraOutputsToInstall = [ "dev" "out" ];
+          };
+        in env
+
+
+    """
+
+    version = "3"
+    executable = None
+    env_dir = None
+    nix_file = "python-env.nix"
+
+    def configure(self):
+        self.env_dir = os.path.join(self.workdir, ".raw-python-env")
+        self.executable = os.path.join(
+            self.env_dir, f"bin/python{self.version}"
+        )
+
+    def environment_variables(self):
+        """Return dict of required environment variables to use the env."""
+
+        def e(name, additional_value):
+            additional_path = os.path.join(self.env_dir, additional_value)
+            return (name, f"{additional_path}:{os.environ.get(name, '')}")
+
+        return dict(
+            (
+                e("CPATH", "include"),
+                e("CPLUS_INCLUDE_PATH", "include"),
+                e("C_INCLUDE_PATH", "include"),
+                e("INFOPATH", "info"),
+                e("LIBEXEC_PATH", "lib/libexec"),
+                e("LIBRARY_PATH", "lib"),
+                e("PATH", "bin"),
+                e("PKG_CONFIG_PATH", "lib/pkgconfig"),
+            )
+        )
+
+    def verify(self):
+        # assert_file_is_current() does not work here, because it follows
+        # symlinks, making the env_dir being created in 1970.
+        assert os.path.exists(self.env_dir)
+        env_mtime = os.lstat(self.env_dir).st_mtime
+
+        assert os.path.exists(self.nix_file)
+        nix_mtime = os.lstat(self.nix_file).st_mtime
+
+        assert env_mtime >= nix_mtime
+
+        out, err = self.cmd(f"nix derivation show -f '{self.nix_file}'")
+        derivation = json.loads(out)
+        expected_store_path = list(derivation.values())[0]["outputs"]["out"][
+            "path"
+        ]
+        try:
+            current_store_path = os.path.realpath(self.env_dir)
+        except OSError:
+            raise batou.UpdateNeeded()
+
+        assert expected_store_path == current_store_path
+
+    def update(self):
+        self.cmd(f"nix-build {self.nix_file} -o {self.env_dir}")
