@@ -1,5 +1,5 @@
 
-## 2.4.33 (unreleased)
+## 2.4.33 (2025-09-16)
 
 
 - Extend documentation for mysql.MySQLGeneric with an example for mysql.USE_SUDO
