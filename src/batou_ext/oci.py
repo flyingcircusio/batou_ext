@@ -160,6 +160,7 @@ class Container(Component):
     env: dict = {}
     depends_on: list = None
     extra_options: list = []
+    oneshot: bool = False
 
     # secrets
     registry_address = Attribute(Optional[str], None)
