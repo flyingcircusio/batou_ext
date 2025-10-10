@@ -1,0 +1,1 @@
+- Add option for `MySQLGeneric()` to not provide anything, by setting `provide_as` to None.
