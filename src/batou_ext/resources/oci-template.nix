@@ -63,7 +63,7 @@
       ];
 
       image = "{{component.image}}:{{component.version}}";
-      environmentFiles = [ {{component.envfile.path}} ];
+      environmentFiles = [ "{{component.envfile.path}}" ];
 
       ports = [
       # {% for key, value in component.ports.items() | sort  %}
