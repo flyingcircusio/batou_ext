@@ -26,6 +26,13 @@ class MySQLGeneric(batou.component.Component):
          …
     )
 
+    If you don't want the component to provide anything use `None`.
+
+    self += batou_ext.mysql.MySQLGeneric(
+         …
+         provice_as=None,
+         …
+    )
     """
 
     _required_params_ = {
@@ -44,7 +51,8 @@ class MySQLGeneric(batou.component.Component):
     allow_from_hostname = batou.component.Attribute(str, default="localhost")
 
     def configure(self):
-        self.provide(self.provide_as, self)
+        if self.provide_as:
+            self.provide(self.provide_as, self)
 
         self.address = batou.utils.Address(self.host.fqdn, self.port)
 
