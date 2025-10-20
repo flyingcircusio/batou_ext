@@ -2,7 +2,9 @@
 ## 2.4.34 (unreleased)
 
 
-- Nothing changed yet.
+- Adjust the NixOS configuration of the batou_ext.oci.Container components to not store it's environment files in the Nix Store
+
+- Add option for `MySQLGeneric()` to not provide anything, by setting `provide_as` to None.
 
 
 ## 2.4.33 (2025-09-16)

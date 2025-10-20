@@ -1,1 +1,0 @@
-- Adjust the NixOS configuration of the batou_ext.oci.Container components to not store it's environment files in the Nix Store
