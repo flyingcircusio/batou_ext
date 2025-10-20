@@ -1,5 +1,5 @@
 
-## 2.4.34 (unreleased)
+## 2.4.34 (2025-10-20)
 
 
 - Adjust the NixOS configuration of the batou_ext.oci.Container components to not store it's environment files in the Nix Store
