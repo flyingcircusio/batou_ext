@@ -58,7 +58,14 @@ class ErlangCookie(batou.component.Component):
         os.chmod(self.path, 0o400)
 
 
-class VHost(batou.component.Component):
+class RabbitMQBase(batou.component.Component):
+
+    def cmd(self, cmd):
+        cmd = f"sudo -u rabbitmq {cmd}"
+        return super().cmd(cmd)
+
+
+class VHost(RabbitMQBase):
 
     namevar = "name"
     name = None
@@ -73,7 +80,7 @@ class VHost(batou.component.Component):
         self.cmd("rabbitmqctl add_vhost {{component.name}}")
 
 
-class Permissions(batou.component.Component):
+class Permissions(RabbitMQBase):
 
     namevar = "username"
     username = None
@@ -127,7 +134,7 @@ class Permissions(batou.component.Component):
             )
 
 
-class User(batou.component.Component):
+class User(RabbitMQBase):
     """Create rabbitmq user."""
 
     _required_params_ = {
@@ -173,7 +180,7 @@ class User(batou.component.Component):
             )
 
 
-class PurgeUser(batou.component.Component):
+class PurgeUser(RabbitMQBase):
 
     namevar = "username"
     username = None
