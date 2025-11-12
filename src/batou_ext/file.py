@@ -50,9 +50,7 @@ class SymlinkAndCleanup(batou.component.Component):
     systemd_extra_args = None
 
     def configure(self):
-        self._current_link = (
-            f"{self.prefix}-current" if self.prefix else "current"
-        )
+        self._current_link = f"{self.prefix}-current" if self.prefix else "current"
         self._last_link = f"{self.prefix}-last" if self.prefix else "last"
         self.dir = os.path.dirname(self.current)
         self.current = os.path.basename(self.current)

@@ -39,9 +39,7 @@ class Pipenv(Component):
 
     def verify(self):
         with self.chdir(self.target):
-            self.assert_file_is_current(
-                self.executable, ["Pipfile", "Pipfile.lock"]
-            )
+            self.assert_file_is_current(self.executable, ["Pipfile", "Pipfile.lock"])
             # Is this Python (still) functional 'enough'
             # from a setuptools/distribute perspective?
             self.assert_cmd(
@@ -96,16 +94,14 @@ class VirtualEnvRequirements(Component):
         for req in self.requirements_paths:
             if self.pre_run_script_path:
                 self.cmd(
-                    (
-                        "source {} && {} " "-m pip install --upgrade -r {}"
-                    ).format(self.pre_run_script_path, self.venv.python, req),
+                    ("source {} && {} -m pip install --upgrade -r {}").format(
+                        self.pre_run_script_path, self.venv.python, req
+                    ),
                     env=self.env,
                 )
             else:
                 self.cmd(
-                    "{} -m pip install --upgrade -r {}".format(
-                        self.venv.python, req
-                    ),
+                    "{} -m pip install --upgrade -r {}".format(self.venv.python, req),
                     env=self.env,
                 )
 
@@ -256,15 +252,11 @@ class FixELFRunPath(Component):
         # works for all ELFs below in the dependency tree in contrast to DT_RUNPATH.
         # It's impossible to use both at the same time because DT_RPATH will always
         # be ignored then. For more context, see `ld.so(8)`.
-        patchelf = (
-            f"nix run --impure --expr {patchelf_expr} -- patchelf --force-rpath"
-        )
+        patchelf = f"nix run --impure --expr {patchelf_expr} -- patchelf --force-rpath"
         cmd = f"xargs -P {self.patchelf_jobs} {patchelf} {args_}"
         proc = self.cmd(cmd, communicate=False)
 
-        stdout, stderr = proc.communicate(
-            input=bytes("\n".join(paths) + "\n", "utf-8")
-        )
+        stdout, stderr = proc.communicate(input=bytes("\n".join(paths) + "\n", "utf-8"))
         if proc.returncode != 0:
             raise CmdExecutionError(cmd, proc.returncode, stdout, stderr)
 
@@ -331,9 +323,7 @@ class BuildEnv(Component):
 
     def configure(self):
         self.env_dir = os.path.join(self.workdir, ".raw-python-env")
-        self.executable = os.path.join(
-            self.env_dir, f"bin/python{self.version}"
-        )
+        self.executable = os.path.join(self.env_dir, f"bin/python{self.version}")
 
     def environment_variables(self):
         """Return dict of required environment variables to use the env."""
@@ -368,9 +358,7 @@ class BuildEnv(Component):
 
         out, err = self.cmd(f"nix derivation show -f '{self.nix_file}'")
         derivation = json.loads(out)
-        expected_store_path = list(derivation.values())[0]["outputs"]["out"][
-            "path"
-        ]
+        expected_store_path = list(derivation.values())[0]["outputs"]["out"]["path"]
         try:
             current_store_path = os.path.realpath(self.env_dir)
         except OSError:

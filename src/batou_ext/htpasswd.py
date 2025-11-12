@@ -6,7 +6,6 @@ import passlib.hash
 
 
 class HTPasswd(batou.component.Component):
-
     _required_params_ = {"users": "user:pwd"}
     namevar = "path"
     users = ""

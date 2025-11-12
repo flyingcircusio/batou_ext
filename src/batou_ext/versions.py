@@ -84,9 +84,7 @@ def select_versions_interactive(basedir: str) -> dict:
     return interative_versions
 
 
-def get_current_versions(
-    basedir: str, environment: batou.environment.Environment
-):
+def get_current_versions(basedir: str, environment: batou.environment.Environment):
     versions = configparser.ConfigParser()
     versions_ini = find_versions_ini(environment)
     versions.read(os.path.join(basedir, versions_ini))
