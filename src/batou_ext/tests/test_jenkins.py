@@ -23,13 +23,10 @@ def test_set_versions_git_mode(tmpdir):
 
     with mock.patch("batou_ext.jenkins.git_resolve") as git_resolve:
         git_resolve.return_value = "abcdef"
-        batou_ext.jenkins.set_versions(
-            str(ini), '{"prog1": "a-tag", "prog2": ""}'
-        )
+        batou_ext.jenkins.set_versions(str(ini), '{"prog1": "a-tag", "prog2": ""}')
 
-    assert (
-        dedent(
-            """\
+    assert dedent(
+        """\
         [prog1]
         url = git://prog1
         revision = abcdef
@@ -39,9 +36,7 @@ def test_set_versions_git_mode(tmpdir):
         url = http://prog2
         update = git-resolve
     """
-        )
-        == ini.read_text(encoding="UTF-8")
-    )
+    ) == ini.read_text(encoding="UTF-8")
 
 
 def test_simple_value_update_mode(tmpdir):
@@ -63,9 +58,8 @@ def test_simple_value_update_mode(tmpdir):
     batou_ext.jenkins.set_versions(
         str(ini), '{"prog1": "1.2", "prog2": "http://foobar"}'
     )
-    assert (
-        dedent(
-            """\
+    assert dedent(
+        """\
       [prog1]
       version = 1.2
       update = pass:version
@@ -74,6 +68,4 @@ def test_simple_value_update_mode(tmpdir):
       url = http://foobar
       update = pass:url
     """
-        )
-        == ini.read_text(encoding="UTF-8")
-    )
+    ) == ini.read_text(encoding="UTF-8")

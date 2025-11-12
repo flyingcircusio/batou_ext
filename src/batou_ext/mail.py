@@ -120,9 +120,7 @@ class Mailhog(batou.component.Component):
     mailport = batou.component.Attribute(int, 1025)
     uiport = batou.component.Attribute(int, 8025)
     apiport = batou.component.Attribute(int, 8025)
-    purge_old_mailhog_configs = batou.component.Attribute(
-        "literal", default=True
-    )
+    purge_old_mailhog_configs = batou.component.Attribute("literal", default=True)
     http_auth_enable = batou.component.Attribute("literal", default=False)
     http_basic_auth = None
 
@@ -191,9 +189,7 @@ class Mailpit(batou.component.Component):
         if not self.public_smtp_name:
             self.public_smtp_name = self.host.fqdn
 
-        self.address = batou.utils.Address(
-            self.public_smtp_name, self.smtp_port
-        )
+        self.address = batou.utils.Address(self.public_smtp_name, self.smtp_port)
 
         if self.http_basic_auth is None:
             self.http_auth = self.require_one("http_basic_auth")
@@ -202,7 +198,5 @@ class Mailpit(batou.component.Component):
 
         self += batou.lib.file.File(
             "/etc/local/nixos/mailpit.nix",
-            content=(
-                files(__spec__.parent) / "resources/mailpit.nix"
-            ).read_bytes(),
+            content=(files(__spec__.parent) / "resources/mailpit.nix").read_bytes(),
         )
