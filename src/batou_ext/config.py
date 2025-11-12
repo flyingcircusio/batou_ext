@@ -68,7 +68,6 @@ class RegexPatch(batou.component.Component):
         return self.pattern.sub(self.replacement, self._source_data)
 
     def verify(self):
-
         if not os.path.exists(self.source):
             # During predict, the file might not exist.
             raise batou.UpdateNeeded()

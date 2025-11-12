@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import tempfile
 import urllib.parse
+from pathlib import Path
 from textwrap import dedent
 
 import batou
@@ -50,12 +51,13 @@ class SymlinkAndCleanup(batou.component.Component):
     systemd_extra_args = None
 
     def configure(self):
-        self._current_link = (
-            f"{self.prefix}-current" if self.prefix else "current"
-        )
+        self._current_link = f"{self.prefix}-current" if self.prefix else "current"
         self._last_link = f"{self.prefix}-last" if self.prefix else "last"
-        self.dir = os.path.dirname(self.current)
-        self.current = os.path.basename(self.current)
+
+        p = Path(self.current)
+        self.dir = p.parent
+        self.current = p.parts[-1]
+
         self += DeploymentTrash(
             read_iops_limit=self.systemd_read_max_iops,
             write_iops_limit=self.systemd_write_max_iops,
