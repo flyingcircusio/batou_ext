@@ -87,9 +87,7 @@ class CronJob(batou.component.Component):
 
         self += batou.lib.file.File(
             self.expand("{{component.tag}}.sh"),
-            content=(
-                files(__spec__.parent) / "resources/cron-wrapper.sh"
-            ).read_bytes(),
+            content=(files(__spec__.parent) / "resources/cron-wrapper.sh").read_bytes(),
             mode=0o755,
         )
         self.wrapped_command = self._.path
@@ -147,9 +145,7 @@ class SystemdTimer(batou.component.Component):
     additional_service_config = None
     run_as = batou.component.Attribute(
         str,
-        default=batou.component.ConfigString(
-            "{{component.environment.service_user}}"
-        ),
+        default=batou.component.ConfigString("{{component.environment.service_user}}"),
     )
 
     def configure(self):

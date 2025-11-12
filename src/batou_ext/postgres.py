@@ -6,7 +6,6 @@ import batou.utils
 
 
 class PostgresServer(batou.component.Component):
-
     listen_port = "5432"
 
     def configure(self):
@@ -15,7 +14,6 @@ class PostgresServer(batou.component.Component):
 
 
 class PostgresDataComponent(batou.component.Component):
-
     command_prefix = batou.component.Attribute(str, default="sudo -u postgres")
 
     def configure(self):
@@ -62,8 +60,7 @@ class DB(PostgresDataComponent):
         super(DB, self).configure()
         if self.owner is None:
             raise ValueError(
-                "You have to specify an owner for the "
-                'database "{}"'.format(self.db)
+                'You have to specify an owner for the database "{}"'.format(self.db)
             )
 
     def verify(self):
@@ -159,9 +156,7 @@ class Extension(PostgresDataComponent):
         if self.extension_name is None:
             raise ValueError("Need to set extension name")
         if self.db is None:
-            raise ValueError(
-                "Need to specify a database to " "create extension in"
-            )
+            raise ValueError("Need to specify a database to create extension in")
 
     def verify(self):
         cmd_out, cmt_err = self.pgcmd(
