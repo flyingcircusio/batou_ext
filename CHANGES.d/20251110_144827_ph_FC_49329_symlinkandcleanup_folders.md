@@ -1,0 +1,1 @@
+- Fix an issue with the `SymlinkAndCleanup` component that made it impossible to use with directories as opposed to files

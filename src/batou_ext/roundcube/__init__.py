@@ -55,9 +55,7 @@ class Roundcube(Component):
         self += Extract(download.target, target="roundcube.orig")
         self += SyncDirectory(
             self.basedir,
-            source=self.map(
-                "roundcube.orig/roundcubemail-{}".format(self.release)
-            ),
+            source=self.map("roundcube.orig/roundcubemail-{}".format(self.release)),
         )
 
         self.db_dsnw = "{}://{}:{}@{}/{}".format(
@@ -68,9 +66,7 @@ class Roundcube(Component):
             self.db.database,
         )
 
-        self += File(
-            self.basedir + "/config/config.inc.php", source=self.config
-        )
+        self += File(self.basedir + "/config/config.inc.php", source=self.config)
 
         self.fpm = FPM("roundcube")
         self += self.fpm
@@ -79,7 +75,6 @@ class Roundcube(Component):
 
 
 class RoundcubeInit(Component):
-
     namevar = "roundcube"
 
     def verify(self):
@@ -87,7 +82,6 @@ class RoundcubeInit(Component):
         host = self.roundcube.db.address.connect.host
         db = self.roundcube.db
         try:
-
             result = self.cmd(
                 f"psql -h {host} -U {db.username} -d {db.database} -c "
                 '"SELECT * FROM information_schema.tables '

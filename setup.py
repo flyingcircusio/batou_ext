@@ -1,5 +1,4 @@
-"""A library of components for batou.
-"""
+"""A library of components for batou."""
 
 import glob
 import os.path
@@ -41,11 +40,7 @@ License :: OSI Approved :: BSD License
 Programming Language :: Python
 Programming Language :: Python :: 3
 Programming Language :: Python :: 3 :: Only
-"""[
-        :-1
-    ].split(
-        "\n"
-    ),
+"""[:-1].split("\n"),
     description=__doc__.strip(),
     long_description="\n\n".join(
         open(project_path(name)).read()

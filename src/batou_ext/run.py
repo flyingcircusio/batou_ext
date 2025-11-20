@@ -34,11 +34,8 @@ class Run(batou.component.Component):
     env = None
 
     def configure(self):
-
         if not self.file and self.content:
-            self += batou.lib.file.File(
-                self.command, content=self.content, mode=0o700
-            )
+            self += batou.lib.file.File(self.command, content=self.content, mode=0o700)
             self.command_file = self._
         elif self.file:
             self.command_file = self.file

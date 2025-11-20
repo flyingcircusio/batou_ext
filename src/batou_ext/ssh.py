@@ -73,9 +73,7 @@ class SSHKeyPair(Component):
             self += Purge(f"~/.ssh/{file_name_ed25519}")
 
         if self.id_ed25519_pub:
-            self += File(
-                f"~/.ssh/{file_name_ed25519}.pub", content=self.id_ed25519_pub
-            )
+            self += File(f"~/.ssh/{file_name_ed25519}.pub", content=self.id_ed25519_pub)
 
         # ScanHost
         for host in self.scan_hosts:
