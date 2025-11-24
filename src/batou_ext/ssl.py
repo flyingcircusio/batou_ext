@@ -68,9 +68,7 @@ class Certificate(batou.component.Component):
         "/082da2527cb4aaa3a4740ba03e550205b076f822/dehydrated"
     )
     dehydrated_checksum = "md5:95a90950d3b9c01174e4f4f98cf3bd53"
-    dehydrated_publickey_algo = batou.component.Attribute(
-        str, default="secp384r1"
-    )
+    dehydrated_publickey_algo = batou.component.Attribute(str, default="secp384r1")
 
     extracommand = None
 
@@ -110,14 +108,10 @@ class Certificate(batou.component.Component):
 
     def configure(self):
         if not isinstance(self.alternative_names, (tuple, list)):
-            raise ValueError(
-                '"alternative_names" needs to be a tuple of string.'
-            )
+            raise ValueError('"alternative_names" needs to be a tuple of string.')
         if not self.refresh_timing:
             h = int(
-                hashlib.md5(
-                    six.ensure_binary(self.domain, "UTF-8")
-                ).hexdigest(),
+                hashlib.md5(six.ensure_binary(self.domain, "UTF-8")).hexdigest(),
                 16,
             )
             self.refresh_timing = "{} {} * * *".format(h % 60, h % 24)
@@ -176,9 +170,7 @@ class Certificate(batou.component.Component):
             self += batou.lib.file.Mode("dehydrated", mode=0o755)
 
             if not self.wellknown and self.docroot:
-                self.wellknown = "{}/.well-known/acme-challenge".format(
-                    self.docroot
-                )
+                self.wellknown = "{}/.well-known/acme-challenge".format(self.docroot)
             self += batou.lib.file.File(
                 self.wellknown, ensure="directory", leading=True
             )
@@ -209,9 +201,7 @@ KEY_ALGO={{component.dehydrated_publickey_algo}}
 
             self += batou.lib.file.File(
                 self.expand("cert-{{component.domain}}.sh"),
-                content=(
-                    files(__spec__.parent) / "resources/cert.sh"
-                ).read_bytes(),
+                content=(files(__spec__.parent) / "resources/cert.sh").read_bytes(),
                 mode=0o700,
             )
             self.cert_sh = self._
@@ -340,8 +330,7 @@ class CertificateCheckLocal(batou.component.Component):
         self += batou.lib.file.File(
             "cert_check_{}.sh".format(self.name),
             content=(
-                files(__spec__.parent)
-                / "resources/ssl/local_certificate_check.sh"
+                files(__spec__.parent) / "resources/ssl/local_certificate_check.sh"
             ).read_bytes(),
             mode=0o755,
         )

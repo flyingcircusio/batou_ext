@@ -5,7 +5,6 @@ import batou.lib.file
 
 
 class JournalBeatTransport(batou.component.Component):
-
     """A shortcut for sending logmessages via journalbeat to a centralised loghost."""
 
     nix_file_path = batou.component.Attribute(
@@ -16,10 +15,7 @@ class JournalBeatTransport(batou.component.Component):
     graylog_port = batou.component.Attribute(int, default=12301)
 
     def configure(self):
-
         self += batou.lib.file.File(
             self.nix_file_path,
-            content=(
-                files(__spec__.parent) / "resources/journalbeat.nix"
-            ).read_bytes(),
+            content=(files(__spec__.parent) / "resources/journalbeat.nix").read_bytes(),
         )

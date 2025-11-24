@@ -13,7 +13,6 @@ def resolve_v6(address):
 
 
 class PFAPostfix(Component):
-
     address = Attribute(Address, ConfigString("localhost:25"))
 
     def configure(self):
@@ -24,9 +23,7 @@ class PFAPostfix(Component):
 
         self.provide("postfix", self.address)
 
-        self += File(
-            "/etc/postfix/myhostname", content=self.address.connect.host
-        )
+        self += File("/etc/postfix/myhostname", content=self.address.connect.host)
         self += File(
             "/etc/postfix/main.d/40_local.cf", source=self.resource("local.cf")
         )

@@ -22,12 +22,10 @@ in
 
 
 class NixOSModuleContext(Component):
-
     source_component: Component = None
     prefix: str = None
 
     def configure(self):
-
         if self.source_component:
             component = self.source_component
         else:
@@ -47,7 +45,6 @@ class NixOSModuleContext(Component):
 
 
 class NixOSModule(Component):
-
     namevar = "name"
 
     name: str
@@ -55,7 +52,6 @@ class NixOSModule(Component):
     context = None
 
     def configure(self):
-
         self += NixFile(f"{self.name}.nix")
 
         if self.context is None:

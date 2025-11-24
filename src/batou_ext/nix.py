@@ -153,9 +153,7 @@ class UserEnv(batou.component.Component):
         self.nix_env_name = self.expand(
             "{{component.profile_name}}-1.{{component.checksum.hexdigest()}}"
         )
-        self += batou.lib.file.File(
-            self.profile_name + ".nix", content=self.profile
-        )
+        self += batou.lib.file.File(self.profile_name + ".nix", content=self.profile)
         self += Package(self.nix_env_name, file=self._.path)
         self.user_profile_path = os.path.expanduser(
             "~/.nix-profile/etc/profile.d/{}.sh".format(self.profile_name)
@@ -278,9 +276,7 @@ class UserInit(batou.component.Component):
             ExecStart=os.path.join(self.root.workdir, self.executable),
             Restart="always",
             Environment=[
-                self.expand(
-                    "LOCALE_ARCHIVE={{component.env['LOCALE_ARCHIVE']}}"
-                ),
+                self.expand("LOCALE_ARCHIVE={{component.env['LOCALE_ARCHIVE']}}"),
                 self.expand("PATH={{component.env['PATH']}}"),
                 self.expand("TZDIR={{component.env['TZDIR']}}"),
             ],
@@ -308,9 +304,7 @@ class UserInit(batou.component.Component):
         self.checksum = self.parent.checksum
         self += batou.lib.file.File(
             service_file,
-            content=(
-                files(__spec__.parent) / "resources/systemd.service"
-            ).read_bytes(),
+            content=(files(__spec__.parent) / "resources/systemd.service").read_bytes(),
         )
         self += Rebuild()
 
@@ -417,17 +411,13 @@ class SensuChecks(batou.component.Component):
     purge_old_batou_json = batou.component.Attribute("literal", default=True)
 
     def configure(self):
-        self.services = self.require(
-            batou.lib.nagios.Service.key, host=self.host
-        )
+        self.services = self.require(batou.lib.nagios.Service.key, host=self.host)
         checks = {}
         for service in self.services:
             assert getattr(service, "name", None)
             checks[service.name] = check = dict(
                 standalone=True,
-                command=service.expand(
-                    "{{component.command}} {{component.args}}"
-                ),
+                command=service.expand("{{component.command}} {{component.args}}"),
             )
 
             if service.interval:
@@ -458,13 +448,11 @@ class SensuChecks(batou.component.Component):
 @batou.component.platform("nixos", batou.lib.logrotate.Logrotate)
 class LogrotateIntegration(batou.component.Component):
     def configure(self):
-        assert (
-            self.environment.service_user
-        ), "Need to set service_user inside environment file."
-        user = self.environment.service_user
-        user_logrotate_conf = os.path.join(
-            "/etc/local/logrotate", user, "batou.conf"
+        assert self.environment.service_user, (
+            "Need to set service_user inside environment file."
         )
+        user = self.environment.service_user
+        user_logrotate_conf = os.path.join("/etc/local/logrotate", user, "batou.conf")
         self += batou.lib.file.File(
             user_logrotate_conf, content=self.parent.logrotate_conf.content
         )
@@ -491,29 +479,21 @@ class PythonWithNixPackages(batou.component.Component):
 
     def configure(self):
         if not self.pythonPackages:
-            self.pythonPackages = "pkgs.{}Packages".format(
-                self.python.replace(".", "")
-            )
+            self.pythonPackages = "pkgs.{}Packages".format(self.python.replace(".", ""))
 
         self += batou.lib.file.File(
             "{}.nix".format(self.python),
-            content=(
-                files(__spec__.parent) / "resources/python.nix"
-            ).read_bytes(),
+            content=(files(__spec__.parent) / "resources/python.nix").read_bytes(),
         )
         self += batou.lib.file.File(
             "setupEnv-{}".format(self.python),
             mode=0o755,
-            content=(
-                files(__spec__.parent) / "resources/setupEnv.sh"
-            ).read_bytes(),
+            content=(files(__spec__.parent) / "resources/setupEnv.sh").read_bytes(),
         )
         self.env_file = self._
         self += batou.lib.file.File(
             "{}.c".format(self.python),
-            content=(
-                files(__spec__.parent) / "resources/loader.c"
-            ).read_bytes(),
+            content=(files(__spec__.parent) / "resources/loader.c").read_bytes(),
         )
         self.provide(self.python, os.path.join(self.workdir, self.python))
 
@@ -551,9 +531,7 @@ def mapping_to_nix(obj):
 
 def str_to_nix(value):
     # https://nixos.org/manual/nix/stable/language/values.html#type-string
-    value = (
-        value.replace("\\", "\\\\").replace("${", "\\${").replace('"', '\\"')
-    )
+    value = value.replace("\\", "\\\\").replace("${", "\\${").replace('"', '\\"')
     return f'"{value}"'
 
 
@@ -725,13 +703,9 @@ class NixContent(ManagedContentBase):
                     capture_output=True,
                 )
             except FileNotFoundError:
-                self.log(
-                    "Cannot syntax-check Nix file, nix-instantiate not found."
-                )
+                self.log("Cannot syntax-check Nix file, nix-instantiate not found.")
             except subprocess.CalledProcessError as e:
-                raise NixSyntaxCheckFailed(
-                    e.stderr.decode("utf8"), path=self.path
-                )
+                raise NixSyntaxCheckFailed(e.stderr.decode("utf8"), path=self.path)
 
         if update_needed:
             raise UpdateNeeded()

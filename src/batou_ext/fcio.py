@@ -81,9 +81,7 @@ class DNSAliases(batou.component.Component):
 
     def _call(self):
         api = xmlrpc.client.ServerProxy(
-            "https://{s.project}:{s.api_key}@api.flyingcircus.io/v1".format(
-                s=self
-            )
+            "https://{s.project}:{s.api_key}@api.flyingcircus.io/v1".format(s=self)
         )
         api.apply(self.calls)
 
@@ -131,8 +129,7 @@ class DNSAliases(batou.component.Component):
                 error = True
             else:
                 result = ", ".join(
-                    sockaddr[0]
-                    for (family, type, proto, canonname, sockaddr) in addrs
+                    sockaddr[0] for (family, type, proto, canonname, sockaddr) in addrs
                 )
             results.append("{}: {}".format(fqdn, result))
         return error, results
@@ -151,9 +148,7 @@ def create_xmlrpc_client(environment: batou.environment.Environment):
         )
         raise
     api_url = environment.overrides["provision"].get("api_url", API_URL)
-    api = xmlrpc.client.ServerProxy(
-        api_url.format(project=rg_name, api_key=api_key)
-    )
+    api = xmlrpc.client.ServerProxy(api_url.format(project=rg_name, api_key=api_key))
     return api
 
 
@@ -213,9 +208,7 @@ class Provision(batou.component.Component):
             classes = ["role::" + r for r in roles if r]
 
             if d.get("environment", config("vm_environment")) is None:
-                raise ValueError(
-                    "'environment' for {} must be set.".format(name)
-                )
+                raise ValueError("'environment' for {} must be set.".format(name))
 
             call = dict(
                 __type__="virtualmachine",
@@ -261,9 +254,7 @@ class Provision(batou.component.Component):
                     print(vm)
                     for key, (old, new) in sorted(changes.items()):
                         if old or new:
-                            print(
-                                "    {key:20}: {old} → {new}".format(**locals())
-                            )
+                            print("    {key:20}: {old} → {new}".format(**locals()))
                         else:
                             print("    {key}".format(**locals()))
                 else:
@@ -392,9 +383,7 @@ class MaintenanceEnd(batou.component.Component):
         )
 
 
-def change_maintenance_state(
-    xmlrpc, rg_name, desired_state, predict_only=False
-):
+def change_maintenance_state(xmlrpc, rg_name, desired_state, predict_only=False):
     rg = next(
         (rg for rg in xmlrpc.query("resourcegroup") if rg["name"] == rg_name),
         None,
