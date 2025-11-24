@@ -31,7 +31,6 @@ import batou.lib.file
 
 
 class ErlangCookie(batou.component.Component):
-
     path = "~/.erlang.cookie"
     cookie = None
 
@@ -114,8 +113,7 @@ class Permissions(RabbitMQBase):
         for vhost in self.to_delete:
             self.cmd(
                 self.expand(
-                    "rabbitmqctl clear_permissions"
-                    " -p {{vhost}} {{component.username}}",
+                    "rabbitmqctl clear_permissions -p {{vhost}} {{component.username}}",
                     vhost=vhost,
                 )
             )
@@ -170,8 +168,7 @@ class User(RabbitMQBase):
     def update(self):
         if self.create:
             self.cmd(
-                "rabbitmqctl add_user"
-                " '{{component.username}}' '{{component.password}}'"
+                "rabbitmqctl add_user '{{component.username}}' '{{component.password}}'"
             )
         if self.set_tags:
             self.cmd(

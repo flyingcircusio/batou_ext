@@ -95,9 +95,7 @@ def test_remote_image_validation_is_cached(root, activate, mocker):
         activate.verify()
 
     # Validate is called with the local digest
-    activate._validate_remote_image.assert_called_with(
-        "alpine:latest@local-digest"
-    )
+    activate._validate_remote_image.assert_called_with("alpine:latest@local-digest")
     activate._validate_remote_image.reset_mock()
 
     # A *different* container will re-use the cache!
@@ -112,9 +110,7 @@ def test_remote_image_validation_is_cached(root, activate, mocker):
     a2._validate_remote_image.return_value = False
     a2._get_local_digest.return_value = "local-digest"
 
-    with pytest.raises(
-        batou.UpdateNeeded, match="Cached remote version update."
-    ):
+    with pytest.raises(batou.UpdateNeeded, match="Cached remote version update."):
         a2.verify()
 
     activate._validate_remote_image.assert_not_called()

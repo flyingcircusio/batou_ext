@@ -59,20 +59,15 @@ class GitCheckout(batou.component.Component):
     scan_host = True
 
     def configure(self):
-
         # We need to ensure to have a valid URL. Assuming URL with schema
         # should be valid.
         assert urllib.parse.urlparse(self.git_clone_url).scheme
 
         if self.scan_host:
             if not self.git_host:
-                self.git_host = urllib.parse.urlparse(
-                    self.git_clone_url
-                ).hostname
+                self.git_host = urllib.parse.urlparse(self.git_clone_url).hostname
             if not self.git_port:
-                self.git_port = (
-                    urllib.parse.urlparse(self.git_clone_url).port or 22
-                )
+                self.git_port = urllib.parse.urlparse(self.git_clone_url).port or 22
             # Add remote host to known hosts
             self += batou_ext.ssh.ScanHost(self.git_host, port=self.git_port)
 
@@ -91,14 +86,10 @@ class GitCheckout(batou.component.Component):
         # add custom files
         if self.sync_parent_folder:
             self.prepared_path = self.map(
-                "{}/prepared-{}".format(
-                    self.sync_parent_folder, self.git_revision
-                )
+                "{}/prepared-{}".format(self.sync_parent_folder, self.git_revision)
             )
         else:
-            self.prepared_path = self.map(
-                "prepared-{}".format(self.git_revision)
-            )
+            self.prepared_path = self.map("prepared-{}".format(self.git_revision))
         self += batou.lib.file.Directory(self.prepared_path, leading=True)
         self += batou.lib.file.Directory(
             self.prepared_path,
@@ -132,15 +123,11 @@ class Commit(batou.component.Component):
             self.cmd("git config user.email '{{component.author_email}}'")
             self.cmd("git config user.name '{{component.author_name}}'")
             self.cmd("git add {{component.filename}}")
-            self.cmd(
-                "git commit -m '{{component.message}}' {{component.filename}}"
-            )
+            self.cmd("git commit -m '{{component.message}}' {{component.filename}}")
 
     def has_changes(self):
         with self.chdir(self.workingdir):
-            stdout, stderr = self.cmd(
-                "git status --porcelain {{component.filename}}"
-            )
+            stdout, stderr = self.cmd("git status --porcelain {{component.filename}}")
         return bool(stdout.strip())
 
 

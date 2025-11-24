@@ -132,9 +132,7 @@ class Download(batou.component.Component):
         if not os.path.exists(self.target):
             raise batou.UpdateNeeded()
         if self.checksum:
-            if self.checksum != batou.utils.hash(
-                self.target, self.checksum_function
-            ):
+            if self.checksum != batou.utils.hash(self.target, self.checksum_function):
                 raise batou.UpdateNeeded()
         else:
             if not os.path.exists(self.etag_file):
@@ -153,12 +151,8 @@ class Download(batou.component.Component):
     def update(self):
         self.obj.download_file(self.target)
         if self.checksum:
-            target_checksum = batou.utils.hash(
-                self.target, self.checksum_function
-            )
-            assert (
-                self.checksum == target_checksum
-            ), """\
+            target_checksum = batou.utils.hash(self.target, self.checksum_function)
+            assert self.checksum == target_checksum, """\
 Checksum mismatch!
 expected: %s
 got: %s""" % (

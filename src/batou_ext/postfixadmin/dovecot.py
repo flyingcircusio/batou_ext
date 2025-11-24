@@ -5,13 +5,8 @@ from batou.lib.file import File
 
 
 class PFADovecot(Component):
-
-    local_conf = os.path.join(
-        os.path.dirname(__file__), "dovecot", "local.conf"
-    )
-    database_conf = os.path.join(
-        os.path.dirname(__file__), "dovecot", "database.conf"
-    )
+    local_conf = os.path.join(os.path.dirname(__file__), "dovecot", "local.conf")
+    database_conf = os.path.join(os.path.dirname(__file__), "dovecot", "database.conf")
 
     def configure(self):
         self.db = self.require_one("pfa::database")

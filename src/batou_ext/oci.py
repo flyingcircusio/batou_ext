@@ -160,6 +160,7 @@ class Container(Component):
     env: dict = {}
     depends_on: list = None
     extra_options: list = []
+    oneshot: bool = False
 
     # secrets
     registry_address = Attribute(Optional[str], None)
@@ -178,9 +179,7 @@ class Container(Component):
             else "docker"
         )
 
-        if (
-            self.registry_user or self.registry_password
-        ) and not self.registry_address:
+        if (self.registry_user or self.registry_password) and not self.registry_address:
             self.log(
                 "WARN: you might want to specify the registry explicitly"
                 " unless you really intend to log into the default"
@@ -217,9 +216,9 @@ class Container(Component):
 
         if self.backend != "podman":
             for prop in ["user", "health_cmd"]:
-                assert (
-                    getattr(self, prop) is None
-                ), f"Container '{self.container_name}' runs with Docker, so the '{prop}' option is not supported!"
+                assert getattr(self, prop) is None, (
+                    f"Container '{self.container_name}' runs with Docker, so the '{prop}' option is not supported!"
+                )
         else:
             if self.health_cmd is not None:
                 # `json.dumps` quotes the quoted string in a way that it can
@@ -414,8 +413,6 @@ class ContainerRestart(Component):
             # `docker manifest inspect` silently raises an error when unauthorized,
             # returns exit code 0
             if stderr == "unauthorized":
-                raise RuntimeError(
-                    "Wrong credentials for remote container registry"
-                )
+                raise RuntimeError("Wrong credentials for remote container registry")
             valid = True
         return valid
