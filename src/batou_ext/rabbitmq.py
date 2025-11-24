@@ -60,7 +60,8 @@ class ErlangCookie(batou.component.Component):
 
 class RabbitMQBase(batou.component.Component):
     def cmd(self, cmd):
-        cmd = f"sudo -u rabbitmq {cmd}"
+        if not os.path.exists(self.map(ErlangCookie.path)):
+            cmd = f"sudo -u rabbitmq {cmd}"
         return super().cmd(cmd)
 
 
