@@ -1,0 +1,1 @@
+- extend the Redis component to restart the redis service if it changes

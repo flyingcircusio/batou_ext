@@ -45,3 +45,10 @@ class Redis(batou.component.Component):
 
     def resource(self, filename):
         return os.path.join(os.path.dirname(__file__), "resources", filename)
+
+    def verify(self):
+        self.assert_no_changes()
+        self.assert_no_subcomponent_changes()
+
+    def update(self):
+        self.cmd("sudo systemctl restart redis")
