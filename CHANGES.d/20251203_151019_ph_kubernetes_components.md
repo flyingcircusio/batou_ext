@@ -1,0 +1,1 @@
+- add some simple components to manage a kubernetes cluster via batou

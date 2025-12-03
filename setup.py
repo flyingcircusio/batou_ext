@@ -29,6 +29,7 @@ setup(
         ],
         "version-select": ["InquirerPy"],
         "s3-bootstrap": ["boto3", "InquirerPy"],
+        "kubernetes": ["kubernetes"],
     },
     author="Flying Circus <support@flyingcircus.io>",
     author_email="support@flyingcircus.io",
