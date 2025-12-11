@@ -2,7 +2,15 @@
 ## 2.4.35 (unreleased)
 
 
-- Nothing changed yet.
+- Add a configuration option to the batou_ext.oci.Container component that marks the container as a "oneshot" unit indicating that it should not be restarted when shutting down.
+
+  This is particularly useful for containers that run some one-off task like database migrations or other scheduled tasks.
+
+- Fix an issue with the `SymlinkAndCleanup` component that made it impossible to use with directories as opposed to files
+
+- add `VirtualEnvRequirements.pip_install_extra_args`
+
+  The new setting allows to e.g. install requirement files with `--no-deps`.
 
 
 ## 2.4.34 (2025-10-20)
