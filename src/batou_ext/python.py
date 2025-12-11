@@ -74,6 +74,9 @@ class VirtualEnvRequirements(Component):
     # May pass pre-fabricated virtualenv
     venv = None
 
+    pip_install_extra_args = Attribute(str, default="")
+    """Extra arguments for `pip install`, e.g. `--no-deps`."""
+
     def configure(self):
         if isinstance(self.requirements_path, str):
             self.requirements_paths = [self.requirements_path]
@@ -91,19 +94,15 @@ class VirtualEnvRequirements(Component):
         self.parent.assert_no_changes()
 
     def update(self):
+        if self.pre_run_script_path:
+            pre_run = f"source {self.pre_run_script_path} && "
+        else:
+            pre_run = ""
         for req in self.requirements_paths:
-            if self.pre_run_script_path:
-                self.cmd(
-                    ("source {} && {} -m pip install --upgrade -r {}").format(
-                        self.pre_run_script_path, self.venv.python, req
-                    ),
-                    env=self.env,
-                )
-            else:
-                self.cmd(
-                    "{} -m pip install --upgrade -r {}".format(self.venv.python, req),
-                    env=self.env,
-                )
+            self.cmd(
+                f"{pre_run} {self.venv.python} -m pip install {self.pip_install_extra_args} --upgrade -r {req}",
+                env=self.env,
+            )
 
 
 class FixELFRunPath(Component):
