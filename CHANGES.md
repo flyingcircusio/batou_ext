@@ -1,5 +1,5 @@
 
-## 2.4.35 (unreleased)
+## 2.4.35 (2025-12-11)
 
 
 - Add a configuration option to the batou_ext.oci.Container component that marks the container as a "oneshot" unit indicating that it should not be restarted when shutting down.
