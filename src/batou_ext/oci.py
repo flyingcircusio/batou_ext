@@ -144,6 +144,7 @@ class Container(Component):
 
     health_cmd = Attribute(str, None)
     user = Attribute(str, None)
+    pull_always = Attribute("literal", True)
 
     # Set up monitoring
     monitor: bool = True
@@ -290,7 +291,7 @@ class ContainerRestart(Component):
 
         # If the container is not running the image we expect, we need to
         # restart it. This will also ensure the container is up-to-date locally
-        # since the container's nix service is set to always pull.
+        # with the container's nix service set by default to always pull.
         if local_image_id != container_image_id:
             self.log(
                 "Container is running an older version than is locally "
