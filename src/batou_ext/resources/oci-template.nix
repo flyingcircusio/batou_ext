@@ -39,7 +39,9 @@
         };
 
         extraOptions = [
+          # {% if component.pull_always %}
           "--pull=always"
+          # {% endif %}
           # {% if component.backend == "podman" %}
           "--cgroups=enabled"
           "--cidfile=/run/{{component.container_name}}/ctr-id"
