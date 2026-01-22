@@ -37,21 +37,28 @@ class PostfixRelay(batou.component.Component):
             self.provide(self.provide_as, self)
         self.address = batou.utils.Address(self.host.fqdn, 25, require_v6=True)
         self += batou.lib.file.File(
-            "/etc/local/postfix/main.cf",
+            "/etc/local/nixos/postfix-relay.nix",
             content=dedent(
                 self.expand(
                     """
-    relayhost = [{{component.smtp_relay_host}}]:{{component.smtp_relay_port}}
-    {% if component.smtp_auth %}
-    smtp_sasl_auth_enable = yes
-    smtp_sasl_password_maps = hash:/etc/local/postfix/sasl_passwd
-    smtp_sasl_security_options = noanonymous
-    {% endif %}
-    {% if component.smtp_tls %}smtp_use_tls = yes{% endif %}
+                    {
+                        services.postfix.settings.main = {
+                            relayhost = "[{{component.smtp_relay_host}}]:{{component.smtp_relay_port}}";
+                            {% if component.smtp_auth %}
+                            smtp_sasl_auth_enable = "yes";
+                            smtp_sasl_password_maps = "hash:/etc/local/postfix/sasl_passwd";
+                            smtp_sasl_security_options = "noanonymous";
+                            {% endif %}
+                            {% if component.smtp_tls %}
+                            smtp_use_tls = "yes";
+                            {% endif %}
+                        };
+                    }
     """
                 )
             ),
         )
+        self += batou.lib.file.Purge("/etc/local/postfix/main.cf")
 
         if self.smtp_auth:
             self += batou.lib.file.File(
