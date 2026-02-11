@@ -2,7 +2,11 @@
 ## 2.4.36 (unreleased)
 
 
-- Nothing changed yet.
+- extend the Redis component to restart the redis service if it changes
+
+- oci: Make --pull=always optional
+
+- Nixify the postfix configuration of the PostfixRelay component
 
 
 ## 2.4.35 (2025-12-11)
