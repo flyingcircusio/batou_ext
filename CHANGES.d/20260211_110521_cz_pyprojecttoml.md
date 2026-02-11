@@ -1,0 +1,1 @@
+- Consolidate setup.cfg and setup.py into pyproject.toml
