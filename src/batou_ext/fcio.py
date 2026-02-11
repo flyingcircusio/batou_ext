@@ -242,7 +242,10 @@ class Provision(batou.component.Component):
 
             vms.append(call)
 
+        exit_code = 0
+
         if self.diff:
+            is_different = False
             diff = self.get_diff(self.get_currently_provisioned_vms(), vms)
             print(
                 "Applying the configuration to {env} would yield the following"
@@ -254,11 +257,14 @@ class Provision(batou.component.Component):
                     print(vm)
                     for key, (old, new) in sorted(changes.items()):
                         if old or new:
-                            print("    {key:20}: {old} → {new}".format(**locals()))
+                            is_different = True
+                            print(f"    {key:20}: {old} → {new}")
                         else:
-                            print("    {key}".format(**locals()))
+                            print(f"    {key}")
                 else:
                     print("{vm}: <no changes>".format(vm=vm))
+            if is_different:
+                exit_code = 1
         else:
             serviceuser = dict(
                 __type__="serviceuser",
@@ -271,6 +277,8 @@ class Provision(batou.component.Component):
                 pprint(calls)
             else:
                 pprint(self.api.apply(calls))
+
+        return exit_code
 
     def get_diff(self, old, new):
         result = {}
@@ -294,6 +302,9 @@ class Provision(batou.component.Component):
                         old_value.remove("role::generic")
                     except ValueError:
                         pass
+                    # Also the order is preserved but do not make any difference
+                    old_value.sort()
+                    new_value.sort()
                 if old_value != new_value:
                     changes[key] = (old_value, new_value)
         for vm_name, new_vm in list(new.items()):
@@ -429,4 +440,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

@@ -1,0 +1,1 @@
+- fcio provision diff has exit code 1 if there are changes.
