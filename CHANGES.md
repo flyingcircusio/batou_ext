@@ -1,5 +1,5 @@
 
-## 2.4.36 (unreleased)
+## 2.4.36 (2026-02-11)
 
 
 - extend the Redis component to restart the redis service if it changes
