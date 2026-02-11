@@ -43,7 +43,7 @@ class PostfixRelay(batou.component.Component):
                     """
                     {
                         services.postfix.settings.main = {
-                            relayhost = "[{{component.smtp_relay_host}}]:{{component.smtp_relay_port}}";
+                            relayhost = ["{{component.smtp_relay_host}}:{{component.smtp_relay_port}}"];
                             {% if component.smtp_auth %}
                             smtp_sasl_auth_enable = "yes";
                             smtp_sasl_password_maps = "hash:/etc/local/postfix/sasl_passwd";
