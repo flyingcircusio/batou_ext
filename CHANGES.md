@@ -1,5 +1,5 @@
 
-## 2.4.37 (unreleased)
+## 2.4.37 (2026-02-11)
 
 
 - Consolidate setup.cfg and setup.py into pyproject.toml

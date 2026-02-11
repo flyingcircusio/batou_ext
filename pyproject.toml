@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "batou_ext"
-version = "2.4.37.dev0"
+version = "2.4.37"
 description = "A library of components for batou."
 readme = "README.md"
 license = {text = "BSD (2-clause)"}
