@@ -2,7 +2,10 @@
 ## 2.4.37 (unreleased)
 
 
-- Nothing changed yet.
+- Consolidate setup.cfg and setup.py into pyproject.toml
+
+- PostfixRelay: Fix a regression in Nix expression that caused a syntax error
+  while evaluation
 
 
 ## 2.4.36 (2026-02-11)
