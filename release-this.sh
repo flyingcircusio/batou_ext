@@ -24,12 +24,14 @@ if [ -n "$changes" ]; then
 fi
 
 cd $(dirname $0)
-chmod u+w bin/*ctivate* || true
-python3 -m venv .
-bin/pip install zest.releaser scriv
-bin/pip install -e .
 
-bin/scriv collect
+envdir=$(mktemp -d)
+uv venv $envdir
+uv pip install -p $envdir/bin/python zest.releaser scriv
+
+
+$envdir/bin/scriv collect
+
 sed  -i .orig '/- Nothing changed yet./ { N; d; } ' CHANGES.md
 git add -A .
 git status
@@ -38,4 +40,6 @@ echo "Press enter to commit, Ctrl-C to abort."
 read
 git commit -m "Prepare changelog for release"
 
-bin/fullrelease
+$envdir/bin/fullrelease
+
+rm -rf $envdir
