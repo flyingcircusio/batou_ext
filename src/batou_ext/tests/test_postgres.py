@@ -109,4 +109,6 @@ def test_grant_check_permissions_missing(pgcmd_mock, grant):
     ]
     result = grant._check_permissions()
     assert "table permissions" in result[0]
-    assert "INSERT" in result[0] or "UPDATE" in result[0] or "DELETE" in result[0]
+    assert (
+        "INSERT" in result[0] or "UPDATE" in result[0] or "DELETE" in result[0]
+    )

@@ -99,14 +99,18 @@ class Mirror(batou.component.Component):
         self += self.cert
 
         if self.authstring:
-            self.htpasswdfile = batou.lib.file.File("htpasswd", content=self.authstring)
+            self.htpasswdfile = batou.lib.file.File(
+                "htpasswd", content=self.authstring
+            )
             self += self.htpasswdfile
 
         assert self.nginx_config_path
 
         self += batou.lib.file.File(
             "{}/{}.conf".format(self.nginx_config_path, self.public_name),
-            source=os.path.join(os.path.dirname(__file__), "resources/mirror.conf"),
+            source=os.path.join(
+                os.path.dirname(__file__), "resources/mirror.conf"
+            ),
         )
 
         self += self.cert.activate_letsencrypt()
