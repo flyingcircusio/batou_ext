@@ -54,7 +54,9 @@ class ExponentialBackoff:
 
         sleep(seconds_to_sleep)
 
-    def __report_failing_healthcheck(self, sleep_seconds: int, will_time_out: bool):
+    def __report_failing_healthcheck(
+        self, sleep_seconds: int, will_time_out: bool
+    ):
         log_message = f"Healthcheck failure (Reason: {self.last_healthcheck}), sleeping {sleep_seconds}."
         if will_time_out:
             warning(f"{log_message} Watchdog will likely kill process")
@@ -90,7 +92,9 @@ def is_service_available(url: str, timeout: int) -> HealthCheckResult:
         return HealthCheckResult(False, ex)
 
 
-def await_service(url: str, healthcheck_timeout: int, startup_loop_interval: int):
+def await_service(
+    url: str, healthcheck_timeout: int, startup_loop_interval: int
+):
     # No need to handle timeouts here: due to `Type=notify`,
     # this unit won't be up until this loop has terminated.
     # The timeout for that can be controlled in the unit directly

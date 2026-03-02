@@ -147,7 +147,9 @@ class CreateKeypair(Step):
         if not account_created and not rg_account_exists(
             self.rg_name, self.host, self.sudo_password
         ):
-            raise ConfigurationError(f"Account for rg {self.rg_name} does not exist!")
+            raise ConfigurationError(
+                f"Account for rg {self.rg_name} does not exist!"
+            )
 
     def apply(self, _) -> Keypair:
         data = json.loads(
@@ -164,7 +166,9 @@ class CreateKeypair(Step):
                 ],
             )
         )
-        kp = Keypair(data["keys"][-1]["access_key"], data["keys"][-1]["secret_key"])
+        kp = Keypair(
+            data["keys"][-1]["access_key"], data["keys"][-1]["secret_key"]
+        )
 
         print(f"AWS_ACCESS_KEY_ID={kp.key_id}")
         print(f"AWS_SECRET_ACCESS_KEY={kp.secret_key}")
@@ -190,7 +194,9 @@ class CreateBucket(Step):
 
         self.bucket = self.resource.Bucket(self.name)
         if self.bucket.creation_date:
-            raise StateAlreadyExists(f"Bucket with name {self.name} already exists!")
+            raise StateAlreadyExists(
+                f"Bucket with name {self.name} already exists!"
+            )
 
     def apply(self, keys):
         self.bucket.create()
@@ -212,7 +218,9 @@ class Rules:
         self.rules[prefix] = days
 
     def __str__(self) -> str:
-        return ", ".join(f"'{prefix}' expires in {days} days" for prefix, days in self)
+        return ", ".join(
+            f"'{prefix}' expires in {days} days" for prefix, days in self
+        )
 
 
 class CreateLifecyclePolicyConfiguration(Step):
@@ -266,7 +274,9 @@ def run():
 
     if (
         keypair_needed
-        or inquirer.confirm(message="Do you need a keypair for access?").execute()
+        or inquirer.confirm(
+            message="Do you need a keypair for access?"
+        ).execute()
     ):
         if sudo_password is None:
             sudo_password = ask_sudo_password()
@@ -275,11 +285,17 @@ def run():
                 message="Which host to use to call radosgw-admin (must be an FQDN)?"
             ).execute()
         plan += CreateKeypair(rg_name, sudo_password, ceph_osd_host)
-    elif not all(x in environ for x in ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"]):
-        error("AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY missing from environment")
+    elif not all(
+        x in environ for x in ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"]
+    ):
+        error(
+            "AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY missing from environment"
+        )
         exit(1)
 
-    bucket_name = inquirer.text(message="What's the name of the bucket?").execute()
+    bucket_name = inquirer.text(
+        message="What's the name of the bucket?"
+    ).execute()
     plan += CreateBucket(bucket_name)
 
     rules = Rules()

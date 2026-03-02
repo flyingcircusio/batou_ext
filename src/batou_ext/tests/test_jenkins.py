@@ -23,7 +23,9 @@ def test_set_versions_git_mode(tmpdir):
 
     with mock.patch("batou_ext.jenkins.git_resolve") as git_resolve:
         git_resolve.return_value = "abcdef"
-        batou_ext.jenkins.set_versions(str(ini), '{"prog1": "a-tag", "prog2": ""}')
+        batou_ext.jenkins.set_versions(
+            str(ini), '{"prog1": "a-tag", "prog2": ""}'
+        )
 
     assert dedent(
         """\

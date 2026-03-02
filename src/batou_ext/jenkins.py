@@ -8,7 +8,9 @@ import sys
 
 
 def git_ls_remote(url, ref):
-    cmd = subprocess.Popen(["git", "ls-remote", url, ref], stdout=subprocess.PIPE)
+    cmd = subprocess.Popen(
+        ["git", "ls-remote", url, ref], stdout=subprocess.PIPE
+    )
     stdout, _ = cmd.communicate()
     if cmd.returncode != 0:
         raise ValueError(
@@ -84,7 +86,9 @@ class VersionsUpdater:
     def update_git(self, service, version, extra_args):
         resolved = git_resolve(self.config.get(service, "url"), version)
         if not resolved:
-            raise ValueError("%s: Could not resolve version %s." % (service, version))
+            raise ValueError(
+                "%s: Could not resolve version %s." % (service, version)
+            )
         log("%s: resolved version %s to: %s", service, version, resolved)
         self.config.set(service, "revision", resolved)
         self.config.set(service, "version", version)
@@ -141,7 +145,9 @@ def main():
         "versions_file",
         help="Name of versions.ini. If exists it will be overwritten.",
     )
-    p.add_argument("version_mapping_json", help="JSON: mapping of service: version")
+    p.add_argument(
+        "version_mapping_json", help="JSON: mapping of service: version"
+    )
     p.set_defaults(func=set_versions)
 
     args = parser.parse_args()

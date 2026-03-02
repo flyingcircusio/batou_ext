@@ -23,7 +23,9 @@ class PFAPostfix(Component):
 
         self.provide("postfix", self.address)
 
-        self += File("/etc/postfix/myhostname", content=self.address.connect.host)
+        self += File(
+            "/etc/postfix/myhostname", content=self.address.connect.host
+        )
         self += File(
             "/etc/postfix/main.d/40_local.cf", source=self.resource("local.cf")
         )
