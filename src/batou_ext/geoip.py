@@ -33,7 +33,9 @@ class GeoIPDatabase(batou.component.Component):
         self.provide("geoip_database", self)
         self += batou.lib.file.File(
             "geoip-update.sh",
-            source=os.path.join(os.path.dirname(__file__), "resources/geoip-update.sh"),
+            source=os.path.join(
+                os.path.dirname(__file__), "resources/geoip-update.sh"
+            ),
             mode=0o744,
         )
         self.script = self._.path
@@ -47,7 +49,9 @@ class GeoIPDatabase(batou.component.Component):
             checkCritical=30000,
         )
 
-        self.database_file = self.expand("{{component.workdir}}/GeoLite2-City.mmdb")
+        self.database_file = self.expand(
+            "{{component.workdir}}/GeoLite2-City.mmdb"
+        )
 
     def verify(self):
         self.assert_no_changes()

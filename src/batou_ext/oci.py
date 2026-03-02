@@ -180,7 +180,9 @@ class Container(Component):
             else "docker"
         )
 
-        if (self.registry_user or self.registry_password) and not self.registry_address:
+        if (
+            self.registry_user or self.registry_password
+        ) and not self.registry_address:
             self.log(
                 "WARN: you might want to specify the registry explicitly"
                 " unless you really intend to log into the default"
@@ -414,6 +416,8 @@ class ContainerRestart(Component):
             # `docker manifest inspect` silently raises an error when unauthorized,
             # returns exit code 0
             if stderr == "unauthorized":
-                raise RuntimeError("Wrong credentials for remote container registry")
+                raise RuntimeError(
+                    "Wrong credentials for remote container registry"
+                )
             valid = True
         return valid

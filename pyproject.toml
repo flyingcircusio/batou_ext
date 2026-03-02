@@ -18,9 +18,9 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
 ]
-requires-python = ">=3.6"
+requires-python = ">=3.9"
 dependencies = [
-    "batou >= 2.3b4",
+    "batou >= 2.5",
     "pyaml",
     "setuptools",
     "six",
@@ -56,16 +56,6 @@ zip-safe = false
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.black]
-line-length = 80
-target-version = ['py36', 'py37', 'py38']
-
-[tool.isort]
-profile = "black"
-line_length = 80
-multi_line_output = 3
-include_trailing_comma = true
-
 [tool.pytest.ini_options]
 addopts = "--pyargs batou_ext"
 
@@ -79,16 +69,11 @@ new_fragment_template = "- New changelog entry."
 insert_marker = "- Nothing changed yet."
 categories = []
 
-[flake8]
-ignore = [
-    "E231",  # Missing whitespace after ',', ';', or ':' -- enforced by yapf config
-    "W503",  # Line break occurred before a binary operator -- enforced by yapf config
-    "W504",  # Line break occurred after a binary operator -- enforced by yapf config
-]
-max-line-length = 80
-
 [zest.releaser]
 version-levels = 3
 history-file = "CHANGES.md"
 release = "yes"
 history_format = "md"
+
+[tool.ruff]
+line-length = 80

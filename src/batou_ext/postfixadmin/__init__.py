@@ -21,7 +21,9 @@ class PFA(Component):
 
     admin_password = None
     salt = "ab8f1b639d31875b59fa047481c581fd"
-    config = os.path.join(os.path.dirname(__file__), "postfixadmin", "config.local.php")
+    config = os.path.join(
+        os.path.dirname(__file__), "postfixadmin", "config.local.php"
+    )
 
     def configure(self):
         self.db = self.require_one("pfa::database")
@@ -43,7 +45,9 @@ class PFA(Component):
 
         self += SyncDirectory(
             self.basedir,
-            source=self.map("postfixadmin.orig/postfixadmin-{}".format(self.release)),
+            source=self.map(
+                "postfixadmin.orig/postfixadmin-{}".format(self.release)
+            ),
         )
 
         self += File(self.basedir + "/config.local.php", source=self.config)
@@ -55,6 +59,8 @@ class PFA(Component):
     def admin_password_encrypted(self):
         # password generation ported from postfixadmin/setup.php
         encrypt = hashlib.sha1()
-        encrypt.update("{}:{}".format(self.salt, self.admin_password).encode("utf-8"))
+        encrypt.update(
+            "{}:{}".format(self.salt, self.admin_password).encode("utf-8")
+        )
 
         return "{}:{}".format(self.salt, encrypt.hexdigest())

@@ -36,7 +36,9 @@ class Ini(batou.component.Component):
     logs = None
 
     def configure(self):
-        self._extensions_dir = os.path.expanduser("~/.nix-profile/lib/php/extensions/")
+        self._extensions_dir = os.path.expanduser(
+            "~/.nix-profile/lib/php/extensions/"
+        )
 
         if self.logs is None:
             self.logs = self.map("logs")
@@ -50,7 +52,9 @@ class Ini(batou.component.Component):
         # Providing a php.ini
         self += batou.lib.file.File(
             "php.ini",
-            content=(files(__spec__.parent) / "resources/php/php.ini").read_bytes(),
+            content=(
+                files(__spec__.parent) / "resources/php/php.ini"
+            ).read_bytes(),
         )
         self.php_ini = self._
 
@@ -123,7 +127,9 @@ class FPM(batou.component.Component):
         self += batou.lib.file.File(
             self.name,
             mode=0o755,
-            content=(files(__spec__.parent) / "resources/php/php-fpm.sh").read_bytes(),
+            content=(
+                files(__spec__.parent) / "resources/php/php-fpm.sh"
+            ).read_bytes(),
         )
         self._checksum.update(self._.content)
 

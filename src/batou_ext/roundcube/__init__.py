@@ -55,7 +55,9 @@ class Roundcube(Component):
         self += Extract(download.target, target="roundcube.orig")
         self += SyncDirectory(
             self.basedir,
-            source=self.map("roundcube.orig/roundcubemail-{}".format(self.release)),
+            source=self.map(
+                "roundcube.orig/roundcubemail-{}".format(self.release)
+            ),
         )
 
         self.db_dsnw = "{}://{}:{}@{}/{}".format(
@@ -66,7 +68,9 @@ class Roundcube(Component):
             self.db.database,
         )
 
-        self += File(self.basedir + "/config/config.inc.php", source=self.config)
+        self += File(
+            self.basedir + "/config/config.inc.php", source=self.config
+        )
 
         self.fpm = FPM("roundcube")
         self += self.fpm
