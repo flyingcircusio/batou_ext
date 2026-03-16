@@ -40,6 +40,7 @@ class DB(PostgresDataComponent):
     """Ensures a given database is created and owned by a specific role.
 
     Usage:
+
     ```
     self += batou_ext.postgres.DB(
         "mydatabase",
@@ -89,9 +90,12 @@ class User(PostgresDataComponent):
     and flags.
 
     Usage:
+
+    ```
     self += batou_ext.postgres.User(
         "crocodile",
         password="aligator3")
+    ```
     """
 
     _required_params_ = {
@@ -140,9 +144,12 @@ class Extension(PostgresDataComponent):
     Creates an extension to a given PostgreSQL-DB.
 
     Usage:
+
+    ```
     self += batou_ext.postgres.Extension(
         'uuid-ossp',
         db='my_database')
+    ```
 
     Please note: The extension needs to be already present in context
     of the database cluster.
@@ -185,12 +192,15 @@ class Grant(PostgresDataComponent):
     """Grant table and schema permissions to a user.
 
     Usage:
+
+    ```
         self += Grant(
             "myuser",
             db="mydb",
             schema="public",
             table_permissions=["SELECT", "INSERT", "UPDATE", "DELETE"],
         )
+    ```
 
     This grants:
     - Schema USAGE permission
