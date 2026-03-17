@@ -37,13 +37,15 @@ class PostgresDataComponent(batou.component.Component):
 
 
 class DB(PostgresDataComponent):
-    """
-    Ensures a given database is created and owned by a specific role.
+    """Ensures a given database is created and owned by a specific role.
 
     Usage:
+
+    ```
     self += batou_ext.postgres.DB(
         "mydatabase",
         owner="myuser")
+    ```
 
     Attention: The user will not be created automatically.
     """
@@ -52,6 +54,7 @@ class DB(PostgresDataComponent):
         "owner": "scott",
     }
     namevar = "db"
+    db: str
     locale = "en_US.UTF-8"
     template = "template1"
     owner = None
@@ -60,7 +63,7 @@ class DB(PostgresDataComponent):
         super(DB, self).configure()
         if self.owner is None:
             raise ValueError(
-                'You have to specify an owner for the database "{}"'.format(self.db)
+                f'You have to specify an owner for the database "{self.db}"'
             )
 
     def verify(self):
@@ -87,9 +90,12 @@ class User(PostgresDataComponent):
     and flags.
 
     Usage:
+
+    ```
     self += batou_ext.postgres.User(
         "crocodile",
         password="aligator3")
+    ```
     """
 
     _required_params_ = {
@@ -138,9 +144,12 @@ class Extension(PostgresDataComponent):
     Creates an extension to a given PostgreSQL-DB.
 
     Usage:
+
+    ```
     self += batou_ext.postgres.Extension(
         'uuid-ossp',
         db='my_database')
+    ```
 
     Please note: The extension needs to be already present in context
     of the database cluster.
@@ -176,4 +185,120 @@ class Extension(PostgresDataComponent):
                 '"CREATE EXTENSION '
                 '\\"{{component.extension_name}}\\";" -d {{component.db}}'
             )
+        )
+
+
+class Grant(PostgresDataComponent):
+    """Grant table and schema permissions to a user.
+
+    Usage:
+
+    ```
+        self += Grant(
+            "myuser",
+            db="mydb",
+            schema="public",
+            table_permissions=["SELECT", "INSERT", "UPDATE", "DELETE"],
+        )
+    ```
+
+    This grants:
+    - Schema USAGE permission
+    - Table permissions on all existing tables
+    - DEFAULT PRIVILEGES so future tables automatically get the same permissions
+    """
+
+    namevar = "user"
+    user: str
+    db = None
+    schema = "public"
+    table_permissions = batou.component.Attribute(
+        "list", default=["SELECT", "INSERT", "UPDATE", "DELETE"]
+    )
+    schema_permissions = batou.component.Attribute("list", default=["USAGE"])
+
+    def configure(self):
+        if self.db is None:
+            raise ValueError("Need to specify db")
+
+    def verify(self):
+        missing = self._check_permissions()
+        if missing:
+            raise batou.UpdateNeeded()
+
+    def update(self):
+        self._grant_schema_permissions()
+        self._grant_table_permissions()
+        self._grant_default_privileges()
+
+    def _check_permissions(self) -> list:
+        missing = []
+
+        query = self.expand(
+            "psql -d {{component.db}} -qtAX "
+            '-c "SELECT privilege_type FROM information_schema.table_privileges '
+            "WHERE grantee = '{{component.user}}' "
+            "AND table_schema = '{{component.schema}}';\""
+        )
+        out, _ = self.pgcmd(query, silent=True)
+        current = set(out.strip().split("\n")) - {""}
+
+        desired = set(self.table_permissions)
+        missing_tables = desired - current
+        if missing_tables:
+            missing.append(f"table permissions: {missing_tables}")
+
+        schema_query = self.expand(
+            "psql -d {{component.db}} -qtAX "
+            '-c "SELECT privilege_type FROM information_schema.usage_privileges '
+            "WHERE grantee = '{{component.user}}' "
+            "AND object_type = 'SCHEMA' "
+            "AND object_schema = '{{component.schema}}';\""
+        )
+        out, _ = self.pgcmd(schema_query, silent=True)
+        current_schema = set(out.strip().split("\n")) - {""}
+
+        desired_schema = set(self.schema_permissions)
+        missing_schema = desired_schema - current_schema
+        if missing_schema:
+            missing.append(f"schema permissions: {missing_schema}")
+
+        return missing
+
+    def _grant_schema_permissions(self):
+        if not self.schema_permissions:
+            return
+        perms = ", ".join(self.schema_permissions)
+        self.pgcmd(
+            f'psql -d {self.db} -c "GRANT {perms} ON SCHEMA '
+            f'{self.schema} TO {self.user};"'
+        )
+
+    def _grant_table_permissions(self):
+        if not self.table_permissions:
+            return
+        tables_query = self.expand(
+            "psql -d {{component.db}} -qtAX "
+            '-c "SELECT tablename FROM pg_tables '
+            "WHERE schemaname = '{{component.schema}}';\""
+        )
+        out, _ = self.pgcmd(tables_query, silent=True)
+        tables = [t.strip() for t in out.strip().split("\n") if t.strip()]
+
+        if not tables:
+            return
+
+        tables_perms = ", ".join(self.table_permissions)
+        self.pgcmd(
+            f'psql -d {self.db} -c "GRANT {tables_perms} '
+            f'ON ALL TABLES IN SCHEMA {self.schema} TO {self.user};"'
+        )
+
+    def _grant_default_privileges(self):
+        if not self.table_permissions:
+            return
+        tables_perms = ", ".join(self.table_permissions)
+        self.pgcmd(
+            f'psql -d {self.db} -c "ALTER DEFAULT PRIVILEGES IN SCHEMA '
+            f'{self.schema} GRANT {tables_perms} ON TABLES TO {self.user};"'
         )

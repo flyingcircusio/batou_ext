@@ -189,4 +189,6 @@ def test_prepare(root, mocker, component, tmpdir):
         batou_ext.http.HTTPBasicAuth(
             **batou_ext.http.HTTPBasicAuth._required_params_
         ).prepare(root)
+    elif component_name == "batou_ext.postgres.Grant":
+        instance.db = "mydb"
     instance.prepare(root)
