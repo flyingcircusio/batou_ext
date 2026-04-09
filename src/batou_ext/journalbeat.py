@@ -17,5 +17,7 @@ class JournalBeatTransport(batou.component.Component):
     def configure(self):
         self += batou.lib.file.File(
             self.nix_file_path,
-            content=(files(__spec__.parent) / "resources/journalbeat.nix").read_bytes(),
+            content=(
+                files(__spec__.parent) / "resources/journalbeat.nix"
+            ).read_bytes(),
         )

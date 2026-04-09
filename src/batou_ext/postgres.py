@@ -165,7 +165,9 @@ class Extension(PostgresDataComponent):
         if self.extension_name is None:
             raise ValueError("Need to set extension name")
         if self.db is None:
-            raise ValueError("Need to specify a database to create extension in")
+            raise ValueError(
+                "Need to specify a database to create extension in"
+            )
 
     def verify(self):
         cmd_out, cmt_err = self.pgcmd(

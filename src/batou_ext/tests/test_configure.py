@@ -49,7 +49,9 @@ def pytest_generate_tests(metafunc):
     idlist = [dotted_name(x) for x in classes]
     argvalues = [(x,) for x in classes]
 
-    metafunc.parametrize(("component",), argvalues, ids=idlist, scope="function")
+    metafunc.parametrize(
+        ("component",), argvalues, ids=idlist, scope="function"
+    )
 
 
 def dotted_name(cls):
