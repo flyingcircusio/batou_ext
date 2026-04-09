@@ -1,5 +1,5 @@
 
-## 2.4.38 (unreleased)
+## 2.5.0 (2026-04-09)
 
 
 - Add `postgres.Grant()` component.
