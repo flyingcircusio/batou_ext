@@ -21,6 +21,7 @@ classifiers = [
 requires-python = ">=3.9"
 dependencies = [
     "batou >= 2.5",
+    "configupdater",
     "pyaml",
     "setuptools",
     "six",

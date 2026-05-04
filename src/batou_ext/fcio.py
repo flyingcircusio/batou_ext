@@ -5,13 +5,16 @@ import socket
 import sys
 import time
 import xmlrpc.client
+from pathlib import Path
 from pprint import pprint
+from typing import Any, Dict, Optional, Set, Tuple, Union
 
 import batou
 import batou.component
 import batou.environment
 import batou.lib.file
 import batou.template
+import configupdater
 
 
 class DNSAliases(batou.component.Component):
@@ -155,6 +158,132 @@ def create_xmlrpc_client(environment: batou.environment.Environment):
         api_url.format(project=rg_name, api_key=api_key)
     )
     return api
+
+
+def convert_api_value(api_key: str, api_value: Any) -> Any:
+    if api_key == "memory":
+        if api_value is None:
+            return None
+        return str(int(api_value) // 1024)
+    elif api_key == "classes":
+        if isinstance(api_value, list):
+            roles = [role.replace("role::", "") for role in api_value]
+            roles = [r for r in roles if r and r != "generic"]
+            roles.sort()
+            return roles
+        return api_value
+    elif api_key in ["aliases_srv", "aliases_fe"]:
+        if isinstance(api_value, list) and api_value:
+            return sorted(api_value)
+        return None
+    elif api_key in ["cores", "disk", "rbd_pool", "service_description"]:
+        return str(api_value) if api_value is not None else None
+    else:
+        return api_value
+
+
+def format_cfg_value(value: Any) -> str:
+    if value is None:
+        return ""
+    elif isinstance(value, list):
+        return "\n    ".join(str(v) for v in value)
+    else:
+        return str(value)
+
+
+def parse_cfg_value(item: Union[configupdater.Option, None]) -> Any:
+    if item is None:
+        return None
+
+    value_str = item.value
+    if value_str is None:
+        return None
+
+    value_str = value_str.strip()
+    if not value_str:
+        return None
+
+    if "\n" in value_str:
+        items = [item.strip() for item in value_str.split("\n") if item.strip()]
+        return items if items else None
+
+    try:
+        result = eval(value_str)
+        return result
+    except:
+        return value_str
+
+
+def values_equal(val1: Any, val2: Any) -> bool:
+    if val1 is None and val2 is None:
+        return True
+    if val1 is None or val2 is None:
+        return False
+
+    def normalize(v):
+        if isinstance(v, str):
+            if "\n" in v:
+                items = [item.strip() for item in v.split("\n") if item.strip()]
+                return sorted(items)
+            else:
+                return [v.strip()]
+        elif isinstance(v, list):
+            return sorted([str(item).strip() for item in v])
+        else:
+            return [str(v).strip()]
+
+    return normalize(val1) == normalize(val2)
+
+
+def get_config_vm_data(config: configupdater.ConfigUpdater) -> Dict[str, Dict]:
+    vm_data = {}
+
+    for section_name in config:
+        if section_name.startswith("host:"):
+            hostname = section_name[5:]
+            vm_data[hostname] = {
+                key: parse_cfg_value(item)
+                for key, item in config[section_name].items()
+            }
+
+    return vm_data
+
+
+def compare_vm_data(
+    live_vm: Dict, config_vm: Dict, mode: str = "diff"
+) -> Dict[str, Tuple]:
+    updates = {}
+
+    for api_key, cfg_key in [
+        ("cores", "cores"),
+        ("disk", "disk"),
+        ("memory", "ram"),
+        ("classes", "roles"),
+        ("rbd_pool", "rbdpool"),
+        ("service_description", "description"),
+        ("aliases_srv", "alias-srv"),
+        ("aliases_fe", "alias-fe"),
+    ]:
+        cfg_key_full = f"data-{cfg_key}"
+
+        live_value = live_vm.get(api_key)
+        config_value = config_vm.get(cfg_key_full)
+
+        converted_live = convert_api_value(api_key, live_value)
+
+        if converted_live is None or converted_live == "":
+            continue
+
+        if api_key == "service_description" and not converted_live:
+            continue
+
+        if mode == "all":
+            updates[cfg_key_full] = (config_value, converted_live)
+        elif mode == "diff":
+            if not values_equal(converted_live, config_value):
+                updates[cfg_key_full] = (config_value, converted_live)
+
+    return updates
 
 
 class Provision(batou.component.Component):
@@ -314,6 +443,169 @@ class Provision(batou.component.Component):
             )
         return result
 
+    def update_from_live(
+        self,
+        mode: str = "diff",
+        verbose: bool = False,
+        env_path: Optional[Path] = None,
+    ):
+        """Update environment.cfg from live FCIO API data."""
+        self.environment_ = self.load_env()
+        self.api = self.get_api()
+
+        print(f"Loading environment: {self.env_name}")
+
+        print("Connecting to FCIO API...")
+        try:
+            live_vms = {
+                vm["name"]: vm for vm in self.api.query("virtualmachine")
+            }
+            print(f"Found {len(live_vms)} VMs in live data")
+        except Exception as e:
+            print(f"Error querying FCIO API: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        if env_path is None:
+            env_dir = Path("environments") / self.env_name
+        else:
+            env_dir = env_path
+        cfg_path = env_dir / "environment.cfg"
+
+        if not cfg_path.exists():
+            print(f"Error: Config file not found: {cfg_path}", file=sys.stderr)
+            sys.exit(1)
+
+        config = configupdater.ConfigUpdater()
+        config.read(cfg_path)
+
+        config_vms = get_config_vm_data(config)
+        print(f"Found {len(config_vms)} hosts in environment.cfg")
+
+        live_only = set(live_vms.keys()) - set(config_vms.keys())
+        config_only = set(config_vms.keys()) - set(live_vms.keys())
+
+        if live_only:
+            print(
+                f"\nWarning: VMs in live data but not in config: {', '.join(sorted(live_only))}",
+                file=sys.stderr,
+            )
+        if config_only:
+            print(
+                f"Warning: Hosts in config but not in live data: {', '.join(sorted(config_only))}",
+                file=sys.stderr,
+            )
+
+        if live_only or config_only:
+            print("(These will be ignored)", file=sys.stderr)
+
+        print(f"\nComparing configurations (mode: {mode})...")
+
+        updated_hosts = 0
+        updated_fields = 0
+        environment_values = set()
+
+        common_vms = set(live_vms.keys()) & set(config_vms.keys())
+
+        for hostname in sorted(common_vms):
+            live_vm = live_vms[hostname]
+            config_vm = config_vms[hostname]
+
+            if "environment" in live_vm:
+                environment_values.add(live_vm["environment"])
+
+            updates = compare_vm_data(live_vm, config_vm, mode)
+
+            if updates:
+                section_name = f"host:{hostname}"
+                if verbose:
+                    print(f"\nUpdating [{section_name}]:")
+
+                for cfg_key, (old_value, new_value) in sorted(updates.items()):
+                    if cfg_key in config[section_name]:
+                        if isinstance(new_value, list):
+                            config[section_name][cfg_key].set_values(new_value)
+                        else:
+                            config[section_name][
+                                cfg_key
+                            ].value = format_cfg_value(new_value)
+                    else:
+                        if isinstance(new_value, list):
+                            config[section_name][cfg_key] = configupdater.Block(
+                                space_after=1
+                            )
+                            config[section_name][cfg_key].add_before(
+                                format_cfg_value(new_value)
+                            )
+                        else:
+                            config[section_name][cfg_key] = format_cfg_value(
+                                new_value
+                            )
+
+                    if verbose:
+                        old_str = (
+                            str(old_value)
+                            if old_value is not None
+                            else "(not set)"
+                        )
+                        print(
+                            f"  {cfg_key}: {old_str} → {format_cfg_value(new_value)}"
+                        )
+
+                    updated_fields += 1
+
+                updated_hosts += 1
+
+        if environment_values and len(environment_values) == 1:
+            env_value = environment_values.pop()
+
+            current_env = None
+            if "component:provision" in config:
+                if "vm_environment" in config["component:provision"]:
+                    current_env = parse_cfg_value(
+                        config["component:provision"]["vm_environment"]
+                    )
+
+            if mode == "all" or not values_equal(env_value, current_env):
+                if "component:provision" not in config:
+                    print(
+                        "Warning: [component:provision] section not found",
+                        file=sys.stderr,
+                    )
+                else:
+                    config["component:provision"]["vm_environment"] = env_value
+                    if verbose:
+                        current_str = (
+                            str(current_env)
+                            if current_env is not None
+                            else "(not set)"
+                        )
+                        print(f"\nUpdating [component:provision]:")
+                        print(f"  vm_environment: {current_str} → {env_value}")
+                    updated_fields += 1
+        elif environment_values and len(environment_values) > 1:
+            print(
+                f"Warning: Conflicting environment values: {environment_values}",
+                file=sys.stderr,
+            )
+
+        if updated_fields == 0:
+            print("No updates needed")
+            return
+
+        print(
+            f"\nUpdated {updated_fields} fields in {updated_hosts} host section(s)"
+        )
+
+        if self.dry_run:
+            print("\nDry run mode - no changes will be made")
+            if verbose:
+                print("\nWould write:")
+                print(str(config))
+            return
+
+        config.update_file()
+        print(f"Updated {cfg_path}")
+
 
 class DirectoryXMLRPC(batou.component.Component):
     rg_name = batou.component.Attribute(str, default=None)
@@ -430,7 +722,30 @@ def main():
     p.add_argument(
         "-d", "--diff", help="Show changes in resources", action="store_true"
     )
+
     p.set_defaults(func=lambda **kw: Provision(**kw).apply())
+
+    p = subparsers.add_parser(
+        "update-env",
+        help="Update environment.cfg from live FCIO API data",
+    )
+    p.add_argument("env_name", help="Environment")
+    p.add_argument("-n", "--dry-run", help="Dry run", action="store_true")
+    p.add_argument(
+        "--all",
+        help="Update ALL provisioned fields when using --update",
+        action="store_true",
+    )
+    p.add_argument(
+        "-v", "--verbose", help="Show detailed output", action="store_true"
+    )
+
+    def update_handler(*, env_name, **kw):
+        provision = Provision(env_name=env_name, dry_run=kw.get("dry_run"))
+        mode = "all" if kw.get("all") else "diff"
+        provision.update_from_live(mode=mode, verbose=kw.get("verbose", False))
+
+    p.set_defaults(func=update_handler)
 
     args = parser.parse_args()
 
