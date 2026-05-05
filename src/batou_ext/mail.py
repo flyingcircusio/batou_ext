@@ -3,6 +3,7 @@ from textwrap import dedent
 
 import batou.component
 import batou.lib.file
+import batou.utils
 
 import batou_ext.nix
 import batou_ext.ssl
@@ -30,12 +31,19 @@ class PostfixRelay(batou.component.Component):
     smtp_user = batou.component.Attribute(str)
     smtp_password = batou.component.Attribute(str)
 
+    my_networks = batou.component.Attribute("list", default=[])
+    """Overwrite default mynetworks from service.
+
+    This allows to e.g. to send mail from docker containers.
+    """
+
     provide_as = None  # (optional) str to self.provide()
 
     def configure(self):
         if self.provide_as:
             self.provide(self.provide_as, self)
         self.address = batou.utils.Address(self.host.fqdn, 25, require_v6=True)
+
         self += batou.lib.file.File(
             "/etc/local/nixos/postfix-relay.nix",
             content=dedent(
@@ -43,18 +51,25 @@ class PostfixRelay(batou.component.Component):
                     """
                     {
                         services.postfix.settings.main = {
-                            relayhost = ["{{component.smtp_relay_host}}:{{component.smtp_relay_port}}"];
+                            relayhost = ["[{{component.smtp_relay_host}}]:{{component.smtp_relay_port}}"];
                             {% if component.smtp_auth %}
                             smtp_sasl_auth_enable = "yes";
                             smtp_sasl_password_maps = "hash:/etc/local/postfix/sasl_passwd";
                             smtp_sasl_security_options = "noanonymous";
-                            {% endif %}
+                            {%- endif %}
                             {% if component.smtp_tls %}
-                            smtp_use_tls = "yes";
-                            {% endif %}
+                            smtp_tls_security_level = "encrypt";
+                            {%- endif %}
+                            {% if component.my_networks %}
+                            mynetworks = [
+                              {%- for network in component.my_networks %}
+                              "{{network}}"
+                              {%- endfor %}
+                            ];
+                            {%- endif %}
                         };
                     }
-    """
+                    """
                 )
             ),
         )
