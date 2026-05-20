@@ -1,4 +1,10 @@
 
+## 2.5.2 (unreleased)
+
+
+- Nothing changed yet.
+
+
 ## 2.5.1 (2026-05-20)
 
 
