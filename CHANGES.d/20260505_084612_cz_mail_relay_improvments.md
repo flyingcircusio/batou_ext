@@ -1,3 +1,0 @@
-- PostfixRelay: Fix setting of relay hostname to not require `[]`.
-- PostfixRelay: Allow to set `my_networks`.
-- PostfixRelay: Modernise config: use `smtp_tls_security_level`

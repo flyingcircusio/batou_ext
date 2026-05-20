@@ -1,1 +1,0 @@
-- Add method to sync live FCIO platform resources back to environment files. See `./appenv run -- fcio update-env --help` for details.

@@ -2,7 +2,11 @@
 ## 2.5.1 (unreleased)
 
 
-- Nothing changed yet.
+- Add method to sync live FCIO platform resources back to environment files. See `./appenv run -- fcio update-env --help` for details.
+
+- PostfixRelay: Fix setting of relay hostname to not require `[]`.
+- PostfixRelay: Allow to set `my_networks`.
+- PostfixRelay: Modernise config: use `smtp_tls_security_level`
 
 
 ## 2.5.0 (2026-04-09)
