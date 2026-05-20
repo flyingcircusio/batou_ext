@@ -1,5 +1,5 @@
 
-## 2.5.1 (unreleased)
+## 2.5.1 (2026-05-20)
 
 
 - Add method to sync live FCIO platform resources back to environment files. See `./appenv run -- fcio update-env --help` for details.
