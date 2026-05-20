@@ -25,12 +25,7 @@ fi
 
 cd $(dirname $0)
 
-envdir=$(mktemp -d)
-uv venv $envdir
-uv pip install -p $envdir/bin/python zest.releaser scriv
-
-
-$envdir/bin/scriv collect
+uvx scriv collect
 
 sed  -i .orig '/- Nothing changed yet./ { N; d; } ' CHANGES.md
 git add -A .
@@ -39,7 +34,4 @@ PAGER= git diff --cached
 echo "Press enter to commit, Ctrl-C to abort."
 read
 git commit -m "Prepare changelog for release"
-
-$envdir/bin/fullrelease
-
-rm -rf $envdir
+uvx --from zest.releaser fullrelease
