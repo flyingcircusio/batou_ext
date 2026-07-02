@@ -1,0 +1,1 @@
+- oci.Container: add a pull_policy attribute that enables more control than pull_always which is now deprecated

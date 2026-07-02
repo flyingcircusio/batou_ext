@@ -144,6 +144,10 @@ class Container(Component):
 
     health_cmd = Attribute(str, None)
     user = Attribute(str, None)
+
+    # valid values are "never", "always", "missing", and (if using podman) "newer"
+    pull_policy = Attribute(str, None)
+    # deprecated, do not use
     pull_always = Attribute("literal", True)
 
     # Set up monitoring
@@ -179,6 +183,29 @@ class Container(Component):
             if self.require("oci:podman", strict=False, host=self.host)
             else "docker"
         )
+
+        if self.pull_policy and self.pull_policy not in [
+            "never",
+            "always",
+            "newer",
+            "missing",
+        ]:
+            raise batou.ConfigurationError.from_context(
+                f'Unknown pull policy: {self.pull_policy}. Available policies are "never", "always", "newer" and "missing"'
+            )
+
+        if self.pull_policy == "newer" and not self.backend == "podman":
+            raise batou.ConfigurationError.from_context(
+                "pull policy `newer` is only available when running podman"
+            )
+
+        if not self.pull_policy:
+            if self.pull_always:
+                self.pull_policy = (
+                    "newer" if self.backend == "podman" else "always"
+                )
+            else:
+                self.pull_policy = "missing"
 
         if (
             self.registry_user or self.registry_password
