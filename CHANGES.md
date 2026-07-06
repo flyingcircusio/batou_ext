@@ -2,7 +2,7 @@
 ## 2.5.2 (unreleased)
 
 
-- Nothing changed yet.
+- oci.Container: add a pull_policy attribute that enables more control than pull_always which is now deprecated
 
 
 ## 2.5.1 (2026-05-20)
