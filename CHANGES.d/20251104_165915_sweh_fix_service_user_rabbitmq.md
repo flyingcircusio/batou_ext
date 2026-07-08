@@ -1,0 +1,1 @@
+- `rabbitmq` commands should be run as the `rabbitmq` user
