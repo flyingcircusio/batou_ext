@@ -1,0 +1,1 @@
+- UserEnv: handle the adjusted output of `nix derivation show` introduced in Nix 2.34+
