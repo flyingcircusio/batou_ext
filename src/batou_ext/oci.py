@@ -167,6 +167,9 @@ class Container(Component):
     extra_options: list = []
     oneshot: bool = False
 
+    # Debug option, to show diff for the env file
+    insecure: bool = False
+
     # secrets
     registry_address = Attribute(Optional[str], None)
     registry_user = Attribute(Optional[str], None)
@@ -234,7 +237,7 @@ class Container(Component):
         if self.envfile is None:
             self += File(
                 f"{self.container_name}_env",
-                sensitive_data=True,
+                sensitive_data=not self.insecure,
                 content="""{% for key, value in component.env.items() | sort -%}
 {{key}}={{value}}
 {% endfor %}""",
