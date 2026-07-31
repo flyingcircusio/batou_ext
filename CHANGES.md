@@ -1,5 +1,5 @@
 
-## 2.5.3 (unreleased)
+## 2.5.3 (2026-07-31)
 
 
 - OCI: Add debug option to show env diff.
