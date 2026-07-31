@@ -139,7 +139,7 @@ def set_versions(versions_ini: str, target_versions: dict):
 
 
 def main():
-    basedir = os.environ.get("APPENV_BASEDIR", os.path.dirname(sys.argv[0]))
+    basedir = os.environ.get("APPENV_BASEDIR", ".")
 
     parser = argparse.ArgumentParser()
     parser.add_argument(

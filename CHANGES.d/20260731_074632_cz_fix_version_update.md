@@ -1,0 +1,1 @@
+- Fix version update (./appenv run versions) with uv based appenv.
