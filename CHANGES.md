@@ -2,7 +2,11 @@
 ## 2.5.3 (unreleased)
 
 
-- Nothing changed yet.
+- OCI: Add debug option to show env diff.
+
+- Fix version update (./appenv run versions) with uv based appenv.
+
+- UserEnv: handle the adjusted output of `nix derivation show` introduced in Nix 2.34+
 
 
 ## 2.5.2 (2026-07-06)
