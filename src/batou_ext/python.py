@@ -364,10 +364,21 @@ class BuildEnv(Component):
         assert env_mtime >= nix_mtime
 
         out, err = self.cmd(f"nix derivation show -f '{self.nix_file}'")
-        derivation = json.loads(out)
-        expected_store_path = list(derivation.values())[0]["outputs"]["out"][
-            "path"
-        ]
+        derivations = json.loads(out)
+        # Nix 2.34+ syntax
+        if "derivations" in derivations:
+            expected_store_path = (
+                "/nix/store/"
+                + list(derivations["derivations"].values())[0]["outputs"][
+                    "out"
+                ]["path"]
+            )
+        # Old syntax
+        else:
+            expected_store_path = list(derivations.values())[0]["outputs"][
+                "out"
+            ]["path"]
+
         try:
             current_store_path = os.path.realpath(self.env_dir)
         except OSError:
