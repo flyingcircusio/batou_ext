@@ -1,6 +1,6 @@
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import configupdater
 import pytest
@@ -401,6 +401,322 @@ class TestCompareVMData:
         config_vm = {}
         result = fcio.compare_vm_data(live_vm, config_vm, mode="diff")
         assert len(result) == 0
+
+
+class TestProvisionApply:
+    """Tests for Provision.apply method."""
+
+    @patch("batou_ext.fcio.create_xmlrpc_client")
+    @patch("batou.environment.Environment")
+    def test_apply_with_missing_cores_no_error(
+        self, mock_env_class, mock_create_client
+    ):
+        """Test that missing cores data does not raise error (after fix)."""
+        mock_env = Mock()
+        mock_env.name = "testenv"
+        mock_env.load = Mock()
+        mock_env.load_secrets = Mock()
+        mock_env.exceptions = []
+        mock_env.overrides = {
+            "provision": {
+                "project": "testproject",
+                "api_key": "testkey",
+                "vm_environment": "testenv",
+            }
+        }
+        mock_env.service_user = "testuser"
+
+        mock_host = Mock()
+        mock_host.name = "testhost01"
+        mock_host.data = {
+            "disk": "50",
+            "ram": "8",
+            "roles": "web",
+            "environment": "testenv",
+        }
+        mock_env.hosts = {"testhost01": mock_host}
+
+        mock_env_class.return_value = mock_env
+
+        mock_api = Mock()
+        mock_api.query.return_value = []
+        mock_create_client.return_value = mock_api
+
+        provision = fcio.Provision(env_name="testenv", diff=True, dry_run=True)
+
+        provision.apply()
+
+    @patch("batou_ext.fcio.create_xmlrpc_client")
+    @patch("batou.environment.Environment")
+    def test_apply_with_missing_cores_no_error(
+        self, mock_env_class, mock_create_client
+    ):
+        """Test that missing cores data does not raise error (after fix)."""
+        mock_env = Mock()
+        mock_env.name = "testenv"
+        mock_env.load = Mock()
+        mock_env.load_secrets = Mock()
+        mock_env.exceptions = []
+        mock_env.overrides = {
+            "provision": {
+                "project": "testproject",
+                "api_key": "testkey",
+                "vm_environment": "testenv",
+            }
+        }
+        mock_env.service_user = "testuser"
+
+        mock_host = Mock()
+        mock_host.name = "testhost01"
+        mock_host.data = {
+            "disk": "50",
+            "ram": "8",
+            "roles": "web",
+            "environment": "testenv",
+        }
+        mock_env.hosts = {"testhost01": mock_host}
+
+        mock_env_class.return_value = mock_env
+
+        mock_api = Mock()
+        mock_api.query.return_value = []
+        mock_create_client.return_value = mock_api
+
+        provision = fcio.Provision(env_name="testenv", diff=True, dry_run=True)
+
+        provision.apply()
+
+    @patch("batou_ext.fcio.create_xmlrpc_client")
+    @patch("batou.environment.Environment")
+    def test_apply_with_missing_disk_no_error(
+        self, mock_env_class, mock_create_client
+    ):
+        """Test that missing disk data does not raise error (after fix)."""
+        mock_env = Mock()
+        mock_env.name = "testenv"
+        mock_env.load = Mock()
+        mock_env.load_secrets = Mock()
+        mock_env.exceptions = []
+        mock_env.overrides = {
+            "provision": {
+                "project": "testproject",
+                "api_key": "testkey",
+                "vm_environment": "testenv",
+            }
+        }
+        mock_env.service_user = "testuser"
+
+        mock_host = Mock()
+        mock_host.name = "testhost01"
+        mock_host.data = {
+            "cores": "4",
+            "ram": "8",
+            "roles": "web",
+            "environment": "testenv",
+        }
+        mock_env.hosts = {"testhost01": mock_host}
+
+        mock_env_class.return_value = mock_env
+
+        mock_api = Mock()
+        mock_api.query.return_value = []
+        mock_create_client.return_value = mock_api
+
+        provision = fcio.Provision(env_name="testenv", diff=True, dry_run=True)
+
+        provision.apply()
+
+    @patch("batou_ext.fcio.create_xmlrpc_client")
+    @patch("batou.environment.Environment")
+    def test_apply_with_missing_ram_no_error(
+        self, mock_env_class, mock_create_client
+    ):
+        """Test that missing ram data does not raise error (after fix)."""
+        mock_env = Mock()
+        mock_env.name = "testenv"
+        mock_env.load = Mock()
+        mock_env.load_secrets = Mock()
+        mock_env.exceptions = []
+        mock_env.overrides = {
+            "provision": {
+                "project": "testproject",
+                "api_key": "testkey",
+                "vm_environment": "testenv",
+            }
+        }
+        mock_env.service_user = "testuser"
+
+        mock_host = Mock()
+        mock_host.name = "testhost01"
+        mock_host.data = {
+            "cores": "4",
+            "disk": "50",
+            "roles": "web",
+            "environment": "testenv",
+        }
+        mock_env.hosts = {"testhost01": mock_host}
+
+        mock_env_class.return_value = mock_env
+
+        mock_api = Mock()
+        mock_api.query.return_value = []
+        mock_create_client.return_value = mock_api
+
+        provision = fcio.Provision(env_name="testenv", diff=True, dry_run=True)
+
+        provision.apply()
+
+    @patch("batou_ext.fcio.create_xmlrpc_client")
+    @patch("batou.environment.Environment")
+    def test_apply_with_partial_data_no_error(
+        self, mock_env_class, mock_create_client
+    ):
+        """Test that VM with only partial provisioning data does not raise error."""
+        mock_env = Mock()
+        mock_env.name = "testenv"
+        mock_env.load = Mock()
+        mock_env.load_secrets = Mock()
+        mock_env.exceptions = []
+        mock_env.overrides = {
+            "provision": {
+                "project": "testproject",
+                "api_key": "testkey",
+                "vm_environment": "testenv",
+            }
+        }
+        mock_env.service_user = "testuser"
+
+        mock_host = Mock()
+        mock_host.name = "testhost01"
+        mock_host.data = {
+            "roles": "web",
+            "environment": "testenv",
+        }
+        mock_env.hosts = {"testhost01": mock_host}
+
+        mock_env_class.return_value = mock_env
+
+        mock_api = Mock()
+        mock_api.query.return_value = []
+        mock_create_client.return_value = mock_api
+
+        provision = fcio.Provision(env_name="testenv", diff=True, dry_run=True)
+
+        provision.apply()
+
+    @patch("batou_ext.fcio.create_xmlrpc_client")
+    @patch("batou.environment.Environment")
+    def test_apply_omits_values_when_missing_from_config(
+        self, mock_env_class, mock_create_client
+    ):
+        """Test that missing config values are omitted from API call."""
+        mock_env = Mock()
+        mock_env.name = "testenv"
+        mock_env.load = Mock()
+        mock_env.load_secrets = Mock()
+        mock_env.exceptions = []
+        mock_env.overrides = {
+            "provision": {
+                "project": "testproject",
+                "api_key": "testkey",
+                "vm_environment": "testenv",
+            }
+        }
+        mock_env.service_user = "testuser"
+
+        mock_host = Mock()
+        mock_host.name = "testhost01"
+        mock_host.data = {
+            "cores": "4",
+            "roles": "web",
+            "environment": "testenv",
+        }
+        mock_env.hosts = {"testhost01": mock_host}
+
+        mock_env_class.return_value = mock_env
+
+        mock_api = Mock()
+        mock_api.query.return_value = []
+        mock_create_client.return_value = mock_api
+
+        provision = fcio.Provision(env_name="testenv", diff=True, dry_run=True)
+
+        provision.apply()
+
+        # Get the call that would be sent to the API
+        # We need to capture what was passed to get_diff
+        calls_sent = []
+        original_get_diff = provision.get_diff
+
+        def capture_get_diff(old, new):
+            calls_sent.append(new)
+            return original_get_diff(old, new)
+
+        provision.get_diff = capture_get_diff
+        provision.apply()
+
+        # Check that only explicitly set fields are included, others are omitted
+        new_config = calls_sent[0][0]
+        assert new_config["cores"] == 4  # from config
+        assert "disk" not in new_config  # omitted, not in config
+        assert "memory" not in new_config  # omitted, not in config
+        assert "frontend_ips_v4" not in new_config  # omitted, not in config
+        assert "frontend_ips_v6" not in new_config  # omitted, not in config
+        assert "service_description" not in new_config  # omitted, not in config
+        assert "rbd_pool" not in new_config  # omitted, not in config
+
+    @patch("batou_ext.fcio.create_xmlrpc_client")
+    @patch("batou.environment.Environment")
+    def test_apply_omits_classes_when_roles_missing(
+        self, mock_env_class, mock_create_client
+    ):
+        """Test that classes are omitted when roles are not specified in config."""
+        mock_env = Mock()
+        mock_env.name = "testenv"
+        mock_env.load = Mock()
+        mock_env.load_secrets = Mock()
+        mock_env.exceptions = []
+        mock_env.overrides = {
+            "provision": {
+                "project": "testproject",
+                "api_key": "testkey",
+                "vm_environment": "testenv",
+            }
+        }
+        mock_env.service_user = "testuser"
+
+        mock_host = Mock()
+        mock_host.name = "testhost01"
+        mock_host.data = {
+            "cores": "4",
+            "environment": "testenv",
+        }
+        mock_env.hosts = {"testhost01": mock_host}
+
+        mock_env_class.return_value = mock_env
+
+        mock_api = Mock()
+        mock_api.query.return_value = []
+        mock_create_client.return_value = mock_api
+
+        provision = fcio.Provision(env_name="testenv", diff=True, dry_run=True)
+
+        provision.apply()
+
+        # Get the call that would be sent to the API
+        calls_sent = []
+        original_get_diff = provision.get_diff
+
+        def capture_get_diff(old, new):
+            calls_sent.append(new)
+            return original_get_diff(old, new)
+
+        provision.get_diff = capture_get_diff
+        provision.apply()
+
+        # Check that classes are omitted when roles are not specified
+        new_config = calls_sent[0][0]
+        assert "classes" not in new_config  # omitted when roles not in config
 
 
 class TestProvisionUpdateFromLive:
