@@ -338,33 +338,52 @@ class Provision(batou.component.Component):
         vms = []
         for name, host in sorted(self.environment_.hosts.items()):
             d = host.data
-            roles = d.get("roles", "").splitlines()
-            classes = ["role::" + r for r in roles if r]
 
             if d.get("environment", config("vm_environment")) is None:
                 raise ValueError(
                     "'environment' for {} must be set.".format(name)
                 )
 
-            call = dict(
-                __type__="virtualmachine",
-                cores=int(d["cores"]),
-                disk=max(int(d["disk"]), 30),
-                memory=int(d["ram"]) * 1024,
-                online=True,
-                name=host.name,
-                classes=classes,
-                resource_group=rg_name,
-                environment_class=d.get(
+            # Build base call - only include required fields
+            call = {
+                "__type__": "virtualmachine",
+                "online": True,
+                "name": host.name,
+                "resource_group": rg_name,
+                "environment_class": d.get(
                     "environment_class", config("vm_environment_class")
                 ),
-                environment=d.get("environment", config("vm_environment")),
-                location=config("location"),
-                rbd_pool=d.get("rbdpool", "rbd.hdd"),
-                frontend_ips_v4=int(d.get("frontend-ipv4", 0)),
-                frontend_ips_v6=int(d.get("frontend-ipv6", 0)),
-                service_description=d.get("description", ""),
-            )
+                "environment": d.get("environment", config("vm_environment")),
+                "location": config("location"),
+            }
+
+            # Only add optional fields if they are present in host data
+            if "roles" in d:
+                roles = d.get("roles", "").splitlines()
+                classes = ["role::" + r for r in roles if r]
+                if classes:
+                    call["classes"] = classes
+
+            if "cores" in d:
+                call["cores"] = int(d["cores"])
+
+            if "disk" in d:
+                call["disk"] = max(int(d["disk"]), 30)
+
+            if "ram" in d:
+                call["memory"] = int(d["ram"]) * 1024
+
+            if "rbdpool" in d:
+                call["rbd_pool"] = d["rbdpool"]
+
+            if "frontend-ipv4" in d:
+                call["frontend_ips_v4"] = int(d["frontend-ipv4"])
+
+            if "frontend-ipv6" in d:
+                call["frontend_ips_v6"] = int(d["frontend-ipv6"])
+
+            if "description" in d:
+                call["service_description"] = d["description"]
 
             def alias(interface):
                 aliases = d.get("alias-" + interface)

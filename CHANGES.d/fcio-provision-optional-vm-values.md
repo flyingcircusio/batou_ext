@@ -1,0 +1,1 @@
+- FCIO provision: Make VM provisioning values (cores, disk, ram, etc.) optional. Values not present in host configuration are omitted from API calls instead of raising KeyError. This allows partial configuration data - the FCIO API will preserve existing values for omitted keys.
