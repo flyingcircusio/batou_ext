@@ -734,3 +734,73 @@ class TestProvisionUpdateFromLive:
             captured = capsys.readouterr()
             assert "Hosts in config but not in live data" in captured.err
             assert "testhost02" in captured.err
+
+    @patch("batou_ext.fcio.create_xmlrpc_client")
+    @patch("batou.environment.Environment")
+    def test_update_from_live_new_key_with_list_value(
+        self, mock_env_class, mock_create_client
+    ):
+        """Test adding a new multi-line (list) key that doesn't exist in config."""
+        live_vms = {
+            "testhost03": {
+                "name": "testhost03",
+                "cores": 4,
+                "disk": 50,
+                "memory": 8192,
+                "classes": ["role::web"],
+                "rbd_pool": "rbd.ssd",
+                "service_description": "Test server",
+                "aliases_srv": ["srv01", "srv02"],
+                "aliases_fe": [],
+                "environment": "production",
+            },
+        }
+        config_content = """[host:testhost03]
+data-cores = 2
+data-disk = 30
+data-ram = 4
+data-roles =
+    web
+data-rbdpool = rbd.hdd
+"""
+
+        mock_env = Mock()
+        mock_env.name = "testenv"
+        mock_env.load = Mock()
+        mock_env.load_secrets = Mock()
+        mock_env.exceptions = []
+        mock_env.overrides = {
+            "provision": {"project": "testproject", "api_key": "testkey"}
+        }
+        mock_env_class.return_value = mock_env
+
+        mock_api = Mock()
+        mock_api.query.return_value = list(live_vms.values())
+        mock_create_client.return_value = mock_api
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            env_dir = Path(tmpdir) / "environments" / "testenv"
+            env_dir.mkdir(parents=True)
+            cfg_path = env_dir / "environment.cfg"
+            cfg_path.write_text(config_content)
+
+            provision = fcio.Provision(env_name="testenv", dry_run=False)
+            with patch.object(provision, "load_env", return_value=mock_env):
+                with patch.object(provision, "get_api", return_value=mock_api):
+                    provision.update_from_live(
+                        mode="diff", verbose=False, env_path=env_dir
+                    )
+
+            config = configupdater.ConfigUpdater()
+            config.read(cfg_path)
+
+            # data-alias-srv was not in config — should be added with list values
+            assert (
+                config["host:testhost03"]["data-alias-srv"].value
+                == "\nsrv01\nsrv02"
+            )
+            # data-description was not in config — should be added
+            assert (
+                config["host:testhost03"]["data-description"].value
+                == "Test server"
+            )

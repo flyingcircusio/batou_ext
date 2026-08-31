@@ -529,17 +529,7 @@ class Provision(batou.component.Component):
                                 cfg_key
                             ].value = format_cfg_value(new_value)
                     else:
-                        if isinstance(new_value, list):
-                            config[section_name][cfg_key] = configupdater.Block(
-                                space_after=1
-                            )
-                            config[section_name][cfg_key].add_before(
-                                format_cfg_value(new_value)
-                            )
-                        else:
-                            config[section_name][cfg_key] = format_cfg_value(
-                                new_value
-                            )
+                        config[section_name].set(cfg_key, new_value)
 
                     if verbose:
                         old_str = (
