@@ -32,7 +32,6 @@ in {
       # Allow child processes of ExecStart
       # to do `sd_notify(3)`.
       NotifyAccess = "all";
-      Restart = "always";
       TimeoutStartSec = lib.mkForce "{{ component.start_timeout }}";
       WatchdogSec = "{{ component.watchdog_interval }}";
 
