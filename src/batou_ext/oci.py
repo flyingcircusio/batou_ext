@@ -28,7 +28,9 @@ class PodmanRuntime(Component):
             "/etc/local/nixos/oci-backend.nix",
             content=dedent(
                 """\
-        {
+        { lib, ... }: {
+          virtualisation.docker.enable = lib.mkForce false;
+          virtualisation.podman.dockerCompat = true;
           virtualisation.podman.enable = true;
         }
         """
