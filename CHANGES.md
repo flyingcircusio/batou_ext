@@ -2,7 +2,7 @@
 ## 2.5.5 (unreleased)
 
 
-- Nothing changed yet.
+- fix(SymlinkAndCleanup): catch the correct error when a removal candidate is not present
 
 
 ## 2.5.4 (2026-10-12)
