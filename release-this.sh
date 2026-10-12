@@ -25,7 +25,7 @@ fi
 
 cd $(dirname $0)
 
-uvx scriv collect
+uvx --from 'scriv[toml]' scriv collect
 
 sed  -i .orig '/- Nothing changed yet./ { N; d; } ' CHANGES.md
 git add -A .

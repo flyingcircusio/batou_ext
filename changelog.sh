@@ -2,4 +2,4 @@
 
 set -ex
 
-exec uvx scriv create --edit
+uvx --from 'scriv[toml]' scriv create --edit
