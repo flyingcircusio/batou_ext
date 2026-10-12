@@ -96,25 +96,25 @@ class SymlinkAndCleanup(batou.component.Component):
             pass
 
     def _list_removals(self):
-        candidates = glob.glob(self.pattern)
-        candidates.extend(glob.glob(self.pattern + self.etag_suffix))
+        candidates = set(glob.glob(self.pattern))
+        candidates |= set(glob.glob(self.pattern + self.etag_suffix))
 
         current = self._link(self._current_link)
         last = self._link(self._last_link)
+
+        # always keep current
+        self.remove(candidates, current)
+        if current is not None:
+            self.remove(candidates, current + self.etag_suffix)
+
         if current == self.current:
-            # keep last+current
-            self.remove(candidates, current)
+            # keep last
             self.remove(candidates, last)
-            if current is not None:
-                self.remove(candidates, current + self.etag_suffix)
             if last is not None:
                 self.remove(candidates, last + self.etag_suffix)
         else:
-            # keep current + new current"
-            self.remove(candidates, current)
+            # keep new current
             self.remove(candidates, self.current)
-            if current is not None:
-                self.remove(candidates, current + self.etag_suffix)
             if self.current is not None:
                 self.remove(candidates, self.current + self.etag_suffix)
 
@@ -159,7 +159,7 @@ class SymlinkAndCleanup(batou.component.Component):
                 batou.output.annotate("Nothing to remove.")
 
             for c in candidates:
-                batou.output.annotate(f"Removing: {candidates}")
+                batou.output.annotate(f"Removing: {c}")
                 self.trash.discard(c)
 
 
