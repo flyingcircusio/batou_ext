@@ -1,1 +1,0 @@
-- HttpWatchdog: Remove some deprecated configuration that could lead to conflicts with the base NixOS system
