@@ -1,0 +1,1 @@
+- fix(SymlinkAndCleanup): catch the correct error when a removal candidate is not present

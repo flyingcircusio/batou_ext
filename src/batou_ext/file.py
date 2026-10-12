@@ -92,7 +92,7 @@ class SymlinkAndCleanup(batou.component.Component):
     def remove(links, el):
         try:
             links.remove(el)
-        except ValueError:
+        except KeyError:
             pass
 
     def _list_removals(self):
