@@ -1,5 +1,5 @@
 
-## 2.5.4 (unreleased)
+## 2.5.4 (2026-10-12)
 
 
 - Fix env updater's wrong use of configupdater.
