@@ -1,5 +1,5 @@
 
-## 2.5.5 (unreleased)
+## 2.5.5 (2026-10-12)
 
 
 - fix(SymlinkAndCleanup): catch the correct error when a removal candidate is not present
