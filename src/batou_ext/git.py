@@ -163,8 +163,9 @@ class Remote(batou.component.Component):
     bootstrapping e.g. a new environment where `git_repo` doesn't exist
     yet.
 
-    To solve that, it's possible to let the component do nothing if
-    `git_repo` doesn't exist like this:
+    To solve that, it's possible to let the component do nothing while
+    `git_repo` is not a git checkout yet (i.e. the path is missing or has
+    no `.git` directory) like this:
 
         self += batou_ext.git.Remote(
             "/path/to/linux",
@@ -182,11 +183,12 @@ class Remote(batou.component.Component):
         if not os.path.exists(self.git_repo):
             if self.ignore_not_existing:
                 return
-            else:
-                raise ValueError(
-                    f"batou_ext.git.Remote({self.git_repo}): path does not exist!"
-                )
-        elif not os.path.exists(f"{self.git_repo}/.git"):
+            raise ValueError(
+                f"batou_ext.git.Remote({self.git_repo}): path does not exist!"
+            )
+        if not os.path.exists(f"{self.git_repo}/.git"):
+            if self.ignore_not_existing:
+                return
             raise ValueError(
                 f"batou_ext.git.Remote({self.git_repo}): not a git repository!"
             )
